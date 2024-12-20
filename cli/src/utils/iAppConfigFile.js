@@ -5,6 +5,7 @@ import { CONFIG_FILE } from '../config/config.js';
 
 const jsonConfigFileSchema = z.object({
   projectName: z.string(),
+  isHelloWorld: z.boolean(),
   dockerhubUsername: z.string().optional(),
   dockerhubAccessToken: z.string().optional(),
   walletAddress: z.string().optional(),

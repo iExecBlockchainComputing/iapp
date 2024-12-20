@@ -11,13 +11,14 @@ import {
 import { debug } from './debug.js';
 import { copy } from './fs.utils.js';
 
-export async function initHelloWorldApp({
+export async function setUpFramework({
   projectName,
   useArgs = false,
   useProtectedData = false,
   useInputFile = false,
   useRequesterSecret = false,
   useAppSecret = false,
+  isHelloWorld = true,
 }) {
   try {
     // Copy template
@@ -31,7 +32,7 @@ export async function initHelloWorldApp({
       useAppSecret,
     });
     // Create other files
-    await createConfigurationFiles({ projectName });
+    await createConfigurationFiles({ projectName, isHelloWorld });
     await createProjectDirectories();
   } catch (err) {
     debug('Error during project initialization:', err);
@@ -47,10 +48,11 @@ async function createProjectDirectories() {
   ]);
 }
 
-async function createConfigurationFiles({ projectName }) {
+async function createConfigurationFiles({ projectName, isHelloWorld }) {
   // Create a simple iApp configuration file
   const configContent = {
     projectName: projectName,
+    isHelloWorld: isHelloWorld,
   };
   await fs.writeFile(
     CONFIG_FILE,

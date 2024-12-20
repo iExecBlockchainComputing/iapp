@@ -24,25 +24,23 @@ import { copy, fileExists } from '../utils/fs.utils.js';
 
 export async function test({
   args,
-  protectedData: protectedDataMock,
+  protectedData: protectedDataMock = 'default',
   inputFile: inputFiles = [], // rename variable (it's an array)
   requesterSecret: requesterSecrets = [], // rename variable (it's an array)
 }) {
   const spinner = getSpinner();
   try {
     // Simply check that an iapp.config.json file exists
-    await readIAppConfig();
+    const { isHelloWorld } = await readIAppConfig();
     await cleanTestInput({ spinner });
     await cleanTestOutput({ spinner });
     await testApp({
+      isHelloWorld,
       args,
       inputFiles,
       requesterSecrets,
       spinner,
-      protectedDataMock:
-        protectedDataMock !== undefined
-          ? protectedDataMock || 'default'
-          : protectedDataMock,
+      protectedDataMock: protectedDataMock,
     });
     await checkTestOutput({ spinner });
     await askShowResult({ spinner, outputPath: TEST_OUTPUT_DIR });
@@ -88,13 +86,18 @@ function parseArgsString(args = '') {
 }
 
 export async function testApp({
+  isHelloWorld,
   args = undefined,
   inputFiles = [],
   requesterSecrets = [],
   spinner,
   protectedDataMock,
 }) {
-  const appSecret = await askForAppSecret({ spinner });
+  console.log('🚀 ~ protectedDataMock:', protectedDataMock);
+  let appSecret;
+  if (!isHelloWorld) {
+    appSecret = await askForAppSecret({ spinner });
+  }
 
   // just start the spinner, no need to persist success in terminal
   spinner.start('Checking docker daemon is running...');

@@ -3,7 +3,7 @@ import boxen from 'boxen';
 import figlet from 'figlet';
 import { mkdir } from 'node:fs/promises';
 import { folderExists } from '../utils/fs.utils.js';
-import { initHelloWorldApp } from '../utils/initHelloWorldApp.js';
+import { setUpFramework } from '../utils/setUpFramework.js';
 import { getSpinner } from '../cli-helpers/spinner.js';
 import { handleCliError } from '../cli-helpers/handleCliError.js';
 import { generateWallet } from '../utils/generateWallet.js';
@@ -61,7 +61,7 @@ export async function init() {
 
     const {
       useArgs = true,
-      useProtectedData = false,
+      useProtectedData = true,
       useInputFile = false,
       useRequesterSecret = false,
       useAppSecret = false,
@@ -77,7 +77,7 @@ export async function init() {
             type: 'confirm',
             name: 'useProtectedData',
             message:
-              'Would you like to access a protected data inside your iApp?',
+              'Would you like to use a protected data inside your iApp?',
             initial: false,
           },
           {
@@ -107,16 +107,10 @@ export async function init() {
     await mkdir(projectName);
     process.chdir(projectName);
 
-    spinner.log('-----');
-    spinner.log(
-      'ℹ️  LIMITATION: Your JavaScript code will be run in a Node.js v14.4 environment with npm v6.'
-    );
-    spinner.log('-----');
-
     // Copying JavaScript simple project files from templates/
 
     spinner.start('Creating "Hello World" JavaScript app...');
-    await initHelloWorldApp({
+    await setUpFramework({
       projectName,
       useArgs,
       useProtectedData,
