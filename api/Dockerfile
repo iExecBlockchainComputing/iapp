@@ -1,5 +1,8 @@
 FROM node:20.18-alpine
 
+# Curl installation for healthchek set-up
+RUN apk add --no-cache curl
+
 # Set working directory
 WORKDIR /app
 
