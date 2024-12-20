@@ -76,8 +76,7 @@ export async function init() {
           {
             type: 'confirm',
             name: 'useProtectedData',
-            message:
-              'Would you like to use a protected data inside your iApp?',
+            message: 'Would you like to use a protected data inside your iApp?',
             initial: false,
           },
           {
@@ -109,9 +108,10 @@ export async function init() {
 
     // Copying JavaScript simple project files from templates/
 
-    spinner.start('Creating "Hello World" JavaScript app...');
+    spinner.start('Creating JavaScript app...');
     await setUpFramework({
       projectName,
+      isHelloWorld: initType === INIT_BASIC,
       useArgs,
       useProtectedData,
       useInputFile,

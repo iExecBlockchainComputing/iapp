@@ -24,7 +24,7 @@ import { copy, fileExists } from '../utils/fs.utils.js';
 
 export async function test({
   args,
-  protectedData: protectedDataMock = 'default',
+  protectedData: protectedDataMock,
   inputFile: inputFiles = [], // rename variable (it's an array)
   requesterSecret: requesterSecrets = [], // rename variable (it's an array)
 }) {
@@ -34,13 +34,26 @@ export async function test({
     const { isHelloWorld } = await readIAppConfig();
     await cleanTestInput({ spinner });
     await cleanTestOutput({ spinner });
+
+    let finalProtectedDataMock;
+    if (isHelloWorld) {
+      // If isHelloWorld is true, use 'default' if protectedDataMock is undefined or empty string
+      finalProtectedDataMock = protectedDataMock || 'default';
+    } else {
+      // If isHelloWorld is normal, use the given value unless it's an empty string, fallback to 'default'
+      finalProtectedDataMock =
+        protectedDataMock !== undefined
+          ? protectedDataMock || 'default'
+          : protectedDataMock;
+    }
+
     await testApp({
       isHelloWorld,
       args,
       inputFiles,
       requesterSecrets,
       spinner,
-      protectedDataMock: protectedDataMock,
+      protectedDataMock: finalProtectedDataMock,
     });
     await checkTestOutput({ spinner });
     await askShowResult({ spinner, outputPath: TEST_OUTPUT_DIR });
@@ -93,7 +106,6 @@ export async function testApp({
   spinner,
   protectedDataMock,
 }) {
-  console.log('🚀 ~ protectedDataMock:', protectedDataMock);
   let appSecret;
   if (!isHelloWorld) {
     appSecret = await askForAppSecret({ spinner });

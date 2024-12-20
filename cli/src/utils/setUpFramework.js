@@ -13,12 +13,12 @@ import { copy } from './fs.utils.js';
 
 export async function setUpFramework({
   projectName,
+  isHelloWorld = true,
   useArgs = false,
   useProtectedData = false,
   useInputFile = false,
   useRequesterSecret = false,
   useAppSecret = false,
-  isHelloWorld = true,
 }) {
   try {
     // Copy template
