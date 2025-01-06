@@ -19,6 +19,7 @@ import { logger } from '../utils/logger.js';
 export async function sconify({
   dockerImageToSconify,
   userWalletPublicAddress,
+  pushToken, // auth token with push access, TTL 5 min may be an issue if sconification takes too much time
 }) {
   logger.info(
     {
@@ -51,10 +52,9 @@ export async function sconify({
     );
   }
 
-  const targetImageRepo = 'teamproduct';
   const targetImageName = imageName;
   const targetImageTag = `${imageTag}-tee-scone-debug`;
-  const targetImagePath = `${targetImageRepo}/${dockerUserName}-${targetImageName}:${targetImageTag}`;
+  const targetImagePath = `${dockerUserName}/${imageName}:${targetImageTag}`;
   logger.info({ targetImagePath }, 'Target image');
 
   // Pull the SCONE image
@@ -74,6 +74,7 @@ export async function sconify({
   const { Digest: pushedDockerImageDigest } = await pushImage({
     targetImagePath,
     targetImageTag,
+    pushToken,
   });
   const imageOnlyChecksum = pushedDockerImageDigest.split(':')[1];
   logger.info(

@@ -88,6 +88,8 @@ export async function deploy() {
       sconifyForProd: false,
       iAppNameToSconify: imageTag,
       walletAddress,
+      dockerhubAccessToken,
+      dockerhubUsername,
     });
     spinner.succeed('TEE app deployed');
     if (appSecret !== null) {
