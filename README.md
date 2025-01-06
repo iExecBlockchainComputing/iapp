@@ -23,7 +23,3 @@ This is a monorepo repository
 ### More detailed diagram
 
 ![Detailed architecture diagram](archi-diagram.png)
-
-## Done on Azure VM
-
-👉 <https://iexecproject.atlassian.net/wiki/spaces/IP/pages/3302129724/VM+Azure>
