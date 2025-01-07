@@ -31,29 +31,19 @@ export async function test({
   const spinner = getSpinner();
   try {
     // Simply check that an iapp.config.json file exists
-    const { isHelloWorld } = await readIAppConfig();
+    await readIAppConfig();
     await cleanTestInput({ spinner });
     await cleanTestOutput({ spinner });
 
-    let finalProtectedDataMock;
-    if (isHelloWorld) {
-      // If isHelloWorld is true, use 'default' if protectedDataMock is undefined or empty string
-      finalProtectedDataMock = protectedDataMock || 'default';
-    } else {
-      // If isHelloWorld is normal, use the given value unless it's an empty string, fallback to 'default'
-      finalProtectedDataMock =
-        protectedDataMock !== undefined
-          ? protectedDataMock || 'default'
-          : protectedDataMock;
-    }
-
     await testApp({
-      isHelloWorld,
       args,
       inputFiles,
       requesterSecrets,
       spinner,
-      protectedDataMock: finalProtectedDataMock,
+      protectedDataMock:
+        protectedDataMock !== undefined
+          ? protectedDataMock || 'default'
+          : protectedDataMock,
     });
     await checkTestOutput({ spinner });
     await askShowResult({ spinner, outputPath: TEST_OUTPUT_DIR });
@@ -99,17 +89,13 @@ function parseArgsString(args = '') {
 }
 
 export async function testApp({
-  isHelloWorld,
   args = undefined,
   inputFiles = [],
   requesterSecrets = [],
   spinner,
   protectedDataMock,
 }) {
-  let appSecret;
-  if (!isHelloWorld) {
-    appSecret = await askForAppSecret({ spinner });
-  }
+  let appSecret = await askForAppSecret({ spinner });
 
   // just start the spinner, no need to persist success in terminal
   spinner.start('Checking docker daemon is running...');
