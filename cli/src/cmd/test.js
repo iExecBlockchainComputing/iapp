@@ -8,7 +8,6 @@ import {
   runDockerContainer,
 } from '../execDocker/docker.js';
 import { checkDeterministicOutputExists } from '../utils/deterministicOutput.js';
-import { readIAppConfig } from '../utils/iAppConfigFile.js';
 import {
   IEXEC_WORKER_HEAP_SIZE,
   PROTECTED_DATA_MOCK_DIR,
@@ -21,6 +20,7 @@ import { prepareInputFile } from '../utils/prepareInputFile.js';
 import { askForAppSecret } from '../cli-helpers/askForAppSecret.js';
 import { askShowResult } from '../cli-helpers/askShowResult.js';
 import { copy, fileExists } from '../utils/fs.utils.js';
+import { goToProjectRoot } from '../cli-helpers/goToProjectRoot.js';
 
 export async function test({
   args,
@@ -30,8 +30,7 @@ export async function test({
 }) {
   const spinner = getSpinner();
   try {
-    // Simply check that an iapp.config.json file exists
-    await readIAppConfig();
+    await goToProjectRoot({ spinner });
     await cleanTestInput({ spinner });
     await cleanTestOutput({ spinner });
     await testApp({

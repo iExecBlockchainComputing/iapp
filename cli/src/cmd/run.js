@@ -14,6 +14,7 @@ import { handleCliError } from '../cli-helpers/handleCliError.js';
 import { getIExecDebug } from '../utils/iexec.js';
 import { extractZipToFolder } from '../utils/extractZipToFolder.js';
 import { askShowResult } from '../cli-helpers/askShowResult.js';
+import { goToProjectRoot } from '../cli-helpers/goToProjectRoot.js';
 
 export async function run({
   iAppAddress,
@@ -23,8 +24,9 @@ export async function run({
   requesterSecret: requesterSecrets = [], // rename variable (it's an array)
 }) {
   const spinner = getSpinner();
-  cleanRunOutput({ spinner, outputFolder: RUN_OUTPUT_DIR });
   try {
+    await goToProjectRoot({ spinner });
+    cleanRunOutput({ spinner, outputFolder: RUN_OUTPUT_DIR });
     await runInDebug({
       iAppAddress,
       args,

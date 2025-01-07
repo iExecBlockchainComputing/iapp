@@ -11,11 +11,12 @@ import {
   extractDataSchema,
   ALLOWED_KEY_NAMES_REGEXP,
 } from '../libs/dataprotector.js';
+import { goToProjectRoot } from '../cli-helpers/goToProjectRoot.js';
 
 export async function mockProtectedData() {
   const spinner = getSpinner();
-
   try {
+    await goToProjectRoot({ spinner });
     async function buildData({ dataState = {}, dataSchema = {} } = {}) {
       // get data fragment key
       const { key } = await spinner.prompt({
