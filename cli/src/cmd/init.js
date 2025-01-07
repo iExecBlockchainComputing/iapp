@@ -3,7 +3,7 @@ import boxen from 'boxen';
 import figlet from 'figlet';
 import { mkdir } from 'node:fs/promises';
 import { folderExists } from '../utils/fs.utils.js';
-import { setUpFramework } from '../utils/setUpFramework.js';
+import { initIAppWorkspace } from '../utils/initIAppWorkspace.js';
 import { getSpinner } from '../cli-helpers/spinner.js';
 import { handleCliError } from '../cli-helpers/handleCliError.js';
 import { generateWallet } from '../utils/generateWallet.js';
@@ -109,7 +109,7 @@ export async function init() {
     // Copying JavaScript simple project files from templates/
 
     spinner.start('Creating JavaScript app...');
-    await setUpFramework({
+    await initIAppWorkspace({
       projectName,
       isHelloWorld: initType === INIT_BASIC,
       useArgs,

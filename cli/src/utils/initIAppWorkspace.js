@@ -11,7 +11,7 @@ import {
 import { debug } from './debug.js';
 import { copy } from './fs.utils.js';
 
-export async function setUpFramework({
+export async function initIAppWorkspace({
   projectName,
   isHelloWorld = true,
   useArgs = false,
