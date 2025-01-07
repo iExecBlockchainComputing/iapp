@@ -13,7 +13,6 @@ import { copy } from './fs.utils.js';
 
 export async function initIAppWorkspace({
   projectName,
-  isHelloWorld = true,
   useArgs = false,
   useProtectedData = false,
   useInputFile = false,

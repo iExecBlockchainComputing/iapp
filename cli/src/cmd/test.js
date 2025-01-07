@@ -33,7 +33,6 @@ export async function test({
     await goToProjectRoot({ spinner });
     await cleanTestInput({ spinner });
     await cleanTestOutput({ spinner });
-
     await testApp({
       args,
       inputFiles,

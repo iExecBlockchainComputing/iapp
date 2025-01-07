@@ -111,7 +111,6 @@ export async function init() {
     spinner.start('Creating JavaScript app...');
     await initIAppWorkspace({
       projectName,
-      isHelloWorld: initType === INIT_BASIC,
       useArgs,
       useProtectedData,
       useInputFile,
