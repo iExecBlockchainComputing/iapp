@@ -14,10 +14,12 @@ import { askForAppSecret } from '../cli-helpers/askForAppSecret.js';
 import { askForWalletPrivateKey } from '../cli-helpers/askForWalletPrivateKey.js';
 import { Wallet } from 'ethers';
 import { getIExecDebug } from '../utils/iexec.js';
+import { goToProjectRoot } from '../cli-helpers/goToProjectRoot.js';
 
 export async function deploy() {
   const spinner = getSpinner();
   try {
+    await goToProjectRoot({ spinner });
     const dockerhubUsername = await askForDockerhubUsername({ spinner });
     const dockerhubAccessToken = await askForDockerhubAccessToken({ spinner });
 
