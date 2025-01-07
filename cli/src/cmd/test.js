@@ -11,6 +11,7 @@ import { checkDeterministicOutputExists } from '../utils/deterministicOutput.js'
 import {
   IEXEC_WORKER_HEAP_SIZE,
   PROTECTED_DATA_MOCK_DIR,
+  TASK_OBSERVATION_TIMEOUT,
   TEST_INPUT_DIR,
   TEST_OUTPUT_DIR,
 } from '../config/config.js';
@@ -141,6 +142,10 @@ export async function testApp({
 
   // run the temp image
   spinner.start('Running app docker image...\n');
+  const taskTimeoutWarning = setTimeout(() => {
+    spinner.warn('Task is taking longer than expected...');
+    spinner.start('Running app docker image...\n');
+  }, TASK_OBSERVATION_TIMEOUT);
   const appLogs = [];
   const { exitCode, outOfMemory } = await runDockerContainer({
     image: imageId,
@@ -189,13 +194,16 @@ export async function testApp({
   iExec worker's ${Math.floor(IEXEC_WORKER_HEAP_SIZE / (1024 * 1024))}Mb memory limit exceeded.
   You must refactor your app to run within the memory limit.`
     );
+    clearTimeout(taskTimeoutWarning);
   } else if (exitCode === 0) {
     spinner.succeed('App docker image ran and exited successfully.');
+    clearTimeout(taskTimeoutWarning);
   } else {
     spinner.warn(
       `App docker image ran but exited with error (Exit code: ${exitCode})
   You may want to check it was intentional`
     );
+    clearTimeout(taskTimeoutWarning);
   }
   // show app logs
   if (appLogs.length === 0) {
