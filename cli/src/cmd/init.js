@@ -94,7 +94,7 @@ export async function init() {
           {
             type: 'confirm',
             name: 'useProtectedData',
-            message: `Would you like to access a protected data inside your iApp? ${color.promptHelper(
+            message: `Would you like to use a protected data inside your iApp? ${color.promptHelper(
               '(protected data a secret file, the protected data is provided by a third party for users that will run your iApp)'
             )}`,
             initial: false,
