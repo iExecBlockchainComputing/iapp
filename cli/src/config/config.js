@@ -18,3 +18,5 @@ export const IEXEC_COMPUTED_JSON = 'computed.json';
 export const IEXEC_DETERMINISTIC_OUTPUT_PATH_KEY = 'deterministic-output-path';
 
 export const IEXEC_WORKER_HEAP_SIZE = 1024 * 1024 * 1024; // iExec worker memory limit (1Go)
+
+export const TASK_OBSERVATION_TIMEOUT = 180000; // 3 minutes

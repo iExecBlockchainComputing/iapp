@@ -7,6 +7,7 @@ import {
   SCONE_TAG,
   WORKERPOOL_DEBUG,
   RUN_OUTPUT_DIR,
+  TASK_OBSERVATION_TIMEOUT,
 } from '../config/config.js';
 import { addRunData } from '../utils/cacheExecutions.js';
 import { getSpinner } from '../cli-helpers/spinner.js';
@@ -207,13 +208,21 @@ export async function runInDebug({
   spinner.start('Observing task...');
   const taskId = await iexec.deal.computeTaskId(dealid, 0);
   const taskObservable = await iexec.task.obsTask(taskId, { dealid: dealid });
+  const taskTimeoutWarning = setTimeout(() => {
+    spinner.warn('Task is taking longer than expected...');
+    spinner.start('Observing task...');
+  }, TASK_OBSERVATION_TIMEOUT);
   await new Promise((resolve, reject) => {
     taskObservable.subscribe({
       next: () => {},
       error: (e) => {
         reject(e);
+        clearTimeout(taskTimeoutWarning);
       },
-      complete: () => resolve(undefined),
+      complete: () => {
+        resolve(undefined);
+        clearTimeout(taskTimeoutWarning);
+      },
     });
   });
 
