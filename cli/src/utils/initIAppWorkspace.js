@@ -32,7 +32,10 @@ export async function initIAppWorkspace({
       useAppSecret,
     });
     // Create other files
-    await createConfigurationFiles({ projectName, isHelloWorld });
+    await createConfigurationFiles({
+      projectName,
+      appSecret: useAppSecret ? undefined : null, // save `appSecret: null` to disable prompt when `useAppSecret: false`
+    });
     await createProjectDirectories();
   } catch (err) {
     debug('Error during project initialization:', err);
@@ -48,11 +51,11 @@ async function createProjectDirectories() {
   ]);
 }
 
-async function createConfigurationFiles({ projectName, isHelloWorld }) {
+async function createConfigurationFiles({ projectName, appSecret }) {
   // Create a simple iApp configuration file
   const configContent = {
     projectName: projectName,
-    isHelloWorld: isHelloWorld,
+    appSecret: appSecret,
   };
   await fs.writeFile(
     CONFIG_FILE,
