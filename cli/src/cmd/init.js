@@ -7,6 +7,7 @@ import { initHelloWorldApp } from '../utils/initHelloWorldApp.js';
 import { getSpinner } from '../cli-helpers/spinner.js';
 import { handleCliError } from '../cli-helpers/handleCliError.js';
 import { generateWallet } from '../utils/generateWallet.js';
+import * as color from '../cli-helpers/color.js';
 
 const targetDir = 'hello-world';
 
@@ -27,8 +28,7 @@ export async function init() {
     const { projectName } = await spinner.prompt({
       type: 'text',
       name: 'projectName',
-      message:
-        "What's your project name? (A folder with this name will be created)",
+      message: `What's your project name? ${color.promptHelper('(A folder with this name will be created)')}`,
       initial: targetDir,
     });
 
@@ -61,7 +61,7 @@ export async function init() {
 
     const {
       useArgs = true,
-      useProtectedData = false,
+      useProtectedData = true,
       useInputFile = false,
       useRequesterSecret = false,
       useAppSecret = false,
@@ -70,35 +70,39 @@ export async function init() {
           {
             type: 'confirm',
             name: 'useArgs',
-            message: 'Would you like to use positional args inside your iApp?',
+            message: `Would you like to use args inside your iApp? ${color.promptHelper(
+              '(args are public positional arguments, args are provided by users that will run your iApp)'
+            )}`,
             initial: true,
           },
           {
             type: 'confirm',
-            name: 'useProtectedData',
-            message:
-              'Would you like to access a protected data inside your iApp?',
-            initial: false,
-          },
-          {
-            type: 'confirm',
             name: 'useInputFile',
-            message:
-              'Would you like to use input files inside your iApp? (input files are files downloaded from the internet)',
+            message: `Would you like to use input files inside your iApp? ${color.promptHelper(
+              '(input files are public files downloaded from the internet, files urls are provided by user that will run your iApp)'
+            )}`,
             initial: false,
           },
           {
             type: 'confirm',
             name: 'useRequesterSecret',
-            message:
-              'Would you like to use requester secrets inside your iApp? (requester secrets are secrets that will be provided by any users that will run your iApp)',
+            message: `Would you like to use requester secrets inside your iApp? ${color.promptHelper(
+              '(requester secrets are secrets strings, secrets are provided by users that will run your iApp)'
+            )}`,
+            initial: false,
+          },
+          {
+            type: 'confirm',
+            name: 'useProtectedData',
+            message: `Would you like to access a protected data inside your iApp? ${color.promptHelper(
+              '(protected data a secret file, the protected data is provided by a third party for users that will run your iApp)'
+            )}`,
             initial: false,
           },
           {
             type: 'confirm',
             name: 'useAppSecret',
-            message:
-              'Would you like to use an app secret inside your iApp? (app secret is an immutable secret provisioned once by the iApp owner)',
+            message: `Would you like to use an app secret inside your iApp? ${color.promptHelper('(app secret is an immutable secret string provisioned once by the iApp owner)')}`,
             initial: false,
           },
         ])
@@ -134,19 +138,42 @@ export async function init() {
   ${chalk.bold.underline('Steps to Get Started:')}
   
     Navigate to your project folder:
-    ${chalk.yellow(`$ cd ${projectName.split(' ').length > 1 ? `"${projectName}"` : `${projectName}`}`)}
+    ${color.command(`$ cd ${projectName.split(' ').length > 1 ? `"${projectName}"` : `${projectName}`}`)}
   
-    ${chalk.green('Make your changes in the')} ${chalk.cyan('src/app.js')} ${chalk.green('file')}.
+    ${color.emphasis('Make your changes in the')} ${color.file('src/app.js')} ${color.emphasis('file')}.
   
     -1- Test your iApp locally:
-    ${chalk.yellow('$ iapp test')}
-    ${chalk.yellow('$ iapp test --args your-name')}
-  
+    ${color.command('$ iapp test')}${
+      useArgs
+        ? `
+    ${color.comment('# with args')}
+    ${color.command('$ iapp test --args your-name')}`
+        : ''
+    }${
+      useInputFile
+        ? `
+    ${color.comment('# with input files')}
+    ${color.command('$ iapp test --inputFile https://ipfs.iex.ec/ipfs/Qmd286K6pohQcTKYqnS1YhWrCiS4gz7Xi34sdwMe9USZ7u')}`
+        : ''
+    }${
+      useRequesterSecret
+        ? `
+    ${color.comment('# with requester secrets')}
+    ${color.command('$ iapp test --requesterSecret 1=foo 42=bar')}`
+        : ''
+    }${
+      useProtectedData
+        ? `
+    ${color.comment('# with a protected data')}
+    ${color.command('$ iapp test --protectedData default')}`
+        : ''
+    }
+
     -2- Deploy your iApp on the iExec protocol:
-    ${chalk.yellow('$ iapp deploy')}
+    ${color.command('$ iapp deploy')}
   
     -3- Ask an iExec worker to run your confidential iApp:
-    ${chalk.yellow('$ iapp run <iapp-address>')}
+    ${color.command('$ iapp run <iapp-address>')}
   `;
 
     spinner.log(
