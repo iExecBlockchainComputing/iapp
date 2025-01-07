@@ -11,7 +11,7 @@ import {
 import { debug } from './debug.js';
 import { copy } from './fs.utils.js';
 
-export async function initHelloWorldApp({
+export async function initIAppWorkspace({
   projectName,
   useArgs = false,
   useProtectedData = false,
@@ -31,7 +31,10 @@ export async function initHelloWorldApp({
       useAppSecret,
     });
     // Create other files
-    await createConfigurationFiles({ projectName });
+    await createConfigurationFiles({
+      projectName,
+      appSecret: useAppSecret ? undefined : null, // save `appSecret: null` to disable prompt when `useAppSecret: false`
+    });
     await createProjectDirectories();
   } catch (err) {
     debug('Error during project initialization:', err);
@@ -47,10 +50,11 @@ async function createProjectDirectories() {
   ]);
 }
 
-async function createConfigurationFiles({ projectName }) {
+async function createConfigurationFiles({ projectName, appSecret }) {
   // Create a simple iApp configuration file
   const configContent = {
     projectName: projectName,
+    appSecret: appSecret,
   };
   await fs.writeFile(
     CONFIG_FILE,

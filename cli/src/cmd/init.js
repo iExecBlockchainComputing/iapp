@@ -3,7 +3,7 @@ import boxen from 'boxen';
 import figlet from 'figlet';
 import { mkdir } from 'node:fs/promises';
 import { folderExists } from '../utils/fs.utils.js';
-import { initHelloWorldApp } from '../utils/initHelloWorldApp.js';
+import { initIAppWorkspace } from '../utils/initIAppWorkspace.js';
 import { getSpinner } from '../cli-helpers/spinner.js';
 import { handleCliError } from '../cli-helpers/handleCliError.js';
 import { generateWallet } from '../utils/generateWallet.js';
@@ -111,16 +111,10 @@ export async function init() {
     await mkdir(projectName);
     process.chdir(projectName);
 
-    spinner.log('-----');
-    spinner.log(
-      'ℹ️  LIMITATION: Your JavaScript code will be run in a Node.js v14.4 environment with npm v6.'
-    );
-    spinner.log('-----');
-
     // Copying JavaScript simple project files from templates/
 
-    spinner.start('Creating "Hello World" JavaScript app...');
-    await initHelloWorldApp({
+    spinner.start('Creating JavaScript app...');
+    await initIAppWorkspace({
       projectName,
       useArgs,
       useProtectedData,
