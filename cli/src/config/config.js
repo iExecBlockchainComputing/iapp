@@ -18,3 +18,5 @@ export const IEXEC_COMPUTED_JSON = 'computed.json';
 export const IEXEC_DETERMINISTIC_OUTPUT_PATH_KEY = 'deterministic-output-path';
 
 export const IEXEC_WORKER_HEAP_SIZE = 1024 * 1024 * 1024; // iExec worker memory limit (1Go)
+
+export const MAX_OUTPUT_DIR_SIZE = 50 * 1024 * 1024; // Maximum allowed size for the result output (50 MB)

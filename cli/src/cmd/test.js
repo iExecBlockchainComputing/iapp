@@ -2,6 +2,7 @@ import { Parser } from 'yargs/helpers';
 import { rm, mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import { hexlify, randomBytes } from 'ethers';
+import * as fs from 'fs/promises';
 import {
   checkDockerDaemon,
   dockerBuild,
@@ -10,6 +11,7 @@ import {
 import { checkDeterministicOutputExists } from '../utils/deterministicOutput.js';
 import {
   IEXEC_WORKER_HEAP_SIZE,
+  MAX_OUTPUT_DIR_SIZE,
   PROTECTED_DATA_MOCK_DIR,
   TEST_INPUT_DIR,
   TEST_OUTPUT_DIR,
@@ -214,6 +216,21 @@ ${appLogs.join('')}`);
   }
 }
 
+async function getDirectorySize(directoryPath) {
+  let totalSize = 0;
+  const files = await fs.readdir(directoryPath);
+  for (const file of files) {
+    const filePath = join(directoryPath, file);
+    const stats = await fs.stat(filePath);
+    if (stats.isDirectory()) {
+      totalSize += await getDirectorySize(filePath);
+    } else {
+      totalSize += stats.size;
+    }
+  }
+  return totalSize;
+}
+
 async function checkTestOutput({ spinner }) {
   spinner.start('Checking test output...');
   const errors = [];
@@ -222,7 +239,17 @@ async function checkTestOutput({ spinner }) {
       errors.push(e);
     }
   );
-  // TODO check output dir size
+  const directoryPath = `${process.cwd()}/${TEST_OUTPUT_DIR}`;
+  const outputDirSize = await getDirectorySize(directoryPath);
+  if (outputDirSize > MAX_OUTPUT_DIR_SIZE) {
+    errors.push(
+      new Error(
+        `Output directory size exceeds the maximum limit of ${MAX_OUTPUT_DIR_SIZE} MB (actual size: ${
+          outputDirSize / (1024 * 1024)
+        } MB)`
+      )
+    );
+  }
   if (errors.length === 0) {
     spinner.succeed('Checked app output');
   } else {
