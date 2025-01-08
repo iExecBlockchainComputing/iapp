@@ -209,21 +209,18 @@ export async function runInDebug({
   const taskId = await iexec.deal.computeTaskId(dealid, 0);
   const taskObservable = await iexec.task.obsTask(taskId, { dealid: dealid });
   const taskTimeoutWarning = setTimeout(() => {
+    const spinnerText = spinner.text;
     spinner.warn('Task is taking longer than expected...');
-    spinner.start('Observing task...');
+    spinner.start(spinnerText); // restart spinning
   }, TASK_OBSERVATION_TIMEOUT);
   await new Promise((resolve, reject) => {
     taskObservable.subscribe({
       next: () => {},
-      error: (e) => {
-        reject(e);
-        clearTimeout(taskTimeoutWarning);
-      },
-      complete: () => {
-        resolve(undefined);
-        clearTimeout(taskTimeoutWarning);
-      },
+      error: (e) => reject(e),
+      complete: () => resolve(undefined),
     });
+  }).finally(() => {
+    clearTimeout(taskTimeoutWarning);
   });
 
   spinner.succeed('Task finalized');
