@@ -75,7 +75,6 @@ Options:
 > you want to attach an
 > [app secret](https://protocol.docs.iex.ec/for-developers/technical-references/application-io#app-developer-secret)
 > to your app.
->
 > ⚠️ **Output size limitation:**  
 > The results uploaded by the worker must not exceed **50 MB**.  
 > If the size exceeds this limit, the task will fail with the error
