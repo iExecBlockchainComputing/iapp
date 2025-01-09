@@ -1,5 +1,5 @@
 import { Parser } from 'yargs/helpers';
-import { rm, mkdir } from 'node:fs/promises';
+import { rm, mkdir, readdir, stat } from 'node:fs/promises';
 import { join } from 'node:path';
 import { hexlify, randomBytes } from 'ethers';
 import {
@@ -10,6 +10,7 @@ import {
 import { checkDeterministicOutputExists } from '../utils/deterministicOutput.js';
 import {
   IEXEC_WORKER_HEAP_SIZE,
+  IEXEC_RESULT_UPLOAD_MAX_SIZE,
   PROTECTED_DATA_MOCK_DIR,
   TASK_OBSERVATION_TIMEOUT,
   TEST_INPUT_DIR,
@@ -222,6 +223,21 @@ ${appLogs.join('')}`);
   }
 }
 
+async function getDirectorySize(directoryPath) {
+  let totalSize = 0;
+  const files = await readdir(directoryPath);
+  for (const file of files) {
+    const filePath = join(directoryPath, file);
+    const stats = await stat(filePath);
+    if (stats.isDirectory()) {
+      totalSize += await getDirectorySize(filePath);
+    } else {
+      totalSize += stats.size;
+    }
+  }
+  return totalSize;
+}
+
 async function checkTestOutput({ spinner }) {
   spinner.start('Checking test output...');
   const errors = [];
@@ -230,7 +246,14 @@ async function checkTestOutput({ spinner }) {
       errors.push(e);
     }
   );
-  // TODO check output dir size
+  const outputDirSize = await getDirectorySize(TEST_OUTPUT_DIR);
+  if (outputDirSize > IEXEC_RESULT_UPLOAD_MAX_SIZE) {
+    errors.push(
+      new Error(
+        `Output directory size exceeds the maximum limit of ${IEXEC_RESULT_UPLOAD_MAX_SIZE / (1024 * 1024)} MiB (actual size: ${outputDirSize / (1024 * 1024)} MiB)`
+      )
+    );
+  }
   if (errors.length === 0) {
     spinner.succeed('Checked app output');
   } else {
