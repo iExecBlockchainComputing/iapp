@@ -1,4 +1,7 @@
-import { SCONE_NODE_IMAGE } from '../constants/constants.js';
+import {
+  SCONE_NODE_IMAGE,
+  SCONIFY_IMAGE_VERSION,
+} from '../constants/constants.js';
 import { deployAppContractToBellecour } from '../singleFunction/deployAppContractToBellecour.js';
 import { getSconifiedImageFingerprint } from '../singleFunction/getSconifiedImageFingerprint.js';
 import { inspectImage } from '../singleFunction/inspectImage.js';
@@ -53,7 +56,7 @@ export async function sconify({
   }
 
   const targetImageName = imageName;
-  const targetImageTag = `${imageTag}-tee-scone-debug`;
+  const targetImageTag = `${imageTag}-tee-scone-${SCONIFY_IMAGE_VERSION}-debug`;
   const targetImagePath = `${dockerUserName}/${imageName}:${targetImageTag}`;
   logger.info({ targetImagePath }, 'Target image');
 
