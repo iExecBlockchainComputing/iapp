@@ -10,7 +10,7 @@ import {
 import { checkDeterministicOutputExists } from '../utils/deterministicOutput.js';
 import {
   IEXEC_WORKER_HEAP_SIZE,
-  MAX_OUTPUT_DIR_SIZE,
+  IEXEC_RESULT_UPLOAD_MAX_SIZE,
   PROTECTED_DATA_MOCK_DIR,
   TASK_OBSERVATION_TIMEOUT,
   TEST_INPUT_DIR,
@@ -247,10 +247,10 @@ async function checkTestOutput({ spinner }) {
     }
   );
   const outputDirSize = await getDirectorySize(TEST_OUTPUT_DIR);
-  if (outputDirSize > MAX_OUTPUT_DIR_SIZE) {
+  if (outputDirSize > IEXEC_RESULT_UPLOAD_MAX_SIZE) {
     errors.push(
       new Error(
-        `Output directory size exceeds the maximum limit of ${MAX_OUTPUT_DIR_SIZE} bytes (actual size: ${outputDirSize} bytes)`
+        `Output directory size exceeds the maximum limit of ${IEXEC_RESULT_UPLOAD_MAX_SIZE / (1024 * 1024)} MiB (actual size: ${outputDirSize / (1024 * 1024)} MiB)`
       )
     );
   }
