@@ -15,6 +15,7 @@ import { askForWalletPrivateKey } from '../cli-helpers/askForWalletPrivateKey.js
 import { Wallet } from 'ethers';
 import { getIExecDebug } from '../utils/iexec.js';
 import { goToProjectRoot } from '../cli-helpers/goToProjectRoot.js';
+import * as color from '../cli-helpers/color.js';
 
 export async function deploy() {
   const spinner = getSpinner();
@@ -67,7 +68,7 @@ export async function deploy() {
       tag: imageTag,
       progressCallback: (msg) => {
         buildLogs.push(msg); // do we want to show build logs after build is successful?
-        spinner.text = spinner.text + msg;
+        spinner.text = spinner.text + color.comment(msg);
       },
     });
     spinner.succeed(`Docker image built (${imageId}) and tagged ${imageTag}`);
@@ -78,7 +79,7 @@ export async function deploy() {
       dockerhubAccessToken,
       dockerhubUsername,
       progressCallback: (msg) => {
-        spinner.text = spinner.text + msg;
+        spinner.text = spinner.text + color.comment(msg);
       },
     });
     spinner.succeed(`Pushed image ${imageTag} on dockerhub`);

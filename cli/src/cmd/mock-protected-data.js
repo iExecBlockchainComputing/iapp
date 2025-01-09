@@ -12,6 +12,7 @@ import {
   ALLOWED_KEY_NAMES_REGEXP,
 } from '../libs/dataprotector.js';
 import { goToProjectRoot } from '../cli-helpers/goToProjectRoot.js';
+import * as color from '../cli-helpers/color.js';
 
 export async function mockProtectedData() {
   const spinner = getSpinner();
@@ -196,7 +197,7 @@ ${boxen(JSON.stringify(dataSchema, null, 2), { margin: 1 })}`
     }
 
     spinner.start(
-      `Creating protectedData mock file in \`${PROTECTED_DATA_MOCK_DIR}\` directory...`
+      `Creating protectedData mock file in ${color.file(PROTECTED_DATA_MOCK_DIR)} directory...`
     );
 
     const unencryptedData = await createZipFromObject(data);
@@ -204,7 +205,7 @@ ${boxen(JSON.stringify(dataSchema, null, 2), { margin: 1 })}`
     await mkdir(PROTECTED_DATA_MOCK_DIR, { recursive: true });
     await writeFile(join(PROTECTED_DATA_MOCK_DIR, mockName), unencryptedData);
     spinner.succeed(
-      `Mocked protectedData "${mockName}" created in \`${PROTECTED_DATA_MOCK_DIR}\` directory`
+      `Mocked protectedData ${color.file(mockName)} created in ${color.file(PROTECTED_DATA_MOCK_DIR)} directory`
     );
     spinner.log(
       boxen(
@@ -212,7 +213,7 @@ ${boxen(JSON.stringify(dataSchema, null, 2), { margin: 1 })}`
 ${chalk.yellow(boxen(JSON.stringify(schema, null, 2)))}
 
 Use your mock in tests:
-${chalk.yellow(`iapp test --protectedData "${mockName}"`)}`,
+${color.command(`iapp test --protectedData "${mockName}"`)}`,
         {
           padding: 1,
           margin: 1,
