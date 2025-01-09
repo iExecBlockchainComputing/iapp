@@ -145,5 +145,7 @@ yargsInstance
   .help()
   .alias('help', 'h')
   .alias('version', 'v')
+  .strict() // show help if iapp is invoked with an invalid subcommand
+  .demandCommand(1, 'Missing subcommand') // show help if iapp is invoked without subcommand is invoked
   .wrap(yargsInstance.terminalWidth()) // use full terminal size rather than default 80
   .parse();
