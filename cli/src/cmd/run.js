@@ -7,6 +7,7 @@ import {
   SCONE_TAG,
   WORKERPOOL_DEBUG,
   RUN_OUTPUT_DIR,
+  TASK_OBSERVATION_TIMEOUT,
 } from '../config/config.js';
 import { addRunData } from '../utils/cacheExecutions.js';
 import { getSpinner } from '../cli-helpers/spinner.js';
@@ -14,6 +15,7 @@ import { handleCliError } from '../cli-helpers/handleCliError.js';
 import { getIExecDebug } from '../utils/iexec.js';
 import { extractZipToFolder } from '../utils/extractZipToFolder.js';
 import { askShowResult } from '../cli-helpers/askShowResult.js';
+import { goToProjectRoot } from '../cli-helpers/goToProjectRoot.js';
 
 export async function run({
   iAppAddress,
@@ -23,8 +25,9 @@ export async function run({
   requesterSecret: requesterSecrets = [], // rename variable (it's an array)
 }) {
   const spinner = getSpinner();
-  cleanRunOutput({ spinner, outputFolder: RUN_OUTPUT_DIR });
   try {
+    await goToProjectRoot({ spinner });
+    cleanRunOutput({ spinner, outputFolder: RUN_OUTPUT_DIR });
     await runInDebug({
       iAppAddress,
       args,
@@ -205,14 +208,19 @@ export async function runInDebug({
   spinner.start('Observing task...');
   const taskId = await iexec.deal.computeTaskId(dealid, 0);
   const taskObservable = await iexec.task.obsTask(taskId, { dealid: dealid });
+  const taskTimeoutWarning = setTimeout(() => {
+    const spinnerText = spinner.text;
+    spinner.warn('Task is taking longer than expected...');
+    spinner.start(spinnerText); // restart spinning
+  }, TASK_OBSERVATION_TIMEOUT);
   await new Promise((resolve, reject) => {
     taskObservable.subscribe({
       next: () => {},
-      error: (e) => {
-        reject(e);
-      },
+      error: (e) => reject(e),
       complete: () => resolve(undefined),
     });
+  }).finally(() => {
+    clearTimeout(taskTimeoutWarning);
   });
 
   spinner.succeed('Task finalized');

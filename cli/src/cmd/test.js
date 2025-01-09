@@ -1,5 +1,5 @@
 import { Parser } from 'yargs/helpers';
-import { rm, mkdir } from 'node:fs/promises';
+import { rm, mkdir, readdir, stat } from 'node:fs/promises';
 import { join } from 'node:path';
 import { hexlify, randomBytes } from 'ethers';
 import {
@@ -8,10 +8,11 @@ import {
   runDockerContainer,
 } from '../execDocker/docker.js';
 import { checkDeterministicOutputExists } from '../utils/deterministicOutput.js';
-import { readIAppConfig } from '../utils/iAppConfigFile.js';
 import {
   IEXEC_WORKER_HEAP_SIZE,
+  IEXEC_RESULT_UPLOAD_MAX_SIZE,
   PROTECTED_DATA_MOCK_DIR,
+  TASK_OBSERVATION_TIMEOUT,
   TEST_INPUT_DIR,
   TEST_OUTPUT_DIR,
 } from '../config/config.js';
@@ -21,6 +22,7 @@ import { prepareInputFile } from '../utils/prepareInputFile.js';
 import { askForAppSecret } from '../cli-helpers/askForAppSecret.js';
 import { askShowResult } from '../cli-helpers/askShowResult.js';
 import { copy, fileExists } from '../utils/fs.utils.js';
+import { goToProjectRoot } from '../cli-helpers/goToProjectRoot.js';
 
 export async function test({
   args,
@@ -30,8 +32,7 @@ export async function test({
 }) {
   const spinner = getSpinner();
   try {
-    // Simply check that an iapp.config.json file exists
-    await readIAppConfig();
+    await goToProjectRoot({ spinner });
     await cleanTestInput({ spinner });
     await cleanTestOutput({ spinner });
     await testApp({
@@ -142,6 +143,11 @@ export async function testApp({
 
   // run the temp image
   spinner.start('Running app docker image...\n');
+  const taskTimeoutWarning = setTimeout(() => {
+    const spinnerText = spinner.text;
+    spinner.warn('Task is taking longer than expected...');
+    spinner.start(spinnerText); // restart spinning
+  }, TASK_OBSERVATION_TIMEOUT);
   const appLogs = [];
   const { exitCode, outOfMemory } = await runDockerContainer({
     image: imageId,
@@ -183,6 +189,8 @@ export async function testApp({
       appLogs.push(msg); // collect logs for future use
       spinner.text = spinner.text + msg; // and display realtime while app is running
     },
+  }).finally(() => {
+    clearTimeout(taskTimeoutWarning);
   });
   if (outOfMemory) {
     spinner.fail(
@@ -206,13 +214,28 @@ export async function testApp({
       type: 'confirm',
       name: 'continue',
       message: `Would you like to see the app logs? (${appLogs.length} lines)`,
-      initial: true,
+      initial: false,
     });
     if (showLogs.continue) {
       spinner.info(`App logs:
 ${appLogs.join('')}`);
     }
   }
+}
+
+async function getDirectorySize(directoryPath) {
+  let totalSize = 0;
+  const files = await readdir(directoryPath);
+  for (const file of files) {
+    const filePath = join(directoryPath, file);
+    const stats = await stat(filePath);
+    if (stats.isDirectory()) {
+      totalSize += await getDirectorySize(filePath);
+    } else {
+      totalSize += stats.size;
+    }
+  }
+  return totalSize;
 }
 
 async function checkTestOutput({ spinner }) {
@@ -223,7 +246,14 @@ async function checkTestOutput({ spinner }) {
       errors.push(e);
     }
   );
-  // TODO check output dir size
+  const outputDirSize = await getDirectorySize(TEST_OUTPUT_DIR);
+  if (outputDirSize > IEXEC_RESULT_UPLOAD_MAX_SIZE) {
+    errors.push(
+      new Error(
+        `Output directory size exceeds the maximum limit of ${IEXEC_RESULT_UPLOAD_MAX_SIZE / (1024 * 1024)} MiB (actual size: ${outputDirSize / (1024 * 1024)} MiB)`
+      )
+    );
+  }
   if (errors.length === 0) {
     spinner.succeed('Checked app output');
   } else {

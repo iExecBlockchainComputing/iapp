@@ -4,6 +4,7 @@ import figlet from 'figlet';
 import { IExecDataProtectorDeserializer } from '@iexec/dataprotector-deserializer';
 // <</protectedData>>
 
+// ⚠️ Your JavaScript code will be run in a Node.js v14.4 environment with npm v6.
 const main = async () => {
   try {
     const { IEXEC_OUT } = process.env;
