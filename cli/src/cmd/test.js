@@ -1,8 +1,7 @@
 import { Parser } from 'yargs/helpers';
-import { rm, mkdir } from 'node:fs/promises';
+import { rm, mkdir, readdir, stat } from 'node:fs/promises';
 import { join } from 'node:path';
 import { hexlify, randomBytes } from 'ethers';
-import * as fs from 'fs/promises';
 import {
   checkDockerDaemon,
   dockerBuild,
@@ -226,10 +225,10 @@ ${appLogs.join('')}`);
 
 async function getDirectorySize(directoryPath) {
   let totalSize = 0;
-  const files = await fs.readdir(directoryPath);
+  const files = await readdir(directoryPath);
   for (const file of files) {
     const filePath = join(directoryPath, file);
-    const stats = await fs.stat(filePath);
+    const stats = await stat(filePath);
     if (stats.isDirectory()) {
       totalSize += await getDirectorySize(filePath);
     } else {
@@ -247,14 +246,11 @@ async function checkTestOutput({ spinner }) {
       errors.push(e);
     }
   );
-  const directoryPath = `${process.cwd()}/${TEST_OUTPUT_DIR}`;
-  const outputDirSize = await getDirectorySize(directoryPath);
+  const outputDirSize = await getDirectorySize(TEST_OUTPUT_DIR);
   if (outputDirSize > MAX_OUTPUT_DIR_SIZE) {
     errors.push(
       new Error(
-        `Output directory size exceeds the maximum limit of ${MAX_OUTPUT_DIR_SIZE} MB (actual size: ${
-          outputDirSize / (1024 * 1024)
-        } MB)`
+        `Output directory size exceeds the maximum limit of ${MAX_OUTPUT_DIR_SIZE} bytes (actual size: ${outputDirSize} bytes)`
       )
     );
   }
