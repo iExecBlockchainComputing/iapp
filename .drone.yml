@@ -78,6 +78,7 @@ steps:
       target:
         - cli-publish-nightly
     depends_on:
+      - test-no-crash
       - set-version-nightly
 
   - name: npm-publish-latest
