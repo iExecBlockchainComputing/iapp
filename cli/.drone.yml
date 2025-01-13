@@ -39,3 +39,11 @@ steps:
       - iapp -h
     depends_on:
       - install-deps
+
+  - name: npm publish dry-run
+    image: node:20
+    commands:
+      - cd cli
+      - npm publish --dry-run
+    depends_on:
+      - test-no-crash
