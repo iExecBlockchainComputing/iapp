@@ -69,7 +69,8 @@ steps:
         from_secret: npm_username
       token:
         from_secret: npm_token
-      tag: latest #TODO: change to nightly
+      # TODO: change to nightly
+      tag: latest
       access: public
       folder: cli
     when:
