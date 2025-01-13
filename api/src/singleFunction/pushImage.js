@@ -2,32 +2,30 @@ import Docker from 'dockerode';
 
 const docker = new Docker();
 
-const registryAuth = {
-  username: process.env.REGISTRY_USERNAME,
-  password: process.env.REGISTRY_PASSWORD,
-  serveraddress: process.env.REGISTRY_SERVERADDRESS,
-};
-
 /**
+ * @param {Object} params
+ * @param {string} params.targetImagePath target image repository
+ * @param {string} params.targetImageTag target image tag
+ * @param {string} params.pushToken auth token with pull,push access to the target image repository
+ *
  * @returns {Promise<{ Tag: string, Digest: string, Size: number }>}
  */
-export async function pushImage({ targetImagePath, targetImageTag }) {
-  if (
-    !process.env.REGISTRY_USERNAME ||
-    !process.env.REGISTRY_PASSWORD ||
-    !process.env.REGISTRY_SERVERADDRESS
-  ) {
-    throw new Error(
-      'Missing env vars: REGISTRY_USERNAME, REGISTRY_PASSWORD, REGISTRY_SERVERADDRESS are required'
-    );
-  }
-
+export async function pushImage({
+  targetImagePath,
+  targetImageTag,
+  pushToken,
+}) {
   console.log(`Pushing image: ${targetImagePath} to DockerHub...`);
 
   return new Promise((resolve, reject) => {
     const img = docker.getImage(targetImagePath);
     img.push(
-      { authconfig: registryAuth, tag: targetImageTag },
+      {
+        authconfig: {
+          registrytoken: pushToken,
+        },
+        tag: targetImageTag,
+      },
       function (err, stream) {
         let pushedImageResult;
         let isError = false;

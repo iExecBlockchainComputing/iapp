@@ -1,11 +1,14 @@
 import { request } from 'undici';
 import { addDeploymentData } from './cacheExecutions.js';
 import { SCONIFY_API_URL } from '../config/config.js';
+import { getAuthToken } from '../utils/dockerhub.js';
 
 export async function sconify({
   sconifyForProd,
   iAppNameToSconify,
   walletAddress,
+  dockerhubAccessToken,
+  dockerhubUsername,
 }) {
   if (sconifyForProd) {
     throw Error('This feature is not yet implemented. Coming soon ...');
@@ -15,6 +18,15 @@ export async function sconify({
   let appContractAddress;
   let sconifiedImage;
   try {
+    const [dockerRepository] = iAppNameToSconify.split(':');
+
+    const pushToken = await getAuthToken({
+      repository: dockerRepository,
+      action: 'pull,push',
+      dockerhubAccessToken,
+      dockerhubUsername,
+    });
+
     const { body } = await request(`${SCONIFY_API_URL}/sconify`, {
       method: 'POST',
       headers: {
@@ -23,6 +35,7 @@ export async function sconify({
       },
       body: JSON.stringify({
         dockerhubImageToSconify: iAppNameToSconify,
+        dockerhubPushToken: pushToken, // used for pushing sconified image on user repo
         yourWalletPublicAddress: walletAddress,
       }),
       throwOnError: true,

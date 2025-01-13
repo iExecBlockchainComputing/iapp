@@ -12,6 +12,12 @@ const bodySchema = z.object({
       1,
       'A dockerhub image is required. <dockerhubUsername>/<iAppName>:<version>'
     ),
+  dockerhubPushToken: z
+    .string()
+    .min(
+      1,
+      'An auth token with push access to dockerhub repository is required.'
+    ),
 });
 
 export async function sconifyHandler(req, res) {
@@ -25,11 +31,13 @@ export async function sconifyHandler(req, res) {
 
   let yourWalletPublicAddress;
   let dockerhubImageToSconify;
+  let dockerhubPushToken;
 
   try {
     const requestBody = bodySchema.parse(req.body);
     yourWalletPublicAddress = requestBody.yourWalletPublicAddress;
     dockerhubImageToSconify = requestBody.dockerhubImageToSconify;
+    dockerhubPushToken = requestBody.dockerhubPushToken;
   } catch (error) {
     logger.error(error);
 
@@ -42,6 +50,7 @@ export async function sconifyHandler(req, res) {
   try {
     const { sconifiedImage, appContractAddress } = await sconify({
       dockerImageToSconify: dockerhubImageToSconify,
+      pushToken: dockerhubPushToken,
       userWalletPublicAddress: yourWalletPublicAddress,
     });
 
