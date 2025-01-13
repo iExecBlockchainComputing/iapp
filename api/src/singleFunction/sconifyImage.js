@@ -13,7 +13,6 @@ export async function sconifyImage({ fromImage, toImage, imageName }) {
   await pullSconeImage(SCONIFY_IMAGE);
 
   const sconifyContainer = await docker.createContainer({
-    // https://gitlab.scontain.com/scone-production/iexec-sconify-image/container_registry/99?after=NTA
     Image: SCONIFY_IMAGE,
     Cmd: [
       'sconify_iexec',
