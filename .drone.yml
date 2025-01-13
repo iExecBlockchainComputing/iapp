@@ -50,7 +50,7 @@ steps:
       - install-deps
 
   - name: set-version-nightly
-    image: node:18.19
+    image: node:20
     commands:
       - cd cli
       - eval npm pkg set version="$(npm pkg get version)-nightly-$DRONE_COMMIT"

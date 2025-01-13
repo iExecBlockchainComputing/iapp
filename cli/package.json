@@ -1,5 +1,5 @@
 {
-  "name": "iapp-cli",
+  "name": "@iexec/iapp-maker",
   "version": "0.0.1",
   "description": "A CLI to guide you through the process of sconifying an iExec iApp",
   "main": "src/index.js",
@@ -15,10 +15,22 @@
     "format": "prettier --write .",
     "lint": "eslint src"
   },
+  "author": "iExec",
+  "license": "Apache-2.0",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/iExecBlockchainComputing/iapp.git"
   },
+  "keywords": [
+    "iExec"
+  ],
+  "bugs": {
+    "url": "https://github.com/iExecBlockchainComputing/iapp/issues"
+  },
+  "files": [
+    "src",
+    "templates"
+  ],
   "dependencies": {
     "borsh": "^2.0.0",
     "boxen": "^8.0.1",
