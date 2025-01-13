@@ -1,3 +1,4 @@
+// https://gitlab.scontain.com/sconecuratedimages/node/container_registry/20
 export const SCONE_NODE_IMAGE =
   'registry.scontain.com:5050/sconecuratedimages/node:14.4.0-alpine3.11';
 
