@@ -46,4 +46,4 @@ steps:
       - cd cli
       - npm publish --dry-run
     depends_on:
-      - test-no-crash
+      - install-deps
