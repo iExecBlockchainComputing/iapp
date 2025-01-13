@@ -1,6 +1,7 @@
 {
-  "name": "iapp-api",
+  "name": "@iexec/iapp-maker",
   "version": "0.0.1",
+  "description": "A CLI in order to build, test and deploy an iexec application",
   "main": "index.js",
   "type": "module",
   "scripts": {
@@ -10,6 +11,23 @@
     "check-format": "prettier --check .",
     "format": "prettier --write ."
   },
+  "author": "iExec",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/iExecBlockchainComputing/iapp.git"
+  },
+  "keywords": [
+    "iExec"
+  ],
+  "bugs": {
+    "url": "https://github.com/iExecBlockchainComputing/iapp/issues"
+  },
+  "homepage": "https://github.com/iExecBlockchainComputing/iapp/blob/main/cli/README.md",
+  "files": [
+    "src",
+    "templates"
+  ],
   "dependencies": {
     "cls-hooked": "^4.2.2",
     "dockerode": "^4.0.2",

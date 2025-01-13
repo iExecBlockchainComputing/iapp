@@ -1,6 +1,6 @@
 {
   "name": "iapp-cli",
-  "version": "0.1.0-beta.1",
+  "version": "0.0.1",
   "description": "A CLI to guide you through the process of sconifying an iExec iApp",
   "main": "src/index.js",
   "type": "module",
