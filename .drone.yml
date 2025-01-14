@@ -4,6 +4,7 @@ type: docker
 name: default build for promote
 
 trigger:
+  event:
     - push
   branch:
     - main
