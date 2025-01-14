@@ -72,16 +72,9 @@ Options:
   include the `--protectedData` option followed by the name of a protected data
   mock.
 
-> ℹ️ when you run `iapp test` for the first time you will be asked wether or not
-> you want to attach an
-> [app secret](https://protocol.docs.iex.ec/for-developers/technical-references/application-io#app-developer-secret)
-> to your app.
-
-> ⚠️ **Output size limitation:**  
-> The results uploaded by the worker must not exceed **50 MB**.  
-> If the size exceeds this limit, the task will fail with the error
-> `POST_COMPUTE_FAILED_UNKNOWN_ISSUE`.  
-> Ensure your iApp generates outputs within this limit during testing.
+> ℹ️ when you run `iapp test` for the first time and your app is using an
+> [app secret](https://protocol.docs.iex.ec/for-developers/technical-references/application-io#app-developer-secret),
+> you will be asked wether or not you want to attach an app secret to your app.
 
 ---
 
