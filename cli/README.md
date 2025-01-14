@@ -1,15 +1,15 @@
-# iExec iApp > CLI
+# iExec iApp Maker > CLI
 
 This CLI provides an interface to guide you through different steps:
 
 - Create a simple JavaScript app with the necessary structure to run on a
   decentralized worker
 - Test it locally (with Docker)
-- Deploy and sconify your iApp on the iExec protocol
+- Deploy your iApp as a TEE app on the iExec protocol
 
 ## Prerequisites
 
-- Node.js v18 or higher
+- Node.js v20 or higher
 - A directory where you want to init your iApp. If not, create a new folder.
   (`iapp init` will also propose you to do so)
 - Docker
@@ -17,9 +17,7 @@ This CLI provides an interface to guide you through different steps:
 ## Install
 
 ```sh
-npm ci
-# (don't forget the final '.')
-npm i -g .
+npm i -g @iexec/iapp-maker
 ```
 
 ## Commands
@@ -117,32 +115,3 @@ Options:
   during run.
 - use `--requesterSecret <key=value...>` to provide one or more requester
   secrets to your iApp during run.
-
-## What's next?
-
-To get logs about your running task:
-
-```sh
-iexec task debug <taskId> --logs --chain bellecour
-```
-
-Example:
-
-```sh
-iexec task debug 0x62ed16ebc52c9437af45f57dc30819254ce391633c090e125253726eb76e07b1 --logs
-```
-
-To get the output of your task:
-
-```sh
-iexec task show <taskId> --download task-result.zip
-```
-
-Example:
-
-```sh
-iexec task show 0x62ed16ebc52c9437af45f57dc30819254ce391633c090e125253726eb76e07b1 --download task-result.zip
-```
-
-Unzip the downloaded file and you will find the output of your task in a
-`result.txt` file.
