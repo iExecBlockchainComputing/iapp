@@ -13,7 +13,6 @@ trigger:
     - cli-publish-nightly
   branch:
     - main
-    - develop
 
 steps:
   - name: install-deps
@@ -55,8 +54,6 @@ steps:
       - cd cli
       - eval npm pkg set version="$(npm pkg get version)-nightly-$DRONE_COMMIT"
     when:
-      branch:
-        - develop
       target:
         - cli-publish-nightly
     depends_on:
@@ -74,8 +71,6 @@ steps:
       access: public
       folder: cli
     when:
-      branch:
-        - develop
       target:
         - cli-publish-nightly
     depends_on:
@@ -93,8 +88,6 @@ steps:
       access: public
       folder: cli
     when:
-      branch:
-        - main
       target:
         - cli-publish-latest
     depends_on:
