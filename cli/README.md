@@ -68,6 +68,9 @@ Options:
 - use `--requesterSecret <key=value...>` to provide one or more
   [requester secrets](https://protocol.docs.iex.ec/for-developers/technical-references/application-io#requester-secrets)
   to your iApp during testing.
+- use `--protectedData [mock-name]` if your iApp processes protected data,
+  include the `--protectedData` option followed by the name of a protected data
+  mock.
 
 > ℹ️ when you run `iapp test` for the first time you will be asked wether or not
 > you want to attach an
