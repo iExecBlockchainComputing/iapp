@@ -1,6 +1,6 @@
 {
   "name": "@iexec/iapp-maker",
-  "version": "0.0.1",
+  "version": "0.0.1-alpha",
   "description": "A CLI to guide you through the process of building an iExec iApp",
   "main": "src/index.js",
   "type": "module",
