@@ -1,6 +1,22 @@
 ---
 kind: pipeline
 type: docker
+name: default build for promote
+
+trigger:
+    - push
+  branch:
+    - main
+
+steps:
+  - name: ready
+    image: bash
+    commands:
+      - echo "ready"
+
+---
+kind: pipeline
+type: docker
 name: cli publish npm
 
 trigger:
