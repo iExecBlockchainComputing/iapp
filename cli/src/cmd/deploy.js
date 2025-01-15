@@ -86,7 +86,7 @@ export async function deploy() {
     spinner.start(
       'Transforming your image into a TEE image and deploying on iExec, this may take a few minutes...'
     );
-    const { sconifiedImage, dockerHubUrl, appContractAddress } = await sconify({
+    const { sconifiedImage, appContractAddress } = await sconify({
       sconifyForProd: false,
       iAppNameToSconify: imageTag,
       walletAddress,
@@ -101,7 +101,7 @@ export async function deploy() {
     }
     spinner.succeed(
       `Deployment of your iApp completed successfully:
-  - Docker image: ${sconifiedImage} (${dockerHubUrl})
+  - Docker image: ${sconifiedImage}
   - iApp address: ${appContractAddress}`
     );
   } catch (error) {
