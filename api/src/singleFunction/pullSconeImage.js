@@ -1,4 +1,5 @@
 import Docker from 'dockerode';
+import { logger } from '../utils/logger.js';
 
 const docker = new Docker();
 
@@ -19,12 +20,12 @@ export function pullSconeImage(image) {
     );
   }
 
-  console.log(`Pulling image: ${image}...`);
+  logger.info(`Pulling image: ${image}...`);
 
   return new Promise((resolve, reject) => {
     docker.pull(image, { authconfig: registryAuth }, function (err, stream) {
       if (err) {
-        console.error('Error pulling the image:', err);
+        logger.error(err, 'Error pulling the image:');
         return reject(err);
       }
 
@@ -32,15 +33,15 @@ export function pullSconeImage(image) {
 
       function onFinished(err, output) {
         if (err) {
-          console.error('Error in image pulling process:', err);
+          logger.error(err, 'Error in image pulling process');
           return reject(err);
         }
-        console.log(`Image ${image} pulled successfully.`);
+        logger.info(`Image ${image} pulled successfully.`);
         resolve(output);
       }
 
       function onProgress(event) {
-        console.log(event.status);
+        logger.debug(event, '[pull] onProgress');
       }
     });
   });

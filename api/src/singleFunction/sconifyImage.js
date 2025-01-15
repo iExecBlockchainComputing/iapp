@@ -6,18 +6,27 @@ import { pullSconeImage } from './pullSconeImage.js';
 
 const docker = new Docker();
 
-export async function sconifyImage({ fromImage, toImage, imageName }) {
-  logger.info({ fromImage, toImage, imageName }, 'Running sconify command...');
+/**
+ * Sconifies an iapp docker image
+ *
+ * @param { Object } params
+ * @param { String } params.fromImage image to sconify
+ * @param { String } params.entrypoint command to run the app (whitelisted)
+ *
+ * @returns { Promise<String> } sconified image id (`"sha256:..."`)
+ */
+export async function sconifyImage({ fromImage, entrypoint }) {
+  logger.info({ fromImage, entrypoint }, 'Running sconify command...');
 
   logger.info({ sconeImage: SCONIFY_IMAGE }, 'Pulling scone image...');
   await pullSconeImage(SCONIFY_IMAGE);
 
+  const toImage = `${fromImage}-tmp-sconified-${Date.now()}`; // create an unique temporary identifier for the target image
+  logger.info({ fromImage, toImage }, 'Sconifying...');
   const sconifyContainer = await docker.createContainer({
-    // https://gitlab.scontain.com/scone-production/iexec-sconify-image/container_registry/99?after=NTA
     Image: SCONIFY_IMAGE,
     Cmd: [
       'sconify_iexec',
-      `--name=${imageName}`,
       `--from=${fromImage}`,
       `--to=${toImage}`,
       '--binary-fs',
@@ -29,7 +38,7 @@ export async function sconifyImage({ fromImage, toImage, imageName }) {
       '--dlopen=1',
       '--no-color',
       '--verbose',
-      '--command=node /app/src/app.js',
+      `--command=${entrypoint}`,
     ],
     HostConfig: {
       Binds: ['/var/run/docker.sock:/var/run/docker.sock'],
@@ -44,14 +53,14 @@ export async function sconifyImage({ fromImage, toImage, imageName }) {
     { stream: true, stdout: true, stderr: true },
     function (err, stream) {
       if (err) {
-        console.error('Error attaching to container:', err);
+        logger.error(err, 'Error attaching to container');
         return;
       }
 
       // Try to detect any 'docker build' error, otherwise log to stdout
       stream.on('data', function (data) {
         const readableData = data.toString('utf8');
-        console.log(readableData);
+        logger.debug(readableData);
         if (readableData.toLowerCase().includes('error')) {
           logger.error('Sconify docker container error');
           hasError = true;
@@ -68,7 +77,6 @@ export async function sconifyImage({ fromImage, toImage, imageName }) {
   let builtImage;
   try {
     builtImage = await inspectImage(toImage);
-    console.log('builtImage', builtImage);
   } catch (error) {
     logger.error({ error, expectedImage: toImage }, 'ERROR inspectImage');
     throw new Error('Error at sconify process');
@@ -76,6 +84,7 @@ export async function sconifyImage({ fromImage, toImage, imageName }) {
   if (!builtImage) {
     throw new Error('Error at sconify process');
   }
+  logger.info({ toImage, builtImage }, 'Successfully built TEE docker image');
 
-  logger.info({ toImage }, 'Successfully built TEE docker image');
+  return builtImage.Id;
 }

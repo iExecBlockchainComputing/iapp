@@ -13,7 +13,7 @@ export async function pullPublicImage(image) {
   return new Promise((resolve, reject) => {
     docker.pull(image, function (err, stream) {
       if (err) {
-        console.error('Error pulling the image:', err);
+        logger.error(err, 'Error pulling the image');
         return reject(err);
       }
 
@@ -29,7 +29,7 @@ export async function pullPublicImage(image) {
       }
 
       function onProgress(event) {
-        console.log(event);
+        logger.debug(event, '[pull] onProgress');
       }
     });
   });

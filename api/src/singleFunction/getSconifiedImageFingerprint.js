@@ -1,10 +1,17 @@
 import Docker from 'dockerode';
+import { logger } from '../utils/logger.js';
 
 const docker = new Docker();
 
-export async function getSconifiedImageFingerprint({ targetImagePath }) {
+/**
+ * @param { Object } params
+ * @param { String } params.image sconified image to get the fingerprint from
+ *
+ * @returns { Promise<String> } scone hash fingerprint
+ */
+export async function getSconifiedImageFingerprint({ image }) {
   const container = await docker.createContainer({
-    Image: targetImagePath,
+    Image: image,
     Cmd: [],
     HostConfig: {
       AutoRemove: false, // do not auto remove, we want to collect log after the container is exited
@@ -22,7 +29,7 @@ export async function getSconifiedImageFingerprint({ targetImagePath }) {
     .subarray(8) // strip 8 bytes header identifying the stream provenance
     .toString('utf8')
     .trim(); // strip trailing new line
-  console.log('fingerprint', fingerprint);
+  logger.info({ fingerprint }, 'Got scone fingerprint');
   if (!fingerprint) {
     throw new Error('No fingerprint found');
   }

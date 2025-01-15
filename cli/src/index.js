@@ -143,6 +143,7 @@ yargsInstance
   )
 
   .help()
+  .completion('completion', false) // create hidden "completion" command
   .alias('help', 'h')
   .alias('version', 'v')
   .strict() // show help if iapp is invoked with an invalid subcommand

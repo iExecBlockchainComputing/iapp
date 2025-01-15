@@ -14,7 +14,6 @@ export async function sconify({
     throw Error('This feature is not yet implemented. Coming soon ...');
   }
 
-  let teeDockerhubImagePath;
   let appContractAddress;
   let sconifiedImage;
   try {
@@ -45,7 +44,6 @@ export async function sconify({
     const json = await body.json();
     sconifiedImage = json.sconifiedImage;
     appContractAddress = json.appContractAddress;
-    teeDockerhubImagePath = json.sconifiedImage.split(':')[0];
   } catch (err) {
     let reason;
     if (err.body) {
@@ -70,7 +68,6 @@ export async function sconify({
 
   return {
     sconifiedImage,
-    dockerHubUrl: `https://hub.docker.com/r/${teeDockerhubImagePath}/tags`,
     appContractAddress,
   };
 }

@@ -32,6 +32,8 @@ export async function sconify({
     'New sconify request'
   );
 
+  const appEntrypoint = 'node /app/src/app.js'; // TODO make it a parameter to allow custom entrypoint
+
   logger.info(
     { dockerImageToSconify },
     '---------- 1 ---------- Pulling Docker image to sconify...'
@@ -55,54 +57,53 @@ export async function sconify({
     );
   }
 
-  const targetImageName = imageName;
-  const targetImageTag = `${imageTag}-tee-scone-${SCONIFY_IMAGE_VERSION}-debug`;
-  const targetImagePath = `${dockerUserName}/${imageName}:${targetImageTag}`;
-  logger.info({ targetImagePath }, 'Target image');
-
   // Pull the SCONE image
-  // https://gitlab.scontain.com/sconecuratedimages/node/container_registry/20
   logger.info('---------- 3 ---------- Pulling Scone image');
   await pullSconeImage(SCONE_NODE_IMAGE);
 
   logger.info('---------- 4 ---------- Start sconification...');
-  await sconifyImage({
+  const sconifiedImageId = await sconifyImage({
     fromImage: dockerImageToSconify,
-    toImage: targetImagePath,
-    imageName: `tee-scone-${dockerUserName}-${targetImageName}`,
   });
-  logger.info('Sconified successfully');
 
-  logger.info('---------- 5 ---------- Pushing image to dockerhub...');
-  const { Digest: pushedDockerImageDigest } = await pushImage({
-    targetImagePath,
-    targetImageTag,
+  logger.info({ sconifiedImageId }, 'Sconified successfully');
+
+  logger.info('---------- 5 ---------- Pushing image to user dockerhub...');
+
+  const imageRepo = `${dockerUserName}/${imageName}`;
+  const sconifiedImageShortId = sconifiedImageId.substring(7, 7 + 12); // extract 12 first chars after the leading "sha256:"
+  const sconifiedImageTag = `${imageTag}-tee-scone-${SCONIFY_IMAGE_VERSION}-debug-${sconifiedImageShortId}`; // add digest in tag to avoid replacing previous build
+  const sconifiedImage = `${imageRepo}:${sconifiedImageTag}`;
+
+  const pushed = await pushImage({
+    image: sconifiedImageId,
+    repo: imageRepo,
+    tag: sconifiedImageTag,
     pushToken,
   });
-  const imageOnlyChecksum = pushedDockerImageDigest.split(':')[1];
-  logger.info(
-    { pushedDockerImageDigest, imageOnlyChecksum },
-    'Pushed successfully'
-  );
+
+  const pushedImageDigest = pushed.Digest.split(':')[1]; // remove leading 'sha256:
+  logger.info(pushed, 'Pushed image');
 
   logger.info('---------- 6 ---------- Getting TEE image fingerprint...');
   const fingerprint = await getSconifiedImageFingerprint({
-    targetImagePath,
+    image: sconifiedImageId,
   });
   logger.info({ sconifiedImageFingerprint: fingerprint });
 
   logger.info('---------- 7 ---------- Deploying app contract...');
   const { appContractAddress } = await deployAppContractToBellecour({
     userWalletPublicAddress,
-    appName: `${dockerUserName}-${targetImageName}-${Date.now().toString()}`,
-    dockerImagePath: targetImagePath,
-    dockerImageDigest: imageOnlyChecksum,
+    appName: `${imageName}-${imageTag}`,
+    dockerImage: sconifiedImage,
+    dockerImageDigest: pushedImageDigest,
     fingerprint,
+    entrypoint: appEntrypoint,
   });
   logger.info('Deployed successfully to bellecour');
 
   return {
-    sconifiedImage: targetImagePath,
+    sconifiedImage,
     appContractAddress,
   };
 }

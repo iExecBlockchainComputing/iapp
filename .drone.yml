@@ -1,0 +1,111 @@
+---
+kind: pipeline
+type: docker
+name: default build for promote
+
+trigger:
+  event:
+    - push
+  branch:
+    - main
+
+steps:
+  - name: ready
+    image: bash
+    commands:
+      - echo "ready"
+
+---
+kind: pipeline
+type: docker
+name: cli publish npm
+
+trigger:
+  event:
+    - promote
+  target:
+    # publish the package @iexec/iapp-maker on npm with the tag latest
+    - cli-publish-latest
+    # publish the package @iexec/iapp-maker on npm with the tag nightly
+    - cli-publish-nightly
+  branch:
+    - main
+
+steps:
+  - name: install-deps
+    image: node:20
+    pull: always
+    commands:
+      - cd cli
+      - npm ci
+
+  - name: check-format
+    image: node:20
+    commands:
+      - cd cli
+      - npm run check-format
+    depends_on:
+      - install-deps
+
+  - name: lint
+    image: node:20
+    commands:
+      - cd cli
+      - npm run lint
+    depends_on:
+      - install-deps
+
+  - name: test-no-crash
+    image: node:20
+    commands:
+      - cd cli
+      - npm i -g .
+      - cd
+      - iapp -h
+    depends_on:
+      - install-deps
+
+  - name: set-version-nightly
+    image: node:20
+    commands:
+      - cd cli
+      - eval npm pkg set version="$(npm pkg get version)-nightly-$DRONE_COMMIT"
+    when:
+      target:
+        - cli-publish-nightly
+    depends_on:
+      - install-deps
+
+  - name: npm publish nightly
+    image: plugins/npm
+    settings:
+      username:
+        from_secret: npm_username
+      token:
+        from_secret: npm_token
+      # TODO: change to nightly
+      tag: latest
+      access: public
+      folder: cli
+    when:
+      target:
+        - cli-publish-nightly
+    depends_on:
+      - test-no-crash
+      - set-version-nightly
+
+  - name: npm-publish-latest
+    image: plugins/npm
+    settings:
+      username:
+        from_secret: npm_username
+      token:
+        from_secret: npm_token
+      tag: latest
+      access: public
+      folder: cli
+    when:
+      target:
+        - cli-publish-latest
+    depends_on:
+      - test-no-crash
