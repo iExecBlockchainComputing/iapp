@@ -20,6 +20,9 @@ This CLI provides an interface to guide you through different steps:
 npm i -g @iexec/iapp-maker
 ```
 
+> ℹ️ when you install this package for the fist time, run `iapp completion` to
+> generate a completion script for the `iapp` command
+
 ## Commands
 
 ### `--help`
