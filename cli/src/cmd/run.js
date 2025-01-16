@@ -1,4 +1,3 @@
-import chalk from 'chalk';
 import { v4 as uuidV4 } from 'uuid';
 import { ethers } from 'ethers';
 import { mkdir, rm } from 'node:fs/promises';
@@ -16,6 +15,7 @@ import { getIExecDebug } from '../utils/iexec.js';
 import { extractZipToFolder } from '../utils/extractZipToFolder.js';
 import { askShowResult } from '../cli-helpers/askShowResult.js';
 import { goToProjectRoot } from '../cli-helpers/goToProjectRoot.js';
+import * as color from '../cli-helpers/color.js';
 
 export async function run({
   iAppAddress,
@@ -51,23 +51,17 @@ export async function runInDebug({
 }) {
   // Is valid iApp address
   if (!ethers.isAddress(iAppAddress)) {
-    spinner.log(
-      chalk.red(
-        'The iApp address is invalid. Be careful ENS name is not implemented yet ...'
-      )
+    throw Error(
+      'The iApp address is invalid. Be careful ENS name is not implemented yet ...'
     );
-    return;
   }
 
   if (protectedData) {
     // Is valid protectedData address
     if (!ethers.isAddress(protectedData)) {
-      spinner.log(
-        chalk.red(
-          'The protectedData address is invalid. Be careful ENS name is not implemented yet ...'
-        )
+      throw Error(
+        'The protectedData address is invalid. Be careful ENS name is not implemented yet ...'
       );
-      return;
     }
   }
 
@@ -89,18 +83,13 @@ export async function runInDebug({
       );
 
       if (!isSecretSet) {
-        spinner.log(
-          chalk.red(
-            `Your protectedData secret key is not registered in the debug secret management service (SMS) of iexec protocol`
-          )
+        throw Error(
+          `Your protectedData secret key is not registered in the debug secret management service (SMS) of iexec protocol`
         );
-        return;
       }
     } catch (e) {
-      spinner.log(
-        chalk.red(
-          `Error while running your iApp with your protectedData: ${e.message}`
-        )
+      throw Error(
+        `Error while running your iApp with your protectedData: ${e.message}`
       );
     }
   }
@@ -130,9 +119,9 @@ export async function runInDebug({
   });
   const workerpoolorder = workerpoolOrderbook.orders[0]?.order;
   if (!workerpoolorder) {
-    spinner.fail('No WorkerpoolOrder found');
-    spinner.log(chalk.red('Wait until some workerpoolOrder come back'));
-    return;
+    throw Error(
+      'No WorkerpoolOrder found, Wait until some workerpoolOrder come back'
+    );
   }
   spinner.succeed('Workerpool order fetched');
 
@@ -163,13 +152,9 @@ export async function runInDebug({
     );
     datasetorder = datasetOrderbook.orders[0]?.order;
     if (!datasetorder) {
-      spinner.fail('No matching ProtectedData access found');
-      spinner.log(
-        chalk.red(
-          'It seems your iApp is not allowed to access the protectedData, please grantAccess to it'
-        )
+      throw Error(
+        'No matching ProtectedData access found, It seems your iApp is not allowed to access the protectedData, please grantAccess to it'
       );
-      return;
     }
     spinner.succeed('ProtectedData access found');
   }
@@ -223,14 +208,9 @@ export async function runInDebug({
     clearTimeout(taskTimeoutWarning);
   });
 
-  spinner.succeed('Task finalized');
-
   const task = await iexec.task.show(taskId);
-  spinner.log(
-    chalk.green(
-      `You can download the result of your task here: https://ipfs-gateway.v8-bellecour.iex.ec${task?.results?.location}`
-    )
-  );
+  spinner.succeed(`Task finalized
+You can download the result of your task here: ${color.link(`https://ipfs-gateway.v8-bellecour.iex.ec${task?.results?.location}`)}`);
 
   const downloadAnswer = await spinner.prompt({
     type: 'confirm',
@@ -248,7 +228,7 @@ export async function runInDebug({
   const taskResult = await iexec.task.fetchResults(taskId);
   const resultBuffer = await taskResult.arrayBuffer();
   await extractZipToFolder(resultBuffer, outputFolder);
-  spinner.succeed(`Result downloaded to ${outputFolder}`);
+  spinner.succeed(`Result downloaded to ${color.file(outputFolder)}`);
 
   await askShowResult({ spinner, outputPath: outputFolder });
 }

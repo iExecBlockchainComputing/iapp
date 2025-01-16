@@ -1,14 +1,16 @@
-import chalk from 'chalk';
 import { Wallet } from 'ethers';
 import { readIAppConfig, writeIAppConfig } from '../utils/iAppConfigFile.js';
 import { CONFIG_FILE } from '../config/config.js';
+import * as color from './color.js';
 
 export async function askForWalletPrivateKey({ spinner }) {
   const config = await readIAppConfig();
 
   const walletPrivateKey = config.walletPrivateKey || '';
   if (walletPrivateKey) {
-    spinner.log(`Using saved walletPrivateKey (from "${CONFIG_FILE}")`);
+    spinner.log(
+      `Using saved walletPrivateKey ${color.comment(`(from ${color.file(CONFIG_FILE)})`)}`
+    );
     return walletPrivateKey;
   }
 
@@ -22,7 +24,7 @@ export async function askForWalletPrivateKey({ spinner }) {
   try {
     new Wallet(walletPrivateKeyAnswer);
   } catch {
-    spinner.log(chalk.red('Invalid wallet private key'));
+    spinner.log(color.error('Invalid wallet private key'));
     return askForWalletPrivateKey({ spinner });
   }
 
@@ -41,7 +43,7 @@ export async function askForWalletPrivateKey({ spinner }) {
 
   config.walletPrivateKey = walletPrivateKeyAnswer;
   await writeIAppConfig(config);
-  spinner.log(`walletPrivateKey saved to "${CONFIG_FILE}"`);
+  spinner.log(`walletPrivateKey saved to ${color.file(CONFIG_FILE)}`);
 
   return walletPrivateKeyAnswer;
 }
