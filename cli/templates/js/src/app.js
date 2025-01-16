@@ -22,12 +22,9 @@ const main = async () => {
 
     try {
       const deserializer = new IExecDataProtectorDeserializer();
-      // The protected data created for the purpose of this Hello World journey
-      // contains a string with the key "name"
-      // 1- "iapp test": The protected data is simply a zip file in the /input folder
-      // 2- "iapp run": Pass it a real protected data address:
-      //    `iapp run <iapp-address> --protectedData 0x3FFb9D62b527b32230DFf094D24A661495aDb0B4`
-      const protectedName = await deserializer.getValue('name', 'string');
+      // The protected data mock created for the purpose of this Hello World journey
+      // contains an object with a key "secretText" which is a string
+      const protectedName = await deserializer.getValue('secretText', 'string');
       console.log('Found a protected data');
       messages.push(protectedName);
     } catch (e) {
