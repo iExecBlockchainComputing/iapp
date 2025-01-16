@@ -24,6 +24,7 @@ import { askShowResult } from '../cli-helpers/askShowResult.js';
 import { copy, fileExists } from '../utils/fs.utils.js';
 import { goToProjectRoot } from '../cli-helpers/goToProjectRoot.js';
 import * as color from '../cli-helpers/color.js';
+import { hintBox } from '../cli-helpers/box.js';
 
 export async function test({
   args,
@@ -48,6 +49,12 @@ export async function test({
     });
     await checkTestOutput({ spinner });
     await askShowResult({ spinner, outputPath: TEST_OUTPUT_DIR });
+    // TODO: check test warnings and errors and adapt the message
+    spinner.log(
+      hintBox(
+        `When ready run ${color.command(`iapp deploy`)} to transform you app into a TEE app and deploy it on iExec`
+      )
+    );
   } catch (error) {
     handleCliError({ spinner, error });
   }

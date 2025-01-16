@@ -16,6 +16,7 @@ import { Wallet } from 'ethers';
 import { getIExecDebug } from '../utils/iexec.js';
 import { goToProjectRoot } from '../cli-helpers/goToProjectRoot.js';
 import * as color from '../cli-helpers/color.js';
+import { hintBox } from '../cli-helpers/box.js';
 
 export async function deploy() {
   const spinner = getSpinner();
@@ -103,8 +104,13 @@ export async function deploy() {
     spinner.succeed(
       `Deployment of your iApp completed successfully:
   - Docker image: ${sconifiedImage}
-  - iApp address: ${appContractAddress}
-Run ${color.command(`iapp run ${appContractAddress}`)} to execute your iApp on an iExec TEE worker`
+  - iApp address: ${appContractAddress}`
+    );
+
+    spinner.log(
+      hintBox(
+        `Run ${color.command(`iapp run ${appContractAddress}`)} to execute your iApp on an iExec TEE worker`
+      )
     );
   } catch (error) {
     handleCliError({ spinner, error });
