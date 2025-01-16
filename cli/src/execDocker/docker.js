@@ -180,36 +180,59 @@ export async function runDockerContainer({
     Env: env,
   });
 
-  // Start the container
-  // TODO we should handle abort signal to stop the container and avoid containers running after command is interrupted
-  await container.start();
-
-  // get the logs stream
-  const logsStream = await container.logs({
-    follow: true,
-    stdout: true,
-    stderr: true,
-  });
-  logsStream.on('data', (chunk) => {
-    // const streamType = chunk[0]; // 1 = stdout, 2 = stderr
-    const logData = chunk.slice(8).toString('utf-8'); // strip multiplexed stream header
-    logsCallback(logData);
-  });
-  logsStream.on('error', (err) => {
-    logsCallback('Error streaming logs:', err.message);
-  });
-
-  // Wait for the container to finish
-  await container.wait();
-
-  // Check container status after waiting
-  const { State } = await container.inspect();
-
-  // Done with the container, remove the container
-  await container.remove();
-
-  return {
-    exitCode: State.ExitCode,
-    outOfMemory: State.OOMKilled,
+  const stopAndRemoveContainer = async () => {
+    try {
+      await container.stop();
+      await container.remove();
+    } catch (error) {
+      throw Error('Error cleaning up container:', error);
+    }
   };
+
+  const handleInterrupt = async () => {
+    await stopAndRemoveContainer();
+    process.exit(0);
+  };
+
+  process.on('SIGINT', handleInterrupt);
+  process.on('SIGTERM', handleInterrupt);
+
+  try {
+    // Start the container
+    await container.start();
+
+    // get the logs stream
+    const logsStream = await container.logs({
+      follow: true,
+      stdout: true,
+      stderr: true,
+    });
+    logsStream.on('data', (chunk) => {
+      const logData = chunk.slice(8).toString('utf-8'); // strip multiplexed stream header
+      logsCallback(logData);
+    });
+    logsStream.on('error', (err) => {
+      logsCallback('Error streaming logs:', err.message);
+    });
+
+    // Wait for the container to finish
+    await container.wait();
+
+    // Check container status after waiting
+    const { State } = await container.inspect();
+
+    // Done with the container, remove the container
+    await container.remove();
+
+    return {
+      exitCode: State.ExitCode,
+      outOfMemory: State.OOMKilled,
+    };
+  } catch (error) {
+    await stopAndRemoveContainer();
+    throw error;
+  } finally {
+    process.off('SIGINT', handleInterrupt);
+    process.off('SIGTERM', handleInterrupt);
+  }
 }
