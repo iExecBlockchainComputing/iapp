@@ -144,8 +144,7 @@ export async function runInDebug({
     tag: SCONE_TAG,
   });
   const apporder = await iexec.order.signApporder(apporderTemplate);
-  await iexec.order.publishApporder(apporder);
-  spinner.succeed('AppOrder created and published');
+  spinner.succeed('AppOrder created');
 
   // Dataset Order
   let datasetorder;
