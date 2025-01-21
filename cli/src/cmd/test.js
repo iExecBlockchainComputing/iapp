@@ -113,7 +113,7 @@ export async function testApp({
   const imageId = await dockerBuild({
     isForTest: true,
     progressCallback: (msg) => {
-      spinner.text = spinner.text + +color.comment(msg);
+      spinner.text = spinner.text + color.comment(msg);
     },
   });
   spinner.succeed(`App docker image built (${imageId})`);
