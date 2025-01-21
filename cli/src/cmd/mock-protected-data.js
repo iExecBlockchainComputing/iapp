@@ -1,7 +1,5 @@
 import { mkdir, readFile, stat, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import chalk from 'chalk';
-import boxen from 'boxen';
 import { getSpinner } from '../cli-helpers/spinner.js';
 import { fileExists } from '../utils/fs.utils.js';
 import { PROTECTED_DATA_MOCK_DIR } from '../config/config.js';
@@ -12,6 +10,8 @@ import {
   ALLOWED_KEY_NAMES_REGEXP,
 } from '../libs/dataprotector.js';
 import { goToProjectRoot } from '../cli-helpers/goToProjectRoot.js';
+import * as color from '../cli-helpers/color.js';
+import { hintBox, objectBox } from '../cli-helpers/box.js';
 
 export async function mockProtectedData() {
   const spinner = getSpinner();
@@ -163,7 +163,7 @@ export async function mockProtectedData() {
 
       spinner.info(
         `This is how your protectedData looks so far:
-${boxen(JSON.stringify(dataSchema, null, 2), { margin: 1 })}`
+${objectBox(JSON.stringify(dataSchema, null, 2))}`
       );
 
       const { addMore } = await spinner.prompt([
@@ -196,7 +196,7 @@ ${boxen(JSON.stringify(dataSchema, null, 2), { margin: 1 })}`
     }
 
     spinner.start(
-      `Creating protectedData mock file in \`${PROTECTED_DATA_MOCK_DIR}\` directory...`
+      `Creating protectedData mock file in ${color.file(PROTECTED_DATA_MOCK_DIR)} directory...`
     );
 
     const unencryptedData = await createZipFromObject(data);
@@ -204,21 +204,15 @@ ${boxen(JSON.stringify(dataSchema, null, 2), { margin: 1 })}`
     await mkdir(PROTECTED_DATA_MOCK_DIR, { recursive: true });
     await writeFile(join(PROTECTED_DATA_MOCK_DIR, mockName), unencryptedData);
     spinner.succeed(
-      `Mocked protectedData "${mockName}" created in \`${PROTECTED_DATA_MOCK_DIR}\` directory`
+      `Mocked protectedData ${color.file(mockName)} created in ${color.file(PROTECTED_DATA_MOCK_DIR)} directory`
     );
     spinner.log(
-      boxen(
+      hintBox(
         `protectedData mock "${mockName}" schema:
-${chalk.yellow(boxen(JSON.stringify(schema, null, 2)))}
+${color.command(objectBox(JSON.stringify(schema, null, 2)))}
 
 Use your mock in tests:
-${chalk.yellow(`iapp test --protectedData "${mockName}"`)}`,
-        {
-          padding: 1,
-          margin: 1,
-          borderStyle: 'round',
-          borderColor: 'cyan',
-        }
+${color.command(`iapp test --protectedData "${mockName}"`)}`
       )
     );
   } catch (error) {

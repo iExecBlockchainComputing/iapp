@@ -1,5 +1,6 @@
 import { readIAppConfig, writeIAppConfig } from '../utils/iAppConfigFile.js';
 import { CONFIG_FILE } from '../config/config.js';
+import * as color from './color.js';
 
 /**
  * @returns {Promise<string | null>}
@@ -9,11 +10,15 @@ export async function askForAppSecret({ spinner }) {
   const { appSecret: savedAppSecret } = config;
 
   if (savedAppSecret === null) {
-    spinner.log(`"No app secret" is configured (from "${CONFIG_FILE}")`);
+    spinner.log(
+      `"No app secret" is configured ${color.comment(`(from ${color.file(CONFIG_FILE)})`)}`
+    );
     return savedAppSecret;
   }
   if (savedAppSecret !== undefined) {
-    spinner.log(`Using saved appSecret (from "${CONFIG_FILE}")`);
+    spinner.log(
+      `Using saved appSecret ${color.comment(`(from ${color.file(CONFIG_FILE)})`)}`
+    );
     return savedAppSecret;
   }
 
@@ -37,7 +42,7 @@ export async function askForAppSecret({ spinner }) {
     if (saveNull) {
       config.appSecret = null;
       await writeIAppConfig(config);
-      spinner.log(`"No appSecret" choice saved to "${CONFIG_FILE}"`);
+      spinner.log(`"No appSecret" choice saved to ${color.file(CONFIG_FILE)}`);
     }
     return null;
   }
@@ -61,7 +66,7 @@ export async function askForAppSecret({ spinner }) {
   if (saveAppSecret) {
     config.appSecret = appSecret;
     await writeIAppConfig(config);
-    spinner.log(`appSecret saved to "${CONFIG_FILE}"`);
+    spinner.log(`appSecret saved to ${color.file(CONFIG_FILE)}`);
   }
 
   return appSecret;

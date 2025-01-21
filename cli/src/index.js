@@ -110,7 +110,7 @@ yargsInstance
   // Run a published docker image
   .command(
     'run <iAppAddress>',
-    'Run your iApp',
+    'Run your deployed iApp',
     (yargs) => {
       return yargs
         .positional('iAppAddress', {
