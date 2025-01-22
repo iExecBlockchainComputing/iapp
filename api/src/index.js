@@ -4,6 +4,7 @@ import pino from 'pino';
 import { sconifyHandler } from './sconify/sconify.handler.js';
 import { loggerMiddleware } from './utils/logger.js';
 import { requestIdMiddleware } from './utils/requestId.js';
+import { errorHandlerMiddleware } from './utils/errors.js';
 
 const app = express();
 const hostname = '0.0.0.0';
@@ -33,6 +34,8 @@ app.get('/health', (req, res) => {
 app.get('/', (req, res) => {
   res.status(200).send('Hello from iExec iApp API 👋');
 });
+
+app.use(errorHandlerMiddleware);
 
 app.listen(port, hostname, () => {
   rootLogger.info(`Server running at http://${hostname}:${port}/`);
