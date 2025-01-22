@@ -91,6 +91,9 @@ async function copyChosenTemplateFiles({
   const files = await fs.readdir(templateDir);
   await Promise.all(files.map((file) => write(file)));
 
+  // rename _.gitignore (npm does not allow publishing files named .gitignore in a package)
+  await fs.rename('_.gitignore', '.gitignore');
+
   // transform template: remove unwanted feature code inside " // <<feature>> ... // <</feature>>" tags
   const code = (await fs.readFile(srcFile)).toString('utf8');
   let modifiedCode = code;
