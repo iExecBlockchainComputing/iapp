@@ -24,16 +24,12 @@ export async function dockerBuild({
     src: ['./'],
   };
 
-  let platform;
-  if (osType === 'Darwin') {
-    // For MacOS
-    if (isForTest) {
-      // ARM64 variant for local testing only
-      platform = 'linux/arm64';
-    } else {
-      // AMD64 variant to deploy to iExec stack
-      platform = 'linux/amd64';
-    }
+  // by default force to build amd64 image which is architecture used in iExec workers
+  // this require buildx builder to support 'linux/amd64' (some devices may need QEMU for amd64 architecture emulation)
+  let platform = 'linux/amd64';
+  // for MacOS local testing only build arm64 variant
+  if (osType === 'Darwin' && isForTest) {
+    platform = 'linux/arm64';
   }
 
   // Perform the Docker build operation
