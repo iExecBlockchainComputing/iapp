@@ -25,7 +25,6 @@ export async function sconifyHandler(req, res) {
   let yourWalletPublicAddress;
   let dockerhubImageToSconify;
   let dockerhubPushToken;
-
   try {
     const requestBody = bodySchema.parse(req.body || {});
     yourWalletPublicAddress = requestBody.yourWalletPublicAddress;
@@ -45,28 +44,13 @@ export async function sconifyHandler(req, res) {
       pushToken: dockerhubPushToken,
       userWalletPublicAddress: yourWalletPublicAddress,
     });
-
     res.status(200).json({
       success: true,
       sconifiedImage,
       appContractAddress,
     });
-
-    cleanLocalDocker({
-      dockerhubImageToSconify,
-      sconifiedImage,
-    })
-      .then(() => {
-        logger.info('End of cleanLocalDocker()');
-      })
-      .catch((error) => {
-        logger.warn({ error }, 'Failed to clean local docker');
-      });
-  } catch (error) {
-    logger.error(error);
-
-    res.status(500).json({ success: false, error: error.message });
-
+  } finally {
+    // best effort clean images
     cleanLocalDocker({
       dockerhubImageToSconify,
     })
