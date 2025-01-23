@@ -1,19 +1,13 @@
-import { request } from 'undici';
 import { addDeploymentData } from './cacheExecutions.js';
 import { SCONIFY_API_URL } from '../config/config.js';
 import { getAuthToken } from '../utils/dockerhub.js';
 
 export async function sconify({
-  sconifyForProd,
   iAppNameToSconify,
   walletAddress,
   dockerhubAccessToken,
   dockerhubUsername,
 }) {
-  if (sconifyForProd) {
-    throw Error('This feature is not yet implemented. Coming soon ...');
-  }
-
   let appContractAddress;
   let sconifiedImage;
   try {
@@ -26,7 +20,7 @@ export async function sconify({
       dockerhubUsername,
     });
 
-    const { body } = await request(`${SCONIFY_API_URL}/sconify`, {
+    const jsonResponse = await fetch(`${SCONIFY_API_URL}/sconify`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -37,26 +31,40 @@ export async function sconify({
         dockerhubPushToken: pushToken, // used for pushing sconified image on user repo
         yourWalletPublicAddress: walletAddress,
       }),
-      throwOnError: true,
-    });
+    })
+      .catch(() => {
+        throw Error("Can't reach TEE transformation server!");
+      })
+      .then((res) => {
+        if (res.ok) {
+          return res.json().catch(() => {
+            // failed to parse body
+            throw Error('Unexpected server response');
+          });
+        }
+        // try getting error message from json body
+        return res
+          .json()
+          .catch(() => {
+            // failed to parse body
+            throw Error('Unknown server error');
+          })
+          .then(({ error }) => {
+            throw Error(error || 'Unknown server error');
+          });
+      });
 
     // Extract necessary information
-    const json = await body.json();
-    sconifiedImage = json.sconifiedImage;
-    appContractAddress = json.appContractAddress;
-  } catch (err) {
-    let reason;
-    if (err.body) {
-      reason = err.body;
-    } else if (
-      err?.code === 'ECONNREFUSED' ||
-      err?.code === 'UND_ERR_CONNECT_TIMEOUT'
-    ) {
-      reason = "Can't reach TEE transformation server!";
-    } else {
-      reason = err.toString();
+    if (!jsonResponse.appContractAddress) {
+      throw Error('Unexpected server response: missing appContractAddress');
     }
-    throw Error(`Failed to transform your app into a TEE app: ${reason}`);
+    if (!jsonResponse.sconifiedImage) {
+      throw Error('Unexpected server response: missing sconifiedImage');
+    }
+    appContractAddress = jsonResponse.appContractAddress;
+    sconifiedImage = jsonResponse.sconifiedImage;
+  } catch (err) {
+    throw Error(`Failed to transform your app into a TEE app: ${err.message}`);
   }
 
   // Add deployment data to deployments.json
