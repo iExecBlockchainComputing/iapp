@@ -9,9 +9,10 @@ const bodySchema = z.object({
   yourWalletPublicAddress: ethereumAddressZodSchema,
   dockerhubImageToSconify: z
     .string()
-    .min(
-      1,
-      'A dockerhub image is required. <dockerhubUsername>/<iAppName>:<version>'
+    // dockerhub user name is 4 chars letters and digit only
+    .regex(
+      /^(?<username>([a-zA-Z0-9]{4,30}))\/(?<repo>[a-z0-9-]+):(?<tag>[\w][\w.-]{0,127})$/,
+      'A dockerhub image is required. <dockerhubUsername>/<repo>:<tag>'
     ),
   dockerhubPushToken: z
     .string()
