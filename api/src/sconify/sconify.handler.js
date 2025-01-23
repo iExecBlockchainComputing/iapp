@@ -3,6 +3,7 @@ import { ethereumAddressZodSchema } from '../utils/ethereumAddressZodSchema.js';
 import { logger } from '../utils/logger.js';
 import { cleanLocalDocker } from '../utils/saveDockerSpace.js';
 import { sconify } from './sconify.service.js';
+import { fromError, createMessageBuilder } from 'zod-validation-error';
 
 const bodySchema = z.object({
   yourWalletPublicAddress: ethereumAddressZodSchema,
@@ -21,29 +22,20 @@ const bodySchema = z.object({
 });
 
 export async function sconifyHandler(req, res) {
-  if (!req.body) {
-    return res.status(400).json({
-      success: false,
-      error:
-        'Expecting a request body with `yourWalletPublicAddress` and `dockerhubImageToSconify`',
-    });
-  }
-
   let yourWalletPublicAddress;
   let dockerhubImageToSconify;
   let dockerhubPushToken;
 
   try {
-    const requestBody = bodySchema.parse(req.body);
+    const requestBody = bodySchema.parse(req.body || {});
     yourWalletPublicAddress = requestBody.yourWalletPublicAddress;
     dockerhubImageToSconify = requestBody.dockerhubImageToSconify;
     dockerhubPushToken = requestBody.dockerhubPushToken;
   } catch (error) {
-    logger.error(error);
-
-    return res.status(400).json({
-      success: false,
-      error: error.errors,
+    throw fromError(error, {
+      messageBuilder: createMessageBuilder({
+        prefix: 'Invalid request body',
+      }),
     });
   }
 
