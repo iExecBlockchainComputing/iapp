@@ -9,7 +9,9 @@ const app = express();
 const hostname = '0.0.0.0';
 const port = 3000;
 
-const rootLogger = pino();
+const rootLogger = pino({
+  level: process.env.LOG_LEVEL || 'info',
+});
 
 // Read package.json to get the version
 const packageJson = JSON.parse(
