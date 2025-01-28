@@ -3,6 +3,7 @@ import { SCONIFY_IMAGE } from '../constants/constants.js';
 import { logger } from '../utils/logger.js';
 import { inspectImage } from './inspectImage.js';
 import { pullSconeImage } from './pullSconeImage.js';
+import { removeContainer } from './removeContainer.js';
 
 const docker = new Docker();
 
@@ -42,36 +43,53 @@ export async function sconifyImage({ fromImage, entrypoint }) {
     ],
     HostConfig: {
       Binds: ['/var/run/docker.sock:/var/run/docker.sock'],
-      AutoRemove: true,
     },
   });
 
-  await sconifyContainer.start();
-
-  let hasError = false;
-  sconifyContainer.attach(
-    { stream: true, stdout: true, stderr: true },
-    function (err, stream) {
-      if (err) {
-        logger.error(err, 'Error attaching to container');
-        return;
-      }
-
-      // Try to detect any 'docker build' error, otherwise log to stdout
-      stream.on('data', function (data) {
-        const readableData = data.toString('utf8');
-        logger.debug(readableData);
-        if (readableData.toLowerCase().includes('error')) {
-          logger.error(data, 'Sconify docker container error');
-          hasError = true;
+  try {
+    await sconifyContainer.start();
+    let hasError = false;
+    sconifyContainer.attach(
+      { stream: true, stdout: true, stderr: true },
+      function (err, stream) {
+        if (err) {
+          logger.error(err, 'Error attaching to container');
+          return;
         }
-      });
-    }
-  );
 
-  await sconifyContainer.wait();
-  if (hasError) {
-    throw new Error('Error at sconify process');
+        // Try to detect any 'docker build' error, otherwise log to stdout
+        stream.on('data', function (data) {
+          const readableData = data.toString('utf8');
+          logger.debug(readableData);
+          if (readableData.toLowerCase().includes('error')) {
+            logger.error(
+              { data: readableData },
+              'Sconify docker container error'
+            );
+            hasError = true;
+          }
+        });
+      }
+    );
+    // TODO maybe add a timeout?
+    await sconifyContainer.wait();
+    if (hasError) {
+      throw new Error('Error at sconify process');
+    }
+  } finally {
+    // remove the sconify container when finished or when an error occurs (keep the image)
+    // non blocking for user
+    removeContainer({
+      containerId: sconifyContainer.id,
+      kill: true, // force container to exit if it is still running
+      volumes: true,
+    }).catch((error) => {
+      // no-op
+      logger.warn(
+        { error },
+        `Failed to remove sconify container ${sconifyContainer.id}`
+      );
+    });
   }
 
   let builtImage;
