@@ -77,19 +77,30 @@ export async function sconifyImage({ fromImage, entrypoint }) {
       throw new Error('Error at sconify process');
     }
   } finally {
+    logger.info(
+      { containerId: sconifyContainer.id },
+      'Removing sconify container'
+    );
     // remove the sconify container when finished or when an error occurs (keep the image)
     // non blocking for user
     removeContainer({
       containerId: sconifyContainer.id,
       kill: true, // force container to exit if it is still running
       volumes: true,
-    }).catch((error) => {
-      // no-op
-      logger.warn(
-        { error },
-        `Failed to remove sconify container ${sconifyContainer.id}`
-      );
-    });
+    })
+      .then(() => {
+        logger.info(
+          { containerId: sconifyContainer.id },
+          'Sconify container removed'
+        );
+      })
+      .catch((error) => {
+        // no-op
+        logger.warn(
+          { error },
+          `Failed to remove sconify container ${sconifyContainer.id}`
+        );
+      });
   }
 
   let builtImage;

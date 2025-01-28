@@ -95,14 +95,25 @@ export async function sconify({
     });
     logger.info({ sconifiedImageId }, 'Sconified successfully');
   } finally {
+    logger.info(
+      { imageId: dockerImageToSconify },
+      'Removing docker image to sconify'
+    );
     // clean the image to sconify as soon as it is sconified or an error occurs
     // non blocking for user
-    removeImage({ imageId: dockerImageToSconify }).catch((error) => {
-      logger.warn(
-        { error, dockerImageToSconify },
-        `Failed to clean docker image to sconify`
-      );
-    });
+    removeImage({ imageId: dockerImageToSconify })
+      .then(() => {
+        logger.info(
+          { imageId: dockerImageToSconify },
+          'Removed docker image to sconify'
+        );
+      })
+      .catch((error) => {
+        logger.warn(
+          { error, dockerImageToSconify },
+          `Failed to remove docker image to sconify`
+        );
+      });
   }
 
   const imageRepo = `${dockerUserName}/${imageName}`;
@@ -128,15 +139,26 @@ export async function sconify({
     });
     logger.info({ sconifiedImageFingerprint: fingerprint });
   } finally {
+    logger.info(
+      { imageId: sconifiedImageId },
+      'Removing sconified docker image'
+    );
     // clean the sconified image as soon as it is pushed or an error occurs
     // non blocking for user
     // force to clean all tags
-    removeImage({ imageId: sconifiedImageId, force: true }).catch((error) => {
-      logger.warn(
-        { error, sconifiedImageId },
-        `Failed to clean sconified docker image`
-      );
-    });
+    removeImage({ imageId: sconifiedImageId, force: true })
+      .then(() => {
+        logger.info(
+          { imageId: dockerImageToSconify },
+          'Removed sconified docker image'
+        );
+      })
+      .catch((error) => {
+        logger.warn(
+          { error, sconifiedImageId },
+          `Failed to remove sconified docker image`
+        );
+      });
   }
 
   logger.info('---------- 8 ---------- Deploying app contract...');
