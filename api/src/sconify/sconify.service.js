@@ -11,6 +11,8 @@ import { pushImage } from '../singleFunction/pushImage.js';
 import { sconifyImage } from '../singleFunction/sconifyImage.js';
 import { parseImagePath } from '../utils/parseImagePath.js';
 import { logger } from '../utils/logger.js';
+import { ForbiddenError } from '../utils/errors.js';
+import { checkPushToken } from '../singleFunction/checkPushToken.js';
 
 /**
  * Examples of valid dockerImageToSconify:
@@ -32,43 +34,62 @@ export async function sconify({
     'New sconify request'
   );
 
+  const { dockerUserName, imageName, imageTag } =
+    parseImagePath(dockerImageToSconify);
+  if (!dockerUserName || !imageName || !imageTag) {
+    // this should no happen since image is validated by regexp
+    throw new Error(`Unable to parse image name ${dockerImageToSconify}`);
+  }
+
   const appEntrypoint = 'node /app/src/app.js'; // TODO make it a parameter to allow custom entrypoint
 
   logger.info(
     { dockerImageToSconify },
-    '---------- 1 ---------- Pulling Docker image to sconify...'
+    '---------- 1 ---------- Checking Dockerhub push access...'
   );
-  await pullPublicImage(dockerImageToSconify);
+
+  await checkPushToken({
+    pushToken,
+    repository: `${dockerUserName}/${imageName}`,
+  }).catch((e) => {
+    throw new ForbiddenError(
+      `Invalid push token, make sure to provide a token with push access on ${dockerUserName}/${imageName}`,
+      { cause: e }
+    );
+  });
+
+  logger.info(
+    { dockerImageToSconify },
+    '---------- 2 ---------- Pulling Docker image to sconify...'
+  );
+  await pullPublicImage(dockerImageToSconify).catch((err) => {
+    throw new ForbiddenError(
+      `Cannot pull image, ensure ${dockerImageToSconify} is a public image on hub.docker.com`,
+      { cause: err }
+    );
+  });
   logger.info({ dockerImageToSconify }, 'Docker image pulled.');
 
-  logger.info('---------- 2 ---------- Inspecting Docker image to sconify...');
+  logger.info('---------- 3 ---------- Inspecting Docker image to sconify...');
   const inspectResult = await inspectImage(dockerImageToSconify);
   if (inspectResult.Os !== 'linux' || inspectResult.Architecture !== 'amd64') {
-    throw new Error(
-      'dockerImageToSconify needs to target linux/amd64 platform.'
-    );
-  }
-
-  const { dockerUserName, imageName, imageTag } =
-    parseImagePath(dockerImageToSconify);
-  if (!dockerUserName || !imageName || !imageTag) {
-    throw new Error(
-      'Invalid dockerImageToSconify. Please provide something that looks like robiniexec/hello-world:1.0.0'
+    throw new ForbiddenError(
+      `Invalid image platform, ${dockerImageToSconify} has no linux/amd64 platform variant`
     );
   }
 
   // Pull the SCONE image
-  logger.info('---------- 3 ---------- Pulling Scone image');
+  logger.info('---------- 4 ---------- Pulling Scone image');
   await pullSconeImage(SCONE_NODE_IMAGE);
 
-  logger.info('---------- 4 ---------- Start sconification...');
+  logger.info('---------- 5 ---------- Start sconification...');
   const sconifiedImageId = await sconifyImage({
     fromImage: dockerImageToSconify,
   });
 
   logger.info({ sconifiedImageId }, 'Sconified successfully');
 
-  logger.info('---------- 5 ---------- Pushing image to user dockerhub...');
+  logger.info('---------- 6 ---------- Pushing image to user dockerhub...');
 
   const imageRepo = `${dockerUserName}/${imageName}`;
   const sconifiedImageShortId = sconifiedImageId.substring(7, 7 + 12); // extract 12 first chars after the leading "sha256:"
@@ -85,13 +106,13 @@ export async function sconify({
   const pushedImageDigest = pushed.Digest.split(':')[1]; // remove leading 'sha256:
   logger.info(pushed, 'Pushed image');
 
-  logger.info('---------- 6 ---------- Getting TEE image fingerprint...');
+  logger.info('---------- 7 ---------- Getting TEE image fingerprint...');
   const fingerprint = await getSconifiedImageFingerprint({
     image: sconifiedImageId,
   });
   logger.info({ sconifiedImageFingerprint: fingerprint });
 
-  logger.info('---------- 7 ---------- Deploying app contract...');
+  logger.info('---------- 8 ---------- Deploying app contract...');
   const { appContractAddress } = await deployAppContractToBellecour({
     userWalletPublicAddress,
     appName: `${imageName}-${imageTag}`,

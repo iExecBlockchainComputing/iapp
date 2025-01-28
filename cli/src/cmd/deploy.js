@@ -89,7 +89,6 @@ export async function deploy() {
       'Transforming your image into a TEE image and deploying on iExec, this may take a few minutes...'
     );
     const { sconifiedImage, appContractAddress } = await sconify({
-      sconifyForProd: false,
       iAppNameToSconify: imageTag,
       walletAddress,
       dockerhubAccessToken,
