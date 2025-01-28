@@ -62,7 +62,7 @@ export async function sconifyImage({ fromImage, entrypoint }) {
         const readableData = data.toString('utf8');
         logger.debug(readableData);
         if (readableData.toLowerCase().includes('error')) {
-          logger.error('Sconify docker container error');
+          logger.error(data, 'Sconify docker container error');
           hasError = true;
         }
       });
