@@ -27,10 +27,8 @@ export async function sconifyHandler(req, res) {
   let dockerhubImageToSconify;
   let dockerhubPushToken;
   try {
-    const requestBody = bodySchema.parse(req.body || {});
-    yourWalletPublicAddress = requestBody.yourWalletPublicAddress;
-    dockerhubImageToSconify = requestBody.dockerhubImageToSconify;
-    dockerhubPushToken = requestBody.dockerhubPushToken;
+    ({ yourWalletPublicAddress, dockerhubImageToSconify, dockerhubPushToken } =
+      bodySchema.parse(req.body || {}));
   } catch (error) {
     throw fromError(error, {
       messageBuilder: createMessageBuilder({
