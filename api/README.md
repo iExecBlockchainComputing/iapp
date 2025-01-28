@@ -15,13 +15,13 @@ It is composed of one endpoint:
 - `/` or any other endpoint: will return a simple text (mostly to check if the
   server is running)
 
-## run locally
-
-Prerequisites:
+## Prerequisites
 
 - Node 20
 - docker installed locally with support for linux/amd64 architecture (either
   native or emulated)
+- Scontain account whit pull access to docker repository
+  `registry.scontain.com/scone-production/iexec-sconify-image`
 
 Create a `.env` file see [`.env.template`](.env.template)
 
@@ -29,25 +29,14 @@ Create a `.env` file see [`.env.template`](.env.template)
 cp .env.template .env
 # fill in the .env file
 ```
+
+## run locally
 
 ```sh
 npm run start
 ```
 
 ## development
-
-Prerequisites:
-
-- Node 20
-- docker installed locally with support for linux/amd64 architecture (either
-  native or emulated)
-
-Create a `.env` file see [`.env.template`](.env.template)
-
-```sh
-cp .env.template .env
-# fill in the .env file
-```
 
 ```sh
 npm run dev:pretty
