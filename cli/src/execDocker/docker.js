@@ -3,6 +3,13 @@ import os from 'os';
 
 const docker = new Docker();
 
+const abortController = new AbortController();
+const { signal } = abortController;
+
+process.on('SIGINT', () => {
+  abortController.abort();
+});
+
 export async function checkDockerDaemon() {
   try {
     await docker.ping();
@@ -42,63 +49,81 @@ export async function dockerBuild({
     platform,
   });
 
-  const imageId = await new Promise((resolve, reject) => {
-    docker.modem.followProgress(buildImageStream, onFinished, onProgress);
+  let imageId = null;
 
-    function onFinished(err, output) {
-      /**
-       * expected output format for image id
-       * ```
-       *   {
-       *    aux: {
-       *      ID: 'sha256:e994101ce877e9b42f31f1508e11bbeb8fa5096a1fb2d0c650a6a26797b1906b'
-       *    }
-       *  },
-       * ```
-       */
-      const builtImageId = output?.find((row) => row?.aux?.ID)?.aux?.ID;
-
-      /**
-       * 3 kind of error possible, we want to catch each of them:
-       * - stream error
-       * - build error
-       * - no image id (should not happen)
-       *
-       * expected output format for build error
-       * ```
-       *   {
-       *     errorDetail: {
-       *       code: 1,
-       *       message: "The command '/bin/sh -c npm ci' returned a non-zero code: 1"
-       *     },
-       *     error: "The command '/bin/sh -c npm ci' returned a non-zero code: 1"
-       *   }
-       * ```
-       */
-      const errorOrErrorMessage =
-        err || // stream error
-        output.find((row) => row?.error)?.error || // build error message
-        (!builtImageId && 'Failed to retrieve generated image ID'); // no image id -> error message
-
-      if (errorOrErrorMessage) {
-        const error =
-          errorOrErrorMessage instanceof Error
-            ? errorOrErrorMessage
-            : Error(errorOrErrorMessage);
-        reject(error);
-      } else {
-        resolve(builtImageId);
+  try {
+    const imageId = await new Promise((resolve, reject) => {
+      // Handle abort signal
+      if (signal) {
+        signal.addEventListener('abort', () => {
+          buildImageStream.destroy();
+          reject(
+            new Error('Docker build process was unexpectedly terminated.')
+          );
+        });
       }
-    }
 
-    function onProgress(event) {
-      if (event?.stream) {
-        progressCallback(event.stream);
+      docker.modem.followProgress(buildImageStream, onFinished, onProgress);
+
+      function onFinished(err, output) {
+        /**
+         * expected output format for image id
+         * ```
+         *   {
+         *    aux: {
+         *      ID: 'sha256:e994101ce877e9b42f31f1508e11bbeb8fa5096a1fb2d0c650a6a26797b1906b'
+         *    }
+         *  },
+         * ```
+         */
+        const builtImageId = output?.find((row) => row?.aux?.ID)?.aux?.ID;
+
+        /**
+         * 3 kind of error possible, we want to catch each of them:
+         * - stream error
+         * - build error
+         * - no image id (should not happen)
+         *
+         * expected output format for build error
+         * ```
+         *   {
+         *     errorDetail: {
+         *       code: 1,
+         *       message: "The command '/bin/sh -c npm ci' returned a non-zero code: 1"
+         *     },
+         *     error: "The command '/bin/sh -c npm ci' returned a non-zero code: 1"
+         *   }
+         * ```
+         */
+        const errorOrErrorMessage =
+          err || // stream error
+          output.find((row) => row?.error)?.error || // build error message
+          (!builtImageId && 'Failed to retrieve generated image ID'); // no image id -> error message
+
+        if (errorOrErrorMessage) {
+          const error =
+            errorOrErrorMessage instanceof Error
+              ? errorOrErrorMessage
+              : Error(errorOrErrorMessage);
+          reject(error);
+        } else {
+          resolve(builtImageId);
+        }
       }
-    }
-  });
 
-  return imageId;
+      function onProgress(event) {
+        if (event?.stream) {
+          progressCallback(event.stream);
+        }
+      }
+    });
+    return imageId;
+  } catch (error) {
+    if (imageId) {
+      await docker.getImage(imageId).remove();
+    }
+    throw error;
+  }
 }
 
 // Function to push a Docker image
@@ -119,8 +144,15 @@ export async function pushDockerImage({
       password: dockerhubAccessToken,
     },
   });
-
   await new Promise((resolve, reject) => {
+    // Handle abort signal
+    if (signal) {
+      signal.addEventListener('abort', () => {
+        imagePushStream.destroy();
+        reject(new Error('Docker push process was unexpectedly terminated.'));
+      });
+    }
+
     docker.modem.followProgress(imagePushStream, onFinished, onProgress);
 
     function onFinished(err, output) {
@@ -179,60 +211,43 @@ export async function runDockerContainer({
     },
     Env: env,
   });
-
-  const stopAndRemoveContainer = async () => {
-    try {
-      await container.stop();
-      await container.remove();
-    } catch (error) {
-      throw Error('Error cleaning up container:', error);
-    }
-  };
-
-  const handleInterrupt = async () => {
-    await stopAndRemoveContainer();
-    process.exit(0);
-  };
-
-  process.on('SIGINT', handleInterrupt);
-  process.on('SIGTERM', handleInterrupt);
-
-  try {
-    // Start the container
-    await container.start();
-
-    // get the logs stream
-    const logsStream = await container.logs({
-      follow: true,
-      stdout: true,
-      stderr: true,
+  // Handle abort signal
+  if (signal) {
+    signal.addEventListener('abort', async () => {
+      await container.kill();
+      logsCallback('Container stopped unexpectedly during execution.');
     });
-    logsStream.on('data', (chunk) => {
-      const logData = chunk.slice(8).toString('utf-8'); // strip multiplexed stream header
-      logsCallback(logData);
-    });
-    logsStream.on('error', (err) => {
-      logsCallback('Error streaming logs:', err.message);
-    });
-
-    // Wait for the container to finish
-    await container.wait();
-
-    // Check container status after waiting
-    const { State } = await container.inspect();
-
-    // Done with the container, remove the container
-    await container.remove();
-
-    return {
-      exitCode: State.ExitCode,
-      outOfMemory: State.OOMKilled,
-    };
-  } catch (error) {
-    await stopAndRemoveContainer();
-    throw error;
-  } finally {
-    process.off('SIGINT', handleInterrupt);
-    process.off('SIGTERM', handleInterrupt);
   }
+
+  // Start the container
+  await container.start();
+
+  // get the logs stream
+  const logsStream = await container.logs({
+    follow: true,
+    stdout: true,
+    stderr: true,
+  });
+  logsStream.on('data', (chunk) => {
+    // const streamType = chunk[0]; // 1 = stdout, 2 = stderr
+    const logData = chunk.slice(8).toString('utf-8'); // strip multiplexed stream header
+    logsCallback(logData);
+  });
+  logsStream.on('error', (err) => {
+    logsCallback('Error streaming logs:', err.message);
+  });
+
+  // Wait for the container to finish
+  await container.wait();
+
+  // Check container status after waiting
+  const { State } = await container.inspect();
+
+  // Done with the container, remove the container
+  await container.remove();
+
+  return {
+    exitCode: State.ExitCode,
+    outOfMemory: State.OOMKilled,
+  };
 }
