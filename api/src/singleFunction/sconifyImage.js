@@ -4,6 +4,7 @@ import { logger } from '../utils/logger.js';
 import { inspectImage } from './inspectImage.js';
 import { pullSconeImage } from './pullSconeImage.js';
 import { removeContainer } from './removeContainer.js';
+import { pruneBuilderCache } from './pruneBuilderCache.js';
 
 const docker = new Docker();
 
@@ -101,6 +102,11 @@ export async function sconifyImage({ fromImage, entrypoint }) {
           `Failed to remove sconify container ${sconifyContainer.id}`
         );
       });
+    // also remove generated builder cache
+    pruneBuilderCache().catch((error) => {
+      // no-op
+      logger.warn({ error }, `Failed to prune builder cache`);
+    });
   }
 
   let builtImage;
