@@ -13,6 +13,7 @@ import { parseImagePath } from '../utils/parseImagePath.js';
 import { logger } from '../utils/logger.js';
 import { ForbiddenError } from '../utils/errors.js';
 import { checkPushToken } from '../singleFunction/checkPushToken.js';
+import { removeImage } from '../singleFunction/removeImage.js';
 
 /**
  * Examples of valid dockerImageToSconify:
@@ -57,7 +58,6 @@ export async function sconify({
       { cause: e }
     );
   });
-
   logger.info(
     { dockerImageToSconify },
     '---------- 2 ---------- Pulling Docker image to sconify...'
@@ -70,49 +70,99 @@ export async function sconify({
   });
   logger.info({ dockerImageToSconify }, 'Docker image pulled.');
 
-  logger.info('---------- 3 ---------- Inspecting Docker image to sconify...');
-  const inspectResult = await inspectImage(dockerImageToSconify);
-  if (inspectResult.Os !== 'linux' || inspectResult.Architecture !== 'amd64') {
-    throw new ForbiddenError(
-      `Invalid image platform, ${dockerImageToSconify} has no linux/amd64 platform variant`
+  let sconifiedImageId;
+  try {
+    logger.info(
+      '---------- 3 ---------- Inspecting Docker image to sconify...'
     );
+    const inspectResult = await inspectImage(dockerImageToSconify);
+    if (
+      inspectResult.Os !== 'linux' ||
+      inspectResult.Architecture !== 'amd64'
+    ) {
+      throw new ForbiddenError(
+        `Invalid image platform, ${dockerImageToSconify} has no linux/amd64 platform variant`
+      );
+    }
+
+    // Pull the SCONE image
+    logger.info('---------- 4 ---------- Pulling Scone image');
+    await pullSconeImage(SCONE_NODE_IMAGE);
+
+    logger.info('---------- 5 ---------- Start sconification...');
+    sconifiedImageId = await sconifyImage({
+      fromImage: dockerImageToSconify,
+    });
+    logger.info({ sconifiedImageId }, 'Sconified successfully');
+  } finally {
+    logger.info(
+      { imageId: dockerImageToSconify },
+      'Removing docker image to sconify'
+    );
+    // clean the image to sconify as soon as it is sconified or an error occurs
+    // non blocking for user
+    removeImage({ imageId: dockerImageToSconify })
+      .then(() => {
+        logger.info(
+          { imageId: dockerImageToSconify },
+          'Removed docker image to sconify'
+        );
+      })
+      .catch((error) => {
+        logger.warn(
+          { error, dockerImageToSconify },
+          `Failed to remove docker image to sconify`
+        );
+      });
   }
-
-  // Pull the SCONE image
-  logger.info('---------- 4 ---------- Pulling Scone image');
-  await pullSconeImage(SCONE_NODE_IMAGE);
-
-  logger.info('---------- 5 ---------- Start sconification...');
-  const sconifiedImageId = await sconifyImage({
-    fromImage: dockerImageToSconify,
-  });
-
-  logger.info({ sconifiedImageId }, 'Sconified successfully');
-
-  logger.info('---------- 6 ---------- Pushing image to user dockerhub...');
 
   const imageRepo = `${dockerUserName}/${imageName}`;
   const sconifiedImageShortId = sconifiedImageId.substring(7, 7 + 12); // extract 12 first chars after the leading "sha256:"
   const sconifiedImageTag = `${imageTag}-tee-scone-${SCONIFY_IMAGE_VERSION}-debug-${sconifiedImageShortId}`; // add digest in tag to avoid replacing previous build
   const sconifiedImage = `${imageRepo}:${sconifiedImageTag}`;
 
-  const pushed = await pushImage({
-    image: sconifiedImageId,
-    repo: imageRepo,
-    tag: sconifiedImageTag,
-    pushToken,
-  });
+  let pushed;
+  let fingerprint;
+  try {
+    logger.info('---------- 6 ---------- Pushing image to user dockerhub...');
+    pushed = await pushImage({
+      image: sconifiedImageId,
+      repo: imageRepo,
+      tag: sconifiedImageTag,
+      pushToken,
+    });
+    logger.info(pushed, 'Pushed image');
 
-  const pushedImageDigest = pushed.Digest.split(':')[1]; // remove leading 'sha256:
-  logger.info(pushed, 'Pushed image');
-
-  logger.info('---------- 7 ---------- Getting TEE image fingerprint...');
-  const fingerprint = await getSconifiedImageFingerprint({
-    image: sconifiedImageId,
-  });
-  logger.info({ sconifiedImageFingerprint: fingerprint });
+    logger.info('---------- 7 ---------- Getting TEE image fingerprint...');
+    fingerprint = await getSconifiedImageFingerprint({
+      image: sconifiedImageId,
+    });
+    logger.info({ sconifiedImageFingerprint: fingerprint });
+  } finally {
+    logger.info(
+      { imageId: sconifiedImageId },
+      'Removing sconified docker image'
+    );
+    // clean the sconified image as soon as it is pushed or an error occurs
+    // non blocking for user
+    // force to clean all tags
+    removeImage({ imageId: sconifiedImageId, force: true })
+      .then(() => {
+        logger.info(
+          { imageId: dockerImageToSconify },
+          'Removed sconified docker image'
+        );
+      })
+      .catch((error) => {
+        logger.warn(
+          { error, sconifiedImageId },
+          `Failed to remove sconified docker image`
+        );
+      });
+  }
 
   logger.info('---------- 8 ---------- Deploying app contract...');
+  const pushedImageDigest = pushed.Digest.split(':')[1]; // remove leading 'sha256:
   const { appContractAddress } = await deployAppContractToBellecour({
     userWalletPublicAddress,
     appName: `${imageName}-${imageTag}`,

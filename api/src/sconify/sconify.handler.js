@@ -1,7 +1,5 @@
 import { z } from 'zod';
 import { ethereumAddressZodSchema } from '../utils/ethereumAddressZodSchema.js';
-import { logger } from '../utils/logger.js';
-import { cleanLocalDocker } from '../utils/saveDockerSpace.js';
 import { sconify } from './sconify.service.js';
 import { fromError, createMessageBuilder } from 'zod-validation-error';
 
@@ -36,28 +34,14 @@ export async function sconifyHandler(req, res) {
       }),
     });
   }
-
-  try {
-    const { sconifiedImage, appContractAddress } = await sconify({
-      dockerImageToSconify: dockerhubImageToSconify,
-      pushToken: dockerhubPushToken,
-      userWalletPublicAddress: yourWalletPublicAddress,
-    });
-    res.status(200).json({
-      success: true,
-      sconifiedImage,
-      appContractAddress,
-    });
-  } finally {
-    // best effort clean images
-    cleanLocalDocker({
-      dockerhubImageToSconify,
-    })
-      .then(() => {
-        logger.info('End of cleanLocalDocker()');
-      })
-      .catch((error) => {
-        logger.warn({ error }, 'Failed to clean local docker');
-      });
-  }
+  const { sconifiedImage, appContractAddress } = await sconify({
+    dockerImageToSconify: dockerhubImageToSconify,
+    pushToken: dockerhubPushToken,
+    userWalletPublicAddress: yourWalletPublicAddress,
+  });
+  res.status(200).json({
+    success: true,
+    sconifiedImage,
+    appContractAddress,
+  });
 }
