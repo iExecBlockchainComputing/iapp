@@ -1,5 +1,4 @@
 import chalk from 'chalk';
-import boxen from 'boxen';
 import figlet from 'figlet';
 import { mkdir } from 'node:fs/promises';
 import { folderExists } from '../utils/fs.utils.js';
@@ -8,6 +7,7 @@ import { getSpinner } from '../cli-helpers/spinner.js';
 import { handleCliError } from '../cli-helpers/handleCliError.js';
 import { generateWallet } from '../utils/generateWallet.js';
 import * as color from '../cli-helpers/color.js';
+import { hintBox } from '../cli-helpers/box.js';
 
 const targetDir = 'hello-world';
 
@@ -170,14 +170,7 @@ export async function init() {
     ${color.command('$ iapp run <iapp-address>')}
   `;
 
-    spinner.log(
-      boxen(output, {
-        padding: 1,
-        margin: 1,
-        borderStyle: 'round',
-        borderColor: 'cyan',
-      })
-    );
+    spinner.log(hintBox(output));
   } catch (error) {
     handleCliError({ spinner, error });
   }

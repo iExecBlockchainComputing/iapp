@@ -20,3 +20,11 @@ export const emphasis = chalk.green;
  * use to color file name
  */
 export const file = chalk.cyan;
+/**
+ * use to color web links
+ */
+export const link = chalk.blue.underline;
+/**
+ * use to color errors
+ */
+export const error = chalk.red;

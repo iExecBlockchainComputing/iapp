@@ -23,6 +23,8 @@ import { askForAppSecret } from '../cli-helpers/askForAppSecret.js';
 import { askShowResult } from '../cli-helpers/askShowResult.js';
 import { copy, fileExists } from '../utils/fs.utils.js';
 import { goToProjectRoot } from '../cli-helpers/goToProjectRoot.js';
+import * as color from '../cli-helpers/color.js';
+import { hintBox } from '../cli-helpers/box.js';
 
 export async function test({
   args,
@@ -47,6 +49,12 @@ export async function test({
     });
     await checkTestOutput({ spinner });
     await askShowResult({ spinner, outputPath: TEST_OUTPUT_DIR });
+    // TODO: check test warnings and errors and adapt the message
+    spinner.log(
+      hintBox(
+        `When ready run ${color.command(`iapp deploy`)} to transform you app into a TEE app and deploy it on iExec`
+      )
+    );
   } catch (error) {
     handleCliError({ spinner, error });
   }
@@ -106,7 +114,7 @@ export async function testApp({
     tag: 'iapp',
     isForTest: true,
     progressCallback: (msg) => {
-      spinner.text = spinner.text + msg;
+      spinner.text = spinner.text + color.comment(msg);
     },
   });
   spinner.succeed(`App docker image built (${imageId})`);
@@ -130,7 +138,7 @@ export async function testApp({
     const mockExists = await fileExists(protectedDataMockPath);
     if (!mockExists) {
       throw Error(
-        `No protectedData mock "${protectedDataMock}" found in ${PROTECTED_DATA_MOCK_DIR}, run \`iapp mock protectedData\` to create a new protectedData mock`
+        `No protectedData mock "${protectedDataMock}" found in ${PROTECTED_DATA_MOCK_DIR}, run ${color.command('iapp mock protectedData')} to create a new protectedData mock`
       );
     }
     await copy(
@@ -188,7 +196,7 @@ export async function testApp({
     memory: IEXEC_WORKER_HEAP_SIZE,
     logsCallback: (msg) => {
       appLogs.push(msg); // collect logs for future use
-      spinner.text = spinner.text + msg; // and display realtime while app is running
+      spinner.text = spinner.text + color.comment(msg); // and display realtime while app is running
     },
   }).finally(() => {
     clearTimeout(taskTimeoutWarning);
@@ -196,7 +204,7 @@ export async function testApp({
   if (outOfMemory) {
     spinner.fail(
       `App docker image container ran out of memory.
-  iExec worker's ${Math.floor(IEXEC_WORKER_HEAP_SIZE / (1024 * 1024))}Mb memory limit exceeded.
+  iExec worker's ${Math.floor(IEXEC_WORKER_HEAP_SIZE / (1024 * 1024))}MiB memory limit exceeded.
   You must refactor your app to run within the memory limit.`
     );
   } else if (exitCode === 0) {
@@ -214,7 +222,7 @@ export async function testApp({
     const showLogs = await spinner.prompt({
       type: 'confirm',
       name: 'continue',
-      message: `Would you like to see the app logs? (${appLogs.length} lines)`,
+      message: `Would you like to see the app logs? ${color.promptHelper(`(${appLogs.length} lines)`)}`,
       initial: false,
     });
     if (showLogs.continue) {
