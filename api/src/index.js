@@ -4,12 +4,15 @@ import pino from 'pino';
 import { sconifyHandler } from './sconify/sconify.handler.js';
 import { loggerMiddleware } from './utils/logger.js';
 import { requestIdMiddleware } from './utils/requestId.js';
+import { errorHandlerMiddleware } from './utils/errors.js';
 
 const app = express();
 const hostname = '0.0.0.0';
 const port = 3000;
 
-const rootLogger = pino();
+const rootLogger = pino({
+  level: process.env.LOG_LEVEL || 'info',
+});
 
 // Read package.json to get the version
 const packageJson = JSON.parse(
@@ -33,6 +36,8 @@ app.get('/health', (req, res) => {
 app.get('/', (req, res) => {
   res.status(200).send('Hello from iExec iApp API 👋');
 });
+
+app.use(errorHandlerMiddleware);
 
 app.listen(port, hostname, () => {
   rootLogger.info(`Server running at http://${hostname}:${port}/`);
