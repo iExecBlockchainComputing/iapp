@@ -212,7 +212,7 @@ export async function runDockerContainer({
   if (signal) {
     signal.addEventListener('abort', async () => {
       await container.kill();
-      logsCallback('Container stopped unexpectedly during execution.');
+      logsCallback('Container execution aborted');
     });
   }
 
