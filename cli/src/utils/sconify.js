@@ -1,12 +1,18 @@
 import { addDeploymentData } from './cacheExecutions.js';
 import { SCONIFY_API_URL } from '../config/config.js';
 import { getAuthToken } from '../utils/dockerhub.js';
+import { sleep } from './sleep.js';
+
+const INITIAL_RETRY_PERIOD = 20 * 1000; // 20s
+
+class TooManyRequestsError extends Error {}
 
 export async function sconify({
   iAppNameToSconify,
   walletAddress,
   dockerhubAccessToken,
   dockerhubUsername,
+  tryCount = 0,
 }) {
   let appContractAddress;
   let sconifiedImage;
@@ -42,6 +48,11 @@ export async function sconify({
             throw Error('Unexpected server response');
           });
         }
+        if (res.status === 429) {
+          throw new TooManyRequestsError(
+            'TEE transformation server is busy, retry later'
+          );
+        }
         // try getting error message from json body
         return res
           .json()
@@ -64,6 +75,17 @@ export async function sconify({
     appContractAddress = jsonResponse.appContractAddress;
     sconifiedImage = jsonResponse.sconifiedImage;
   } catch (err) {
+    // retry with exponential backoff
+    if (err instanceof TooManyRequestsError && tryCount < 3) {
+      await sleep(INITIAL_RETRY_PERIOD * Math.pow(2, tryCount));
+      return sconify({
+        iAppNameToSconify,
+        walletAddress,
+        dockerhubAccessToken,
+        dockerhubUsername,
+        tryCount: tryCount + 1,
+      });
+    }
     throw Error(`Failed to transform your app into a TEE app: ${err.message}`);
   }
 
