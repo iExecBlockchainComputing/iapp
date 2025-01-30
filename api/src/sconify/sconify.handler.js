@@ -1,16 +1,16 @@
 import { z } from 'zod';
 import { ethereumAddressZodSchema } from '../utils/ethereumAddressZodSchema.js';
-import { logger } from '../utils/logger.js';
-import { cleanLocalDocker } from '../utils/saveDockerSpace.js';
 import { sconify } from './sconify.service.js';
+import { fromError, createMessageBuilder } from 'zod-validation-error';
 
 const bodySchema = z.object({
   yourWalletPublicAddress: ethereumAddressZodSchema,
   dockerhubImageToSconify: z
     .string()
-    .min(
-      1,
-      'A dockerhub image is required. <dockerhubUsername>/<iAppName>:<version>'
+    // dockerhub user name is 4 chars letters and digit only
+    .regex(
+      /^(?<username>([a-zA-Z0-9]{4,30}))\/(?<repo>[a-z0-9-]+):(?<tag>[\w][\w.-]{0,127})$/,
+      'A dockerhub image is required. <dockerhubUsername>/<repo>:<tag>'
     ),
   dockerhubPushToken: z
     .string()
@@ -21,68 +21,27 @@ const bodySchema = z.object({
 });
 
 export async function sconifyHandler(req, res) {
-  if (!req.body) {
-    return res.status(400).json({
-      success: false,
-      error:
-        'Expecting a request body with `yourWalletPublicAddress` and `dockerhubImageToSconify`',
-    });
-  }
-
   let yourWalletPublicAddress;
   let dockerhubImageToSconify;
   let dockerhubPushToken;
-
   try {
-    const requestBody = bodySchema.parse(req.body);
-    yourWalletPublicAddress = requestBody.yourWalletPublicAddress;
-    dockerhubImageToSconify = requestBody.dockerhubImageToSconify;
-    dockerhubPushToken = requestBody.dockerhubPushToken;
+    ({ yourWalletPublicAddress, dockerhubImageToSconify, dockerhubPushToken } =
+      bodySchema.parse(req.body || {}));
   } catch (error) {
-    logger.error(error);
-
-    return res.status(400).json({
-      success: false,
-      error: error.errors,
+    throw fromError(error, {
+      messageBuilder: createMessageBuilder({
+        prefix: 'Invalid request body',
+      }),
     });
   }
-
-  try {
-    const { sconifiedImage, appContractAddress } = await sconify({
-      dockerImageToSconify: dockerhubImageToSconify,
-      pushToken: dockerhubPushToken,
-      userWalletPublicAddress: yourWalletPublicAddress,
-    });
-
-    res.status(200).json({
-      success: true,
-      sconifiedImage,
-      appContractAddress,
-    });
-
-    cleanLocalDocker({
-      dockerhubImageToSconify,
-      sconifiedImage,
-    })
-      .then(() => {
-        logger.info('End of cleanLocalDocker()');
-      })
-      .catch((error) => {
-        logger.warn({ error }, 'Failed to clean local docker');
-      });
-  } catch (error) {
-    logger.error(error);
-
-    res.status(500).json({ success: false, error: error.message });
-
-    cleanLocalDocker({
-      dockerhubImageToSconify,
-    })
-      .then(() => {
-        logger.info('End of cleanLocalDocker()');
-      })
-      .catch((error) => {
-        logger.warn({ error }, 'Failed to clean local docker');
-      });
-  }
+  const { sconifiedImage, appContractAddress } = await sconify({
+    dockerImageToSconify: dockerhubImageToSconify,
+    pushToken: dockerhubPushToken,
+    userWalletPublicAddress: yourWalletPublicAddress,
+  });
+  res.status(200).json({
+    success: true,
+    sconifiedImage,
+    appContractAddress,
+  });
 }

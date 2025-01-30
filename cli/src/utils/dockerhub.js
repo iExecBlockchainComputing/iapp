@@ -29,6 +29,17 @@ export async function getAuthToken({
       `Fail to get authorization token for scope=${repository}:${action}`
     );
   }
-  const { token } = await response.json();
-  return token;
+  return response
+    .json()
+    .catch(() => {
+      throw Error(`Unexpected response from dockerhub auth server`);
+    })
+    .then(({ token }) => {
+      if (!token) {
+        throw Error(
+          `Unexpected response from dockerhub auth server: Missing token`
+        );
+      }
+      return token;
+    });
 }

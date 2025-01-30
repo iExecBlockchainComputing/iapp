@@ -1,6 +1,5 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { request } from 'undici';
 import { TEST_INPUT_DIR } from '../config/config.js';
 
 // TODO we may want to cache to avoid downloading large input files over and over
@@ -19,9 +18,7 @@ export async function prepareInputFile(url) {
     if (name === '.' || name === '..') {
       throw Error('Invalid computed file name');
     }
-    await request(url, {
-      throwOnError: true,
-    }).then(async (response) => {
+    await fetch(url).then(async (response) => {
       await mkdir(TEST_INPUT_DIR, { recursive: true }); // ensure input dir
       await writeFile(join(TEST_INPUT_DIR, name), response.body);
     });
