@@ -14,6 +14,21 @@ This CLI provides an interface to guide you through different steps:
   (`iapp init` will also propose you to do so)
 - Docker
 
+> ℹ️ For MacOS users
+>
+> This tool use `docker buildx` to build images for `linux/amd64` platform
+> compatible with iExec's decentralized workers.
+>
+> Make sure your docker builder supports AMD64 architecture:
+>
+> ```sh
+> docker buildx inspect --bootstrap | grep -i platforms
+> ```
+>
+> The output should include `linux/amd64` in the list of supported platforms. If
+> not update te the latest Docker Desktop version which includes these
+> requirements.
+
 ## Install
 
 ```sh
