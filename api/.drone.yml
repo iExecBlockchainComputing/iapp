@@ -1,5 +1,33 @@
 kind: pipeline
 type: docker
+name: api-default
+
+trigger:
+  event:
+    - push
+
+steps:
+  - name: install deps
+    image: node:20
+    commands:
+      - cd api
+      - npm ci
+
+  - name: check lint
+    image: node:20
+    commands:
+      - cd api
+      - npm run lint
+
+  - name: check format
+    image: node:20
+    commands:
+      - cd api
+      - npm run check-format
+
+---
+kind: pipeline
+type: docker
 name: production
 
 trigger:
