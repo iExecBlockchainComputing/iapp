@@ -18,6 +18,13 @@ export class ForbiddenError extends OperationalError {}
  * should be the last middleware
  */
 export const errorHandlerMiddleware = (err, req, res, next) => {
+  if (res.headersSent) {
+    logger.warn(
+      { err },
+      'Error occurred after response headers have been sent'
+    );
+    return next(err);
+  }
   if (
     // handle Zod validation errors
     err instanceof ValidationError ||
