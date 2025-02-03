@@ -10,14 +10,14 @@ export async function checkPushToken({ pushToken, repository }) {
     throw Error('Missing access in jwt');
   }
   // check claims
-const hasPushAccess = decoded?.access?.some(
-  (access) =>
-    access?.type === 'repository' &&
-    access?.name === repository &&
-    Array.isArray(access?.actions) &&
-    access?.actions.includes('pull') &&
-    access?.actions.includes('push')
-);
+  const hasPushAccess = decoded?.access?.some(
+    (access) =>
+      access?.type === 'repository' &&
+      access?.name === repository &&
+      Array.isArray(access?.actions) &&
+      access?.actions.includes('pull') &&
+      access?.actions.includes('push')
+  );
   if (!hasPushAccess) {
     throw Error(`Missing push access on ${repository}`);
   }
