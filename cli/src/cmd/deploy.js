@@ -6,7 +6,10 @@ import {
 import { sconify } from '../utils/sconify.js';
 import { askForDockerhubUsername } from '../cli-helpers/askForDockerhubUsername.js';
 import { askForWalletAddress } from '../cli-helpers/askForWalletAddress.js';
-import { readPackageJonConfig } from '../utils/iAppConfigFile.js';
+import {
+  projectNameToImageName,
+  readIAppConfig,
+} from '../utils/iAppConfigFile.js';
 import { askForDockerhubAccessToken } from '../cli-helpers/askForDockerhubAccessToken.js';
 import { handleCliError } from '../cli-helpers/handleCliError.js';
 import { getSpinner } from '../cli-helpers/spinner.js';
@@ -22,6 +25,8 @@ export async function deploy() {
   const spinner = getSpinner();
   try {
     await goToProjectRoot({ spinner });
+    const { projectName } = await readIAppConfig();
+
     const dockerhubUsername = await askForDockerhubUsername({ spinner });
     const dockerhubAccessToken = await askForDockerhubAccessToken({ spinner });
 
@@ -38,6 +43,8 @@ export async function deploy() {
       throw Error('Invalid version');
     }
 
+    const imageTag = `${dockerhubUsername}/${projectNameToImageName(projectName)}:${iAppVersion}`;
+
     const appSecret = await askForAppSecret({ spinner });
 
     const walletAddress = await askForWalletAddress({ spinner });
@@ -53,11 +60,6 @@ export async function deploy() {
       }
       iexec = getIExecDebug(privateKey);
     }
-
-    const config = await readPackageJonConfig();
-    const iAppName = config.name.toLowerCase();
-
-    const imageTag = `${dockerhubUsername}/${iAppName}:${iAppVersion}`;
 
     // just start the spinner, no need to persist success in terminal
     spinner.start('Checking docker daemon is running...');
