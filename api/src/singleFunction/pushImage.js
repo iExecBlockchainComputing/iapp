@@ -41,7 +41,7 @@ export async function pushImage({ image, repo, tag, pushToken }) {
 
         docker.modem.followProgress(stream, onFinished, onProgress);
 
-        function onFinished(err, output) {
+        function onFinished(err) {
           if (err || isError) {
             logger.error(err, 'Error in image pushing process:');
             return reject(err);
