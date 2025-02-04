@@ -37,7 +37,7 @@ This project was scaffolded with `iapp init`.
 
 `iapp init` scaffolds a ready to hack iApp template.
 
-Start hacking by editing the source code in [./src](./src/)
+Start hacking by editing the source code in [./src](./src/).
 
 See [iApp development guidelines](#iapp-development-guidelines) for more details
 on the iApp development framework.
@@ -55,20 +55,20 @@ iapp test
 > [inputs](#iapp-inputs):
 >
 > - `--args <args>` simulates the app invocation with public input
->   [args](https://protocol.docs.iex.ec/for-developers/technical-references/application-io#args)
+>   [args](https://protocol.docs.iex.ec/for-developers/technical-references/application-io#args).
 > - `--inputFile <url>` simulates the app invocation with public
->   [input files](https://protocol.docs.iex.ec/for-developers/technical-references/application-io#input-files)
+>   [input files](https://protocol.docs.iex.ec/for-developers/technical-references/application-io#input-files).
 > - `--requesterSecret <index=value>` simulates the app invocation with
->   [requester secrets](https://protocol.docs.iex.ec/for-developers/technical-references/application-io#requester-secrets)
+>   [requester secrets](https://protocol.docs.iex.ec/for-developers/technical-references/application-io#requester-secrets).
 > - `--protectedData [mock name]` simulates the app invocation with a secret
->   [protected data](https://protocol.docs.iex.ec/for-developers/technical-references/application-iohttps://protocol.docs.iex.ec/for-developers/technical-references/application-io#protected-data)
+>   [protected data](https://protocol.docs.iex.ec/for-developers/technical-references/application-iohttps://protocol.docs.iex.ec/for-developers/technical-references/application-io#protected-data).
 > - if your app uses an
 >   [app secret](https://protocol.docs.iex.ec/for-developers/technical-references/application-io#app-developer-secret),
 >   `iapp test` will prompt you to set the app secret and simulate the run of
 >   the app with it. You can choose to save the secret for further reuse by
->   `iapp test` and `iapp deploy`
+>   `iapp test` and `iapp deploy`.
 
-Check the test output in the [output](./output/) directory
+Check the test output in the [output](./output/) directory.
 
 > ℹ️ Files used by the app while running `iapp test` are located in the
 > [input](./input/) directory.
@@ -91,7 +91,7 @@ iapp deploy
 
 ### Run on iExec
 
-Use the `run` command to run a deployed app on the iExec decentralized platform
+Use the `run` command to run a deployed app on the iExec decentralized platform.
 
 ```sh
 iapp run <iapp-address>
@@ -112,13 +112,13 @@ iapp run <iapp-address>
 
 - [iapp.config.json](./iapp.config.json) configuration file for the `iapp`
   commands (⚠️ this file contains sensitive information such as credentials or
-  wallet and should never be commited in a public repository)
-- [src/](./src/) where your code lives when you [develop](#develop) your app
-- [Dockerfile](./Dockerfile) how to build your app docker image
-- [input/](./input/) input directory for your [local tests](#test-locally)
-- [output/](./output/) output directory for your [local tests](#test-locally)
+  wallet and should never be committed in a public repository).
+- [src/](./src/) where your code lives when you [develop](#develop) your app.
+- [Dockerfile](./Dockerfile) how to build your app docker image.
+- [input/](./input/) input directory for your [local tests](#test-locally).
+- [output/](./output/) output directory for your [local tests](#test-locally).
 - [cache/](./cache/) directory contains traces of your past app
-  [deployments](#deploy-on-iexec) and [runs](#run-on-iexec)
+  [deployments](#deploy-on-iexec) and [runs](#run-on-iexec).
 
 ## iApp development guidelines
 
@@ -128,7 +128,7 @@ such an application.
 
 ### iApp inputs
 
-iApps can process different kind of inputs
+iApps can process different kind of inputs:
 
 - Requester inputs:
 
@@ -179,7 +179,7 @@ same deterministic result).
 ### working with libraries
 
 iApp can use libraries as soon as these libraries are installed while building
-the project's [`Dockerfile`](./Dockerfile)
+the project's [`Dockerfile`](./Dockerfile).
 
 > ℹ️ **Limitation**
 >
