@@ -62,11 +62,11 @@ iapp test
 >   [requester secrets](https://protocol.docs.iex.ec/for-developers/technical-references/application-io#requester-secrets)
 > - `--protectedData [mock name]` simulates the app invocation with a secret
 >   [protected data](https://protocol.docs.iex.ec/for-developers/technical-references/application-iohttps://protocol.docs.iex.ec/for-developers/technical-references/application-io#protected-data)
-> - if your uses an
->   [app secret](https://protocol.docs.iex.ec/for-developers/technical-references/application-io#app-developer-secret) >
+> - if your app uses an
+>   [app secret](https://protocol.docs.iex.ec/for-developers/technical-references/application-io#app-developer-secret),
 >   `iapp test` will prompt you to set the app secret and simulate the run of
->   the app with it, you can save it for further reuse by `iapp test` and
->   `iapp deploy`
+>   the app with it. You can choose to save the secret for further reuse by
+>   `iapp test` and `iapp deploy`
 
 Check the test output in the [output](./output/) directory
 
@@ -85,11 +85,9 @@ iapp deploy
 > ℹ️ for apps using an
 > [app secret](https://protocol.docs.iex.ec/for-developers/technical-references/application-io#app-developer-secret)
 >
-> The app secret is provisioned at the app deployment time, if you selected to
-> use an
-> [app secret](https://protocol.docs.iex.ec/for-developers/technical-references/application-io#app-developer-secret) >
-> `iapp deploy` will reuse the secret provided to `iapp test` and saved in
-> [iapp.config.json](./iapp.config.json).
+> The app secret is provisioned once, at the app deployment time. If an app
+> secret was already provided to `iapp test` and saved in
+> [iapp.config.json](./iapp.config.json), `iapp deploy` will reuse this secret.
 
 ### Run on iExec
 
