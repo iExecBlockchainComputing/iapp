@@ -25,6 +25,20 @@ steps:
       - cd api
       - npm run check-format
 
+  - name: build docker-image dry-run
+    image: plugins/docker
+    pull: always
+    settings:
+      registry: docker-regis.iex.ec
+      repo: docker-regis.iex.ec/iexec-iapp-api
+      context: ./api
+      dockerfile: api/Dockerfile
+      username:
+        from_secret: nexus-user
+      password:
+        from_secret: nexus-password
+      dry_run: true
+
 ---
 kind: pipeline
 type: docker
