@@ -1,14 +1,8 @@
 import Docker from 'dockerode';
 import os from 'os';
+import { createAbortSignal } from '../utils/abortController.js';
 
 const docker = new Docker();
-
-const abortController = new AbortController();
-const { signal } = abortController;
-
-process.on('SIGINT', () => {
-  abortController.abort();
-});
 
 export async function checkDockerDaemon() {
   try {
@@ -38,12 +32,13 @@ export async function dockerBuild({
   if (osType === 'Darwin' && isForTest) {
     platform = 'linux/arm64';
   }
-
+  const abortSignal = createAbortSignal();
   // Perform the Docker build operation
   const buildImageStream = await docker.buildImage(buildArgs, {
     t: tag,
     platform,
     pull: true, // docker store does not support multi platform image, this can cause issues when switching build target platform, pulling ensures the right image is used
+    abortSignal,
   });
 
   let imageId = null;
@@ -51,12 +46,10 @@ export async function dockerBuild({
   try {
     const imageId = await new Promise((resolve, reject) => {
       // Handle abort signal
-      if (signal) {
-        signal.addEventListener('abort', () => {
+      if (abortSignal) {
+        abortSignal.addEventListener('abort', () => {
           buildImageStream.destroy();
-          reject(
-            new Error('Docker build process was unexpectedly terminated.')
-          );
+          reject(new Error('Docker build aborted'));
         });
       }
 
@@ -134,19 +127,21 @@ export async function pushDockerImage({
     throw new Error('Missing DockerHub credentials.');
   }
   const dockerImage = docker.getImage(tag);
+  const abortSignal = createAbortSignal();
 
   const imagePushStream = await dockerImage.push({
     authconfig: {
       username: dockerhubUsername,
       password: dockerhubAccessToken,
     },
+    abortSignal,
   });
   await new Promise((resolve, reject) => {
     // Handle abort signal
-    if (signal) {
-      signal.addEventListener('abort', () => {
+    if (abortSignal) {
+      abortSignal.addEventListener('abort', () => {
         imagePushStream.destroy();
-        reject(new Error('Docker push process was unexpectedly terminated.'));
+        reject(new Error('Docker push aborted'));
       });
     }
 
@@ -198,6 +193,7 @@ export async function runDockerContainer({
   memory = undefined,
   logsCallback = () => {},
 }) {
+  const abortSignal = createAbortSignal();
   const container = await docker.createContainer({
     Image: image,
     Cmd: cmd,
@@ -207,10 +203,12 @@ export async function runDockerContainer({
       Memory: memory,
     },
     Env: env,
+    abortSignal,
   });
+
   // Handle abort signal
-  if (signal) {
-    signal.addEventListener('abort', async () => {
+  if (abortSignal) {
+    abortSignal.addEventListener('abort', async () => {
       await container.kill();
       logsCallback('Container execution aborted');
     });
