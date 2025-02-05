@@ -28,7 +28,7 @@ export async function removeContainer({
     );
 
     if (mountedVolumes.length > 0) {
-      if (!!volumes) {
+      if (volumes) {
         // Removing volumes
         logger.info(
           { volumes: mountedVolumes },

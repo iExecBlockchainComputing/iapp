@@ -13,7 +13,7 @@ export const getRequestId = () => {
   try {
     // may throw if executed outside of the callback chain
     return session.get('requestId');
-  } catch (e) {
+  } catch {
     return undefined;
   }
 };

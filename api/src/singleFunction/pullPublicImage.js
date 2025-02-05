@@ -6,7 +6,7 @@ const docker = new Docker();
 export async function pullPublicImage(image) {
   try {
     await docker.ping();
-  } catch (e) {
+  } catch {
     throw new Error('VM docker daemon not up?');
   }
 
@@ -19,7 +19,7 @@ export async function pullPublicImage(image) {
 
       docker.modem.followProgress(stream, onFinished, onProgress);
 
-      function onFinished(err, output) {
+      function onFinished(err) {
         if (err) {
           logger.error({ image, err }, 'Error in image pulling process');
           return reject(err);

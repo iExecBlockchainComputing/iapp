@@ -6,7 +6,7 @@ services:
     image: iapp-api
     container_name: iapp-api
     ports:
-      - "3000:3000"
+      - '3000:3000'
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock      
+      - /var/run/docker.sock:/var/run/docker.sock
       - ./.env:/app/.env
