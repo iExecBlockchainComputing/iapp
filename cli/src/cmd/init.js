@@ -5,7 +5,6 @@ import { fromError } from 'zod-validation-error';
 import { folderExists } from '../utils/fs.utils.js';
 import {
   initIAppWorkspace,
-  TEMPLATE_LANGUAGES,
   TEMPLATE_SRC_FILES,
 } from '../utils/initIAppWorkspace.js';
 import { getSpinner } from '../cli-helpers/spinner.js';
@@ -14,6 +13,7 @@ import { generateWallet } from '../utils/generateWallet.js';
 import * as color from '../cli-helpers/color.js';
 import { hintBox } from '../cli-helpers/box.js';
 import { projectNameSchema } from '../utils/iAppConfigFile.js';
+import { TEMPLATE_LANGUAGES } from '../config/config.js';
 
 const targetDir = 'hello-world';
 

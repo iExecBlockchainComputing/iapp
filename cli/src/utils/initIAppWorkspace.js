@@ -7,14 +7,10 @@ import {
   TEST_OUTPUT_DIR,
   CACHE_DIR,
   PROTECTED_DATA_MOCK_DIR,
+  TEMPLATE_LANGUAGES,
 } from '../config/config.js';
 import { debug } from './debug.js';
 import { copy } from './fs.utils.js';
-
-export const TEMPLATE_LANGUAGES = {
-  JS: 'JavaScript',
-  PYTHON: 'Python',
-};
 
 export const TEMPLATE_SRC_FILES = {
   [TEMPLATE_LANGUAGES.JS]: 'src/app.js',
@@ -44,6 +40,7 @@ export async function initIAppWorkspace({
     // Create other files
     await createConfigurationFiles({
       projectName,
+      template: language,
       appSecret: useAppSecret ? undefined : null, // save `appSecret: null` to disable prompt when `useAppSecret: false`
     });
     await createProjectDirectories();
@@ -61,11 +58,12 @@ async function createProjectDirectories() {
   ]);
 }
 
-async function createConfigurationFiles({ projectName, appSecret }) {
+async function createConfigurationFiles({ projectName, appSecret, template }) {
   // Create a simple iApp configuration file
   const configContent = {
-    projectName: projectName,
-    appSecret: appSecret,
+    projectName,
+    template,
+    appSecret,
   };
   await fs.writeFile(
     CONFIG_FILE,
