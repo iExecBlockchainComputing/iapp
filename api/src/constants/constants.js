@@ -15,7 +15,8 @@ export const TEMPLATE_CONFIG = {
   JavaScript: {
     Template: 'JavaScript',
     Binary: '/usr/local/bin/node',
-    SconeImage: 'registry.scontain.com:5050/sconecuratedimages/node:14.4.0-alpine3.11',
+    SconeImage:
+      'registry.scontain.com:5050/sconecuratedimages/node:14.4.0-alpine3.11',
   },
   Python: {
     Template: 'Python',

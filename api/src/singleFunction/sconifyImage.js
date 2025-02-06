@@ -17,7 +17,7 @@ const docker = new Docker();
  *
  * @returns { Promise<String> } sconified image id (`"sha256:..."`)
  */
-export async function sconifyImage({ fromImage, entrypoint,binary }) {
+export async function sconifyImage({ fromImage, entrypoint, binary }) {
   logger.info({ fromImage, entrypoint }, 'Running sconify command...');
 
   logger.info({ sconeImage: SCONIFY_IMAGE }, 'Pulling scone image...');
