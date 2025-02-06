@@ -1,19 +1,19 @@
 import {
-  SCONE_NODE_IMAGE,
   SCONIFY_IMAGE_VERSION,
+  TEMPLATE_CONFIG,
 } from '../constants/constants.js';
+import { checkPushToken } from '../singleFunction/checkPushToken.js';
 import { deployAppContractToBellecour } from '../singleFunction/deployAppContractToBellecour.js';
 import { getSconifiedImageFingerprint } from '../singleFunction/getSconifiedImageFingerprint.js';
 import { inspectImage } from '../singleFunction/inspectImage.js';
 import { pullPublicImage } from '../singleFunction/pullPublicImage.js';
 import { pullSconeImage } from '../singleFunction/pullSconeImage.js';
 import { pushImage } from '../singleFunction/pushImage.js';
-import { sconifyImage } from '../singleFunction/sconifyImage.js';
-import { parseImagePath } from '../utils/parseImagePath.js';
-import { logger } from '../utils/logger.js';
-import { ForbiddenError } from '../utils/errors.js';
-import { checkPushToken } from '../singleFunction/checkPushToken.js';
 import { removeImage } from '../singleFunction/removeImage.js';
+import { sconifyImage } from '../singleFunction/sconifyImage.js';
+import { ForbiddenError } from '../utils/errors.js';
+import { logger } from '../utils/logger.js';
+import { parseImagePath } from '../utils/parseImagePath.js';
 
 /**
  * Examples of valid dockerImageToSconify:
@@ -26,6 +26,7 @@ export async function sconify({
   dockerImageToSconify,
   userWalletPublicAddress,
   pushToken, // auth token with push access, TTL 5 min may be an issue if sconification takes too much time
+  templateLanguage,
 }) {
   logger.info(
     {
@@ -35,6 +36,9 @@ export async function sconify({
     'New sconify request'
   );
 
+  //Get config for the template
+  const configTemplate = TEMPLATE_CONFIG[templateLanguage];
+
   const { dockerUserName, imageName, imageTag } =
     parseImagePath(dockerImageToSconify);
   if (!dockerUserName || !imageName || !imageTag) {
@@ -42,7 +46,10 @@ export async function sconify({
     throw new Error(`Unable to parse image name ${dockerImageToSconify}`);
   }
 
-  const appEntrypoint = 'node /app/src/app.js'; // TODO make it a parameter to allow custom entrypoint
+  logger.info(
+    { configTemplate },
+    '---------- 0 ---------- Template Configuration...'
+  );
 
   logger.info(
     { dockerImageToSconify },
@@ -71,6 +78,7 @@ export async function sconify({
   logger.info({ dockerImageToSconify }, 'Docker image pulled.');
 
   let sconifiedImageId;
+  let appEntrypoint;
   try {
     logger.info(
       '---------- 3 ---------- Inspecting Docker image to sconify...'
@@ -85,13 +93,23 @@ export async function sconify({
       );
     }
 
+    appEntrypoint = inspectResult.Config.Entrypoint?.join(' ') ?? null;
+    if (!appEntrypoint) {
+      throw new ForbiddenError(`Can't read entrypoint from docker image`);
+    }
+    logger.info({ appEntrypoint }, 'Entrypoint read from image.');
+
     // Pull the SCONE image
     logger.info('---------- 4 ---------- Pulling Scone image');
-    await pullSconeImage(SCONE_NODE_IMAGE);
+    if (configTemplate.SconeImage != '') {
+      await pullSconeImage(configTemplate.SconeImage);
+    }
 
     logger.info('---------- 5 ---------- Start sconification...');
     sconifiedImageId = await sconifyImage({
       fromImage: dockerImageToSconify,
+      entrypoint: appEntrypoint,
+      binary: configTemplate.Binary,
     });
     logger.info({ sconifiedImageId }, 'Sconified successfully');
   } finally {
