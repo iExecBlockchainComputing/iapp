@@ -1,6 +1,6 @@
 import {
-  getConfigByTemplate,
   SCONIFY_IMAGE_VERSION,
+  TEMPLATE_CONFIG,
 } from '../constants/constants.js';
 import { checkPushToken } from '../singleFunction/checkPushToken.js';
 import { deployAppContractToBellecour } from '../singleFunction/deployAppContractToBellecour.js';
@@ -37,7 +37,7 @@ export async function sconify({
   );
 
   //Get config for the template
-  const configTemplate = getConfigByTemplate(templateLanguage);
+  const configTemplate = TEMPLATE_CONFIG[templateLanguage];
 
   const { dockerUserName, imageName, imageTag } =
     parseImagePath(dockerImageToSconify);

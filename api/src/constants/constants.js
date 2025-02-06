@@ -23,7 +23,3 @@ export const TEMPLATE_CONFIG = {
     SconeImage: '',
   },
 };
-
-export function getConfigByTemplate(template) {
-  return TEMPLATE_CONFIG[template] || null;
-}

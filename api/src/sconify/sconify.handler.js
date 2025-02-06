@@ -20,10 +20,7 @@ const bodySchema = z.object({
       'An auth token with push access to dockerhub repository is required.'
     ),
   template: z
-    .enum([
-      TEMPLATE_CONFIG.JavaScript.Template,
-      TEMPLATE_CONFIG.Python.Template,
-    ])
+    .enum(Object.values(TEMPLATE_CONFIG).map((config) => config.Template))
     .default(TEMPLATE_CONFIG.JavaScript.Template),
 });
 
