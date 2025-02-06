@@ -6,9 +6,11 @@ import { IExecDataProtectorDeserializer } from '@iexec/dataprotector-deserialize
 
 // ⚠️ Your JavaScript code will be run in a Node.js v14.4 environment with npm v6.
 const main = async () => {
-  try {
-    const { IEXEC_OUT } = process.env;
+  const { IEXEC_OUT } = process.env;
 
+  let computedJsonObj = {};
+
+  try {
     let messages = [];
     // <<args>>
 
@@ -83,17 +85,25 @@ const main = async () => {
     // Write result to IEXEC_OUT
     await fs.writeFile(`${IEXEC_OUT}/result.txt`, asciiArtText);
 
-    // Build and save a "computed.json" file
-    const computedJsonObj = {
+    // Build the "computed.json" object
+    computedJsonObj = {
       'deterministic-output-path': `${IEXEC_OUT}/result.txt`,
     };
+  } catch (e) {
+    // Handle errors
+    console.log(e);
+
+    // Build the "computed.json" object with an error message
+    computedJsonObj = {
+      'deterministic-output-path': IEXEC_OUT,
+      'error-message': 'Oops something went wrong',
+    };
+  } finally {
+    // Save the "computed.json" file
     await fs.writeFile(
       `${IEXEC_OUT}/computed.json`,
       JSON.stringify(computedJsonObj)
     );
-  } catch (e) {
-    console.log(e);
-    process.exit(1);
   }
 };
 
