@@ -19,7 +19,7 @@ export const TEMPLATE_CONFIG = {
   },
   Python: {
     Template: 'Python',
-    Binary: '/usr/local/bin/python3.7',
+    Binary: '/usr/local/bin/python3.8',
     SconeImage: '',
   },
 };
