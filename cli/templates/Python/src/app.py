@@ -3,6 +3,7 @@ import os
 import sys
 import shutil
 from pyfiglet import Figlet
+import protected_data
 
 # ⚠️ Your Python code will be run in a python v3.7.3 environment
 
@@ -23,8 +24,8 @@ try:
     try:
         # The protected data mock created for the purpose of this Hello World journey
         # contains an object with a key "secretText" which is a string
-        # TODO
-        raise Exception("not yet implemented")
+        protected_text = protected_data.getValue('secretText', 'string')
+        messages.append(protected_text)
     except Exception as e:
         print('It seems there is an issue with your protected data:', e)
     # <</protectedData>>
