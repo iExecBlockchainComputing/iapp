@@ -2,8 +2,8 @@
 
 This CLI provides an interface to guide you through different steps:
 
-- Create a simple JavaScript app with the necessary structure to run on a
-  decentralized worker
+- Create a simple app with the necessary structure to run on a decentralized
+  worker
 - Test it locally (with Docker)
 - Deploy your iApp as a TEE app on the iExec protocol
 

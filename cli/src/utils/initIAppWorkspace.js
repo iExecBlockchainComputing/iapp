@@ -11,8 +11,19 @@ import {
 import { debug } from './debug.js';
 import { copy } from './fs.utils.js';
 
+export const TEMPLATE_LANGUAGES = {
+  JS: 'JavaScript',
+  PYTHON: 'Python',
+};
+
+export const TEMPLATE_SRC_FILES = {
+  [TEMPLATE_LANGUAGES.JS]: 'src/app.js',
+  [TEMPLATE_LANGUAGES.PYTHON]: 'src/app.py',
+};
+
 export async function initIAppWorkspace({
   projectName,
+  language = TEMPLATE_LANGUAGES.JS,
   useArgs = false,
   useProtectedData = false,
   useInputFile = false,
@@ -22,8 +33,8 @@ export async function initIAppWorkspace({
   try {
     // Copy template
     await copyChosenTemplateFiles({
-      template: 'js',
-      srcFile: 'src/app.js',
+      template: language,
+      srcFile: TEMPLATE_SRC_FILES[language],
       useArgs,
       useProtectedData,
       useInputFile,
@@ -99,36 +110,36 @@ async function copyChosenTemplateFiles({
   let modifiedCode = code;
   if (!useArgs) {
     modifiedCode = modifiedCode.replaceAll(
-      / *\/\/ <<args>>\n((.*)\n)*? *\/\/ <<\/args>>\n/g,
+      / *(\/\/|#) <<args>>\n((.*)\n)*? *(\/\/|#) <<\/args>>\n/g,
       ''
     );
   }
   if (!useProtectedData) {
     modifiedCode = modifiedCode.replaceAll(
-      / *\/\/ <<protectedData>>\n((.*)\n)*? *\/\/ <<\/protectedData>>\n/g,
+      / *(\/\/|#) <<protectedData>>\n((.*)\n)*? *(\/\/|#) <<\/protectedData>>\n/g,
       ''
     );
   }
   if (!useInputFile) {
     modifiedCode = modifiedCode.replaceAll(
-      / *\/\/ <<inputFile>>\n((.*)\n)*? *\/\/ <<\/inputFile>>\n/g,
+      / *(\/\/|#) <<inputFile>>\n((.*)\n)*? *(\/\/|#) <<\/inputFile>>\n/g,
       ''
     );
   }
   if (!useRequesterSecret) {
     modifiedCode = modifiedCode.replaceAll(
-      / *\/\/ <<requesterSecret>>\n((.*)\n)*? *\/\/ <<\/requesterSecret>>\n/g,
+      / *(\/\/|#) <<requesterSecret>>\n((.*)\n)*? *(\/\/|#) <<\/requesterSecret>>\n/g,
       ''
     );
   }
   if (!useAppSecret) {
     modifiedCode = modifiedCode.replaceAll(
-      / *\/\/ <<appSecret>>\n((.*)\n)*? *\/\/ <<\/appSecret>>\n/g,
+      / *(\/\/|#) <<appSecret>>\n((.*)\n)*? *(\/\/|#) <<\/appSecret>>\n/g,
       ''
     );
   }
   // clean remaining <<feature>> tags
-  modifiedCode = modifiedCode.replaceAll(/ *\/\/ <<(\/)?.*>>\n/g, '');
+  modifiedCode = modifiedCode.replaceAll(/ *(\/\/|#) <<(\/)?.*>>\n/g, '');
   await fs.writeFile(srcFile, modifiedCode);
 
   // copy common

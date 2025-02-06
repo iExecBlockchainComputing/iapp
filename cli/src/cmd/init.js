@@ -3,7 +3,11 @@ import figlet from 'figlet';
 import { mkdir } from 'node:fs/promises';
 import { fromError } from 'zod-validation-error';
 import { folderExists } from '../utils/fs.utils.js';
-import { initIAppWorkspace } from '../utils/initIAppWorkspace.js';
+import {
+  initIAppWorkspace,
+  TEMPLATE_LANGUAGES,
+  TEMPLATE_SRC_FILES,
+} from '../utils/initIAppWorkspace.js';
 import { getSpinner } from '../cli-helpers/spinner.js';
 import { handleCliError } from '../cli-helpers/handleCliError.js';
 import { generateWallet } from '../utils/generateWallet.js';
@@ -52,24 +56,43 @@ export async function init() {
 
     const INIT_BASIC = 'basic';
     const INIT_ADVANCED = 'advanced';
-    const { initType } = await spinner.prompt({
-      type: 'select',
-      name: 'initType',
-      message: 'What kind of project do you want to init?',
-      choices: [
-        {
-          title: 'Hello World',
-          value: INIT_BASIC,
-          selected: true,
-          description: 'iapp quick start',
-        },
-        {
-          title: 'advanced',
-          value: INIT_ADVANCED,
-          description: 'more configuration options for advanced users',
-        },
-      ],
-    });
+
+    const { language, initType } = await spinner.prompt([
+      {
+        type: 'select',
+        name: 'language',
+        message: 'Which language do you want to use?',
+        choices: [
+          {
+            title: TEMPLATE_LANGUAGES.JS,
+            value: TEMPLATE_LANGUAGES.JS,
+            selected: true,
+          },
+          {
+            title: TEMPLATE_LANGUAGES.PYTHON,
+            value: TEMPLATE_LANGUAGES.PYTHON,
+          },
+        ],
+      },
+      {
+        type: 'select',
+        name: 'initType',
+        message: 'What kind of project do you want to init?',
+        choices: [
+          {
+            title: 'Hello World',
+            value: INIT_BASIC,
+            selected: true,
+            description: 'iapp quick start',
+          },
+          {
+            title: 'advanced',
+            value: INIT_ADVANCED,
+            description: 'more configuration options for advanced users',
+          },
+        ],
+      },
+    ]);
 
     const {
       useArgs = true,
@@ -123,18 +146,19 @@ export async function init() {
     await mkdir(projectName);
     process.chdir(projectName);
 
-    // Copying JavaScript simple project files from templates/
+    // Copying simple project files from templates/
 
-    spinner.start('Creating JavaScript app...');
+    spinner.start(`Creating ${language} app...`);
     await initIAppWorkspace({
       projectName,
+      language,
       useArgs,
       useProtectedData,
       useInputFile,
       useRequesterSecret,
       useAppSecret,
     });
-    spinner.succeed('JavaScript app setup complete.');
+    spinner.succeed(`${language} app setup complete.`);
 
     spinner.start('Generating wallet...');
     const walletAddress = await generateWallet();
@@ -146,7 +170,7 @@ export async function init() {
     Navigate to your project folder:
     ${color.command(`$ cd ${projectName.split(' ').length > 1 ? `"${projectName}"` : `${projectName}`}`)}
   
-    ${color.emphasis('Make your changes in the')} ${color.file('src/app.js')} ${color.emphasis('file')}.
+    ${color.emphasis('Make your changes in the')} ${color.file(TEMPLATE_SRC_FILES[language])} ${color.emphasis('file')}.
   
     -1- Test your iApp locally:
     ${color.command('$ iapp test')}${
