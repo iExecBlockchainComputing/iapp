@@ -11,7 +11,6 @@ This is a monorepo repository
 
 ```
 .
-├── admin
 ├── api
 ├── cli
 ```
