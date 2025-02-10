@@ -1,10 +1,21 @@
-export function createAbortSignal() {
+export function createSigintAbortSignal() {
   const abortController = new AbortController();
-  const { signal: signalAbort } = abortController;
-  const handleAbort = () => {
-    abortController.abort();
+  function clearListener() {
     process.off('SIGINT', handleAbort);
-  };
+  }
+  function handleAbort() {
+    abortController.abort();
+    clearListener();
+  }
   process.on('SIGINT', handleAbort);
-  return signalAbort;
+  return {
+    /**
+     * AbortSignal trigged by SIGINT
+     */
+    signal: abortController.signal,
+    /**
+     * clear the SIGINT listener
+     */
+    clear: clearListener,
+  };
 }
