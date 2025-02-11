@@ -49,7 +49,6 @@ export async function sconifyImage({ fromImage, entrypoint, binary }) {
 
   try {
     await sconifyContainer.start();
-    let hasError = false;
     sconifyContainer.attach(
       { stream: true, stdout: true, stderr: true },
       function (err, stream) {
@@ -57,25 +56,24 @@ export async function sconifyImage({ fromImage, entrypoint, binary }) {
           logger.error(err, 'Error attaching to container');
           return;
         }
-
-        // Try to detect any 'docker build' error, otherwise log to stdout
         stream.on('data', function (data) {
           const readableData = data.toString('utf8');
           logger.debug(readableData);
-          if (readableData.toLowerCase().includes('error')) {
-            logger.error(
-              { data: readableData },
-              'Sconify docker container error'
-            );
-            hasError = true;
-          }
         });
       }
     );
     // TODO maybe add a timeout?
     await sconifyContainer.wait();
-    if (hasError) {
-      throw new Error('Error at sconify process');
+
+    const inspect = await sconifyContainer.inspect();
+    if (inspect.State.ExitCode !== 0) {
+      logger.error(
+        inspect.State,
+        'Sconify container exited with non-zero code'
+      );
+      throw Error(
+        `Sconify container exited with error (code: ${inspect.State.ExitCode})`
+      );
     }
   } finally {
     logger.info(

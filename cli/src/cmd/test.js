@@ -209,7 +209,7 @@ export async function testApp({
   } else if (exitCode === 0) {
     spinner.succeed('App docker image ran and exited successfully.');
   } else {
-    spinner.error(
+    spinner.fail(
       `App docker image ran but exited with error (Exit code: ${exitCode})`
     );
   }
