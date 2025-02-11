@@ -23,7 +23,8 @@ try:
     # <<args>>
     args = sys.argv[1:]
     print(f"Received {len(args)} args")
-    messages.append(" ".join(args))
+    if len(args) > 0:
+        messages.append(" ".join(args))
     # <</args>>
     # <<protectedData>>
 
@@ -80,7 +81,7 @@ try:
     # <</requesterSecret>>
 
     # Transform input text into an ASCII Art text
-    txt = f"Hello, {' '.join(messages) if messages else 'World'}!"
+    txt = f"Hello, {' '.join(messages) if len(messages) > 0 else 'World'}!"
     ascii_art_text = Figlet().renderText(txt)
 
     print(ascii_art_text)
