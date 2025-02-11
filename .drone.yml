@@ -24,9 +24,9 @@ trigger:
   event:
     - promote
   target:
-    # publish the package @iexec/iapp-maker on npm with the tag latest
+    # publish the package @iexec/iapp on npm with the tag latest
     - cli-publish-latest
-    # publish the package @iexec/iapp-maker on npm with the tag nightly
+    # publish the package @iexec/iapp on npm with the tag nightly
     - cli-publish-nightly
   branch:
     - main
