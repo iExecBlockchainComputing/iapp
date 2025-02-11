@@ -93,7 +93,10 @@ export async function sconify({
       );
     }
 
-    appEntrypoint = inspectResult.Config.Entrypoint?.join(' ') ?? null;
+    appEntrypoint = Array.isArray(inspectResult.Config.Entrypoint)
+      ? inspectResult.Config.Entrypoint.join(' ')
+      : inspectResult.Config.Entrypoint;
+
     if (!appEntrypoint) {
       throw new ForbiddenError(`Can't read entrypoint from docker image`);
     }
@@ -101,15 +104,15 @@ export async function sconify({
 
     // Pull the SCONE image
     logger.info('---------- 4 ---------- Pulling Scone image');
-    if (configTemplate.SconeImage != '') {
-      await pullSconeImage(configTemplate.SconeImage);
+    if (configTemplate.sconeImage !== '') {
+      await pullSconeImage(configTemplate.sconeImage);
     }
 
     logger.info('---------- 5 ---------- Start sconification...');
     sconifiedImageId = await sconifyImage({
       fromImage: dockerImageToSconify,
       entrypoint: appEntrypoint,
-      binary: configTemplate.Binary,
+      binary: configTemplate.binary,
     });
     logger.info({ sconifiedImageId }, 'Sconified successfully');
   } finally {

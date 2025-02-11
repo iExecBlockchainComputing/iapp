@@ -13,14 +13,14 @@ export const SCONIFY_IMAGE = `registry.scontain.com/scone-production/iexec-sconi
 
 export const TEMPLATE_CONFIG = {
   JavaScript: {
-    Template: 'JavaScript',
-    Binary: '/usr/local/bin/node',
-    SconeImage:
+    template: 'JavaScript',
+    binary: '/usr/local/bin/node',
+    sconeImage:
       'registry.scontain.com:5050/sconecuratedimages/node:14.4.0-alpine3.11',
   },
   Python: {
-    Template: 'Python',
-    Binary: '/usr/local/bin/python3.8',
-    SconeImage: '',
+    template: 'Python',
+    binary: '/usr/local/bin/python3.8',
+    sconeImage: '',
   },
 };
