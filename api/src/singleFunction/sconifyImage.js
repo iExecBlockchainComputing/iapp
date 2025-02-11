@@ -67,7 +67,10 @@ export async function sconifyImage({ fromImage, entrypoint }) {
 
     const inspect = await sconifyContainer.inspect();
     if (inspect.State.ExitCode !== 0) {
-      logger.error(inspect.State, 'Sconify container exited with non-zero code');
+      logger.error(
+        inspect.State,
+        'Sconify container exited with non-zero code'
+      );
       throw Error(
         `Sconify container exited with error (code: ${inspect.State.ExitCode})`
       );
