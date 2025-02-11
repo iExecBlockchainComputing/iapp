@@ -1,5 +1,6 @@
 import Docker from 'dockerode';
 import os from 'os';
+import { createSigintAbortSignal } from '../utils/abortController.js';
 
 const docker = new Docker();
 
@@ -31,18 +32,20 @@ export async function dockerBuild({
   if (osType === 'Darwin' && isForTest) {
     platform = 'linux/arm64';
   }
-
+  const { signal, clear } = createSigintAbortSignal();
   // Perform the Docker build operation
   const buildImageStream = await docker.buildImage(buildArgs, {
     t: tag,
     platform,
     pull: true, // docker store does not support multi platform image, this can cause issues when switching build target platform, pulling ensures the right image is used
+    abortSignal: signal,
   });
 
-  const imageId = await new Promise((resolve, reject) => {
+  return new Promise((resolve, reject) => {
     docker.modem.followProgress(buildImageStream, onFinished, onProgress);
 
     function onFinished(err, output) {
+      clear();
       /**
        * expected output format for image id
        * ```
@@ -94,8 +97,6 @@ export async function dockerBuild({
       }
     }
   });
-
-  return imageId;
 }
 
 // Function to push a Docker image
@@ -109,18 +110,20 @@ export async function pushDockerImage({
     throw new Error('Missing DockerHub credentials.');
   }
   const dockerImage = docker.getImage(tag);
+  const sigint = createSigintAbortSignal();
 
   const imagePushStream = await dockerImage.push({
     authconfig: {
       username: dockerhubUsername,
       password: dockerhubAccessToken,
     },
+    abortSignal: sigint.signal,
   });
-
   await new Promise((resolve, reject) => {
     docker.modem.followProgress(imagePushStream, onFinished, onProgress);
 
     function onFinished(err, output) {
+      sigint.clear();
       /**
        * 2 kind of error possible, we want to catch each of them:
        * - stream error
@@ -166,6 +169,7 @@ export async function runDockerContainer({
   memory = undefined,
   logsCallback = () => {},
 }) {
+  const sigint = createSigintAbortSignal();
   const container = await docker.createContainer({
     Image: image,
     Cmd: cmd,
@@ -175,10 +179,18 @@ export async function runDockerContainer({
       Memory: memory,
     },
     Env: env,
+    abortSignal: sigint.signal,
   });
 
+  // Handle abort signal
+  if (sigint.signal) {
+    sigint.signal.addEventListener('abort', async () => {
+      await container.kill();
+      logsCallback('Container execution aborted');
+    });
+  }
+
   // Start the container
-  // TODO we should handle abort signal to stop the container and avoid containers running after command is interrupted
   await container.start();
 
   // get the logs stream
@@ -198,6 +210,7 @@ export async function runDockerContainer({
 
   // Wait for the container to finish
   await container.wait();
+  sigint.clear();
 
   // Check container status after waiting
   const { State } = await container.inspect();
