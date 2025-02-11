@@ -7,6 +7,7 @@ import { deploy } from './cmd/deploy.js';
 import { run } from './cmd/run.js';
 import { test } from './cmd/test.js';
 import { mockProtectedData } from './cmd/mock-protected-data.js';
+import { debug } from './cmd/debug.js';
 
 // define common options
 const options = {
@@ -126,7 +127,17 @@ yargsInstance
     },
     run
   )
-
+  .command(
+    'debug <taskId>',
+    'Retrieve detailed execution logs from worker nodes for a specific task',
+    (yargs) => {
+      return yargs.positional('taskId', {
+        describe: 'Unique identifier of the task to debug',
+        type: 'string',
+      });
+    },
+    debug
+  )
   .command(
     'mock <inputType>',
     'Create a mocked input for test',
