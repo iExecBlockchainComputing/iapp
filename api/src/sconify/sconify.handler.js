@@ -20,8 +20,8 @@ const bodySchema = z.object({
       'An auth token with push access to dockerhub repository is required.'
     ),
   template: z
-    .enum(Object.values(TEMPLATE_CONFIG).map((config) => config.Template))
-    .default(TEMPLATE_CONFIG.JavaScript.Template),
+    .enum(Object.values(TEMPLATE_CONFIG).map((config) => config.template))
+    .default(TEMPLATE_CONFIG.JavaScript.template),
 });
 
 export async function sconifyHandler(req, res) {
