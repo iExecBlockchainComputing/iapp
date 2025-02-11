@@ -20,14 +20,9 @@ import { getIExecDebug } from '../utils/iexec.js';
 import { goToProjectRoot } from '../cli-helpers/goToProjectRoot.js';
 import * as color from '../cli-helpers/color.js';
 import { hintBox } from '../cli-helpers/box.js';
-import { createAbortSignal } from '../utils/abortController.js';
 
 export async function deploy() {
   const spinner = getSpinner();
-  const abortSignal = createAbortSignal();
-  abortSignal.addEventListener('abort', async () => {
-    throw Error('Execution aborted');
-  });
   try {
     await goToProjectRoot({ spinner });
     const { projectName } = await readIAppConfig();
