@@ -1,4 +1,4 @@
-# iExec iApp Maker > CLI
+# iExec iApp Generator CLI
 
 This CLI provides an interface to guide you through different steps:
 
@@ -32,7 +32,7 @@ This CLI provides an interface to guide you through different steps:
 ## Install
 
 ```sh
-npm i -g @iexec/iapp-maker
+npm i -g @iexec/iapp
 ```
 
 > ℹ️ when you install this package for the fist time, run `iapp completion` to
