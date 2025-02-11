@@ -1,9 +1,15 @@
 import json
 import os
+# <<args>>
 import sys
+# <</args>>
+# <<inputFile>>
 import shutil
+# <</inputFile>>
 from pyfiglet import Figlet
+# <<protectedData>>
 import protected_data
+# <</protectedData>>
 
 # ⚠️ Your Python code will be run in a python v3.7.3 environment
 

@@ -170,7 +170,7 @@ export async function init() {
     Navigate to your project folder:
     ${color.command(`$ cd ${projectName.split(' ').length > 1 ? `"${projectName}"` : `${projectName}`}`)}
   
-    ${color.emphasis('Make your changes in the')} ${color.file(TEMPLATE_SRC_FILES[language])} ${color.emphasis('file')}.
+    ${color.emphasis('Make your changes in the')} ${color.file(TEMPLATE_SRC_FILES[language][0])} ${color.emphasis('file')}.
   
     -1- Test your iApp locally:
     ${color.command('$ iapp test')}${

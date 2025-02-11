@@ -1,3 +1,5 @@
 # requirements must be compatible with python 3.8.3
 pyfiglet==0.7.6
+# <<protectedData>>
 borsh-construct==0.1.0
+# <</protectedData>>

@@ -1,3 +1,4 @@
+# <<protectedData>>
 # dataprotector deserializer module
 import os
 import zipfile
@@ -37,3 +38,4 @@ def getValue(path: str, schema: str):
         raise Exception(f"Failed to deserialize \"{path}\" as \"{schema}\"")
 
     return file_bytes
+# <</protectedData>>

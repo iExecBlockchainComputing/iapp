@@ -12,9 +12,14 @@ import {
 import { debug } from './debug.js';
 import { copy } from './fs.utils.js';
 
+// list all files to adapt depending on used features on a given template, first file is the entrypoint
 export const TEMPLATE_SRC_FILES = {
-  [TEMPLATE_LANGUAGES.JS]: 'src/app.js',
-  [TEMPLATE_LANGUAGES.PYTHON]: 'src/app.py',
+  [TEMPLATE_LANGUAGES.JS]: ['src/app.js'],
+  [TEMPLATE_LANGUAGES.PYTHON]: [
+    'src/app.py',
+    'src/protected_data.py',
+    'requirements.txt',
+  ],
 };
 
 export async function initIAppWorkspace({
@@ -30,7 +35,7 @@ export async function initIAppWorkspace({
     // Copy template
     await copyChosenTemplateFiles({
       template: language,
-      srcFile: TEMPLATE_SRC_FILES[language],
+      srcFiles: TEMPLATE_SRC_FILES[language],
       useArgs,
       useProtectedData,
       useInputFile,
@@ -74,7 +79,7 @@ async function createConfigurationFiles({ projectName, appSecret, template }) {
 
 async function copyChosenTemplateFiles({
   template,
-  srcFile,
+  srcFiles,
   useArgs,
   useProtectedData,
   useInputFile,
@@ -103,42 +108,51 @@ async function copyChosenTemplateFiles({
   // rename _.gitignore (npm does not allow publishing files named .gitignore in a package)
   await fs.rename('_.gitignore', '.gitignore');
 
-  // transform template: remove unwanted feature code inside " // <<feature>> ... // <</feature>>" tags
-  const code = (await fs.readFile(srcFile)).toString('utf8');
-  let modifiedCode = code;
-  if (!useArgs) {
-    modifiedCode = modifiedCode.replaceAll(
-      / *(\/\/|#) <<args>>\n((.*)\n)*? *(\/\/|#) <<\/args>>\n/g,
-      ''
-    );
+  for (const srcFile of srcFiles) {
+    // transform template: remove unwanted feature code inside " // <<feature>> ... // <</feature>>" tags
+    const code = (await fs.readFile(srcFile)).toString('utf8');
+    let modifiedCode = code;
+    if (!useArgs) {
+      modifiedCode = modifiedCode.replaceAll(
+        / *(\/\/|#) <<args>>\n((.*)\n)*? *(\/\/|#) <<\/args>>(\n)?/g,
+        ''
+      );
+    }
+    if (!useProtectedData) {
+      modifiedCode = modifiedCode.replaceAll(
+        / *(\/\/|#) <<protectedData>>\n((.*)\n)*? *(\/\/|#) <<\/protectedData>>(\n)?/g,
+        ''
+      );
+    }
+    if (!useInputFile) {
+      modifiedCode = modifiedCode.replaceAll(
+        / *(\/\/|#) <<inputFile>>\n((.*)\n)*? *(\/\/|#) <<\/inputFile>>(\n)?/g,
+        ''
+      );
+    }
+    if (!useRequesterSecret) {
+      modifiedCode = modifiedCode.replaceAll(
+        / *(\/\/|#) <<requesterSecret>>\n((.*)\n)*? *(\/\/|#) <<\/requesterSecret>>(\n)?/g,
+        ''
+      );
+    }
+    if (!useAppSecret) {
+      modifiedCode = modifiedCode.replaceAll(
+        / *(\/\/|#) <<appSecret>>\n((.*)\n)*? *(\/\/|#) <<\/appSecret>>(\n)?/g,
+        ''
+      );
+    }
+    // clean remaining <<feature>> tags
+    modifiedCode = modifiedCode.replaceAll(/ *(\/\/|#) <<(\/)?.*>>(\n)?/g, '');
+
+    // delete finally empty file
+    if (modifiedCode === '' || modifiedCode === '\n') {
+      await fs.rm(srcFile);
+    } else {
+      // or update content
+      await fs.writeFile(srcFile, modifiedCode);
+    }
   }
-  if (!useProtectedData) {
-    modifiedCode = modifiedCode.replaceAll(
-      / *(\/\/|#) <<protectedData>>\n((.*)\n)*? *(\/\/|#) <<\/protectedData>>\n/g,
-      ''
-    );
-  }
-  if (!useInputFile) {
-    modifiedCode = modifiedCode.replaceAll(
-      / *(\/\/|#) <<inputFile>>\n((.*)\n)*? *(\/\/|#) <<\/inputFile>>\n/g,
-      ''
-    );
-  }
-  if (!useRequesterSecret) {
-    modifiedCode = modifiedCode.replaceAll(
-      / *(\/\/|#) <<requesterSecret>>\n((.*)\n)*? *(\/\/|#) <<\/requesterSecret>>\n/g,
-      ''
-    );
-  }
-  if (!useAppSecret) {
-    modifiedCode = modifiedCode.replaceAll(
-      / *(\/\/|#) <<appSecret>>\n((.*)\n)*? *(\/\/|#) <<\/appSecret>>\n/g,
-      ''
-    );
-  }
-  // clean remaining <<feature>> tags
-  modifiedCode = modifiedCode.replaceAll(/ *(\/\/|#) <<(\/)?.*>>\n/g, '');
-  await fs.writeFile(srcFile, modifiedCode);
 
   // copy common
   const commonPath = path.resolve(templatesBaseDir, 'common');
