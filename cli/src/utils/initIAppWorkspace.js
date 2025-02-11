@@ -14,7 +14,7 @@ import { copy } from './fs.utils.js';
 
 // list all files to adapt depending on used features on a given template, first file is the entrypoint
 export const TEMPLATE_SRC_FILES = {
-  [TEMPLATE_LANGUAGES.JS]: ['src/app.js'],
+  [TEMPLATE_LANGUAGES.JS]: ['src/app.js', 'package.json'],
   [TEMPLATE_LANGUAGES.PYTHON]: [
     'src/app.py',
     'src/protected_data.py',
