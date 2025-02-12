@@ -11,7 +11,7 @@ from pyfiglet import Figlet
 import protected_data
 # <</protectedData>>
 
-# ⚠️ Your Python code will be run in a python v3.7.3 environment
+# ⚠️ Your Python code will be run in a python v3.8.3 environment
 
 IEXEC_OUT = os.getenv('IEXEC_OUT')
 
