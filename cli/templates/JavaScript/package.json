@@ -8,7 +8,9 @@
     "npm": "<7.0.0"
   },
   "dependencies": {
+    // <<protectedData>>
     "@iexec/dataprotector-deserializer": "^0.1.1",
+    // <</protectedData>>
     "figlet": "^1.7.0"
   }
 }

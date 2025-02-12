@@ -20,3 +20,8 @@ export const IEXEC_WORKER_HEAP_SIZE = 1024 * 1024 * 1024; // iExec worker memory
 export const IEXEC_RESULT_UPLOAD_MAX_SIZE = 50 * 1024 * 1024; // Maximum allowed size for the result output (50 MiB)
 
 export const TASK_OBSERVATION_TIMEOUT = 180000; // 3 minutes
+
+export const TEMPLATE_LANGUAGES = {
+  JS: 'JavaScript',
+  PYTHON: 'Python',
+};

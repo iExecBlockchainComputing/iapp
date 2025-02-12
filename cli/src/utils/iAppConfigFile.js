@@ -1,7 +1,7 @@
 import { readFile, writeFile } from 'node:fs/promises';
 import { z } from 'zod';
 import { fromError } from 'zod-validation-error';
-import { CONFIG_FILE } from '../config/config.js';
+import { CONFIG_FILE, TEMPLATE_LANGUAGES } from '../config/config.js';
 
 export const projectNameSchema = z
   .string()
@@ -24,6 +24,9 @@ const dockerImageNameSchema = z
 
 const jsonConfigFileSchema = z.object({
   projectName: projectNameSchema,
+  template: z
+    .enum(Object.values(TEMPLATE_LANGUAGES))
+    .default(TEMPLATE_LANGUAGES.JS),
   dockerhubUsername: z.string().optional(),
   dockerhubAccessToken: z.string().optional(),
   walletAddress: z.string().optional(),

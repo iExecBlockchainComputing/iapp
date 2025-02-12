@@ -25,7 +25,7 @@ export async function deploy() {
   const spinner = getSpinner();
   try {
     await goToProjectRoot({ spinner });
-    const { projectName } = await readIAppConfig();
+    const { projectName, template } = await readIAppConfig();
 
     const dockerhubUsername = await askForDockerhubUsername({ spinner });
     const dockerhubAccessToken = await askForDockerhubAccessToken({ spinner });
@@ -92,6 +92,7 @@ export async function deploy() {
     );
     const { sconifiedImage, appContractAddress } = await sconify({
       iAppNameToSconify: imageTag,
+      template,
       walletAddress,
       dockerhubAccessToken,
       dockerhubUsername,

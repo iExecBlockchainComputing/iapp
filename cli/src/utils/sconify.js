@@ -9,6 +9,7 @@ class TooManyRequestsError extends Error {}
 
 export async function sconify({
   iAppNameToSconify,
+  template,
   walletAddress,
   dockerhubAccessToken,
   dockerhubUsername,
@@ -33,6 +34,7 @@ export async function sconify({
         'x-wallet': walletAddress,
       },
       body: JSON.stringify({
+        template,
         dockerhubImageToSconify: iAppNameToSconify,
         dockerhubPushToken: pushToken, // used for pushing sconified image on user repo
         yourWalletPublicAddress: walletAddress,
