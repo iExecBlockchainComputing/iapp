@@ -3,6 +3,7 @@ import { createMessageBuilder, fromError } from 'zod-validation-error';
 import { TEMPLATE_CONFIG } from '../constants/constants.js';
 import { ethereumAddressZodSchema } from '../utils/ethereumAddressZodSchema.js';
 import { sconify } from './sconify.service.js';
+import { serializeData, waitForMessage } from '../utils/websocket.js';
 
 const bodySchema = z.object({
   yourWalletPublicAddress: ethereumAddressZodSchema,
@@ -23,6 +24,41 @@ const bodySchema = z.object({
     .enum(Object.values(TEMPLATE_CONFIG).map((config) => config.template))
     .default(TEMPLATE_CONFIG.JavaScript.template),
 });
+
+/**
+ * @typedef {import('ws').WebSocket} WebSocket
+ */
+
+/**
+ *
+ * @param {WebSocket} ws
+ */
+export async function sconifyWsHandler(ws) {
+  console.log('ws/sconify connection');
+  try {
+    const {
+      yourWalletPublicAddress,
+      dockerhubImageToSconify,
+      dockerhubPushToken,
+      template,
+    } = await waitForMessage(ws, { schema: bodySchema });
+
+    const { sconifiedImage, appContractAddress } = await sconify(
+      {
+        dockerImageToSconify: dockerhubImageToSconify,
+        pushToken: dockerhubPushToken,
+        userWalletPublicAddress: yourWalletPublicAddress,
+        templateLanguage: template,
+      },
+      { ws }
+    );
+    ws.send(serializeData({ sconifiedImage, appContractAddress }));
+  } catch {
+    ws.send(serializeData({ error: 'TODO proper error handling' }));
+  } finally {
+    ws.close();
+  }
+}
 
 export async function sconifyHandler(req, res) {
   let yourWalletPublicAddress;

@@ -14,20 +14,34 @@ import { sconifyImage } from '../singleFunction/sconifyImage.js';
 import { ForbiddenError } from '../utils/errors.js';
 import { logger } from '../utils/logger.js';
 import { parseImagePath } from '../utils/parseImagePath.js';
+import { serializeData, waitForMessage } from '../utils/websocket.js';
 
 /**
- * Examples of valid dockerImageToSconify:
- * "robiniexec/hello-world:1.0.0"
- *
- * This image needs to be publicly available on Docker Hub.
- * This image needs to be built for linux/amd64 platform. (Use buildx on MacOS)
+ * @typedef {import('ws').WebSocket} WebSocket
  */
-export async function sconify({
-  dockerImageToSconify,
-  userWalletPublicAddress,
-  pushToken, // auth token with push access, TTL 5 min may be an issue if sconification takes too much time
-  templateLanguage,
-}) {
+
+/**
+ *
+ * @param {Object} params
+ * @param {string} params.dockerImageToSconify Ex: "robiniexec/hello-world:1.0.0". This image needs to be publicly available on Docker Hub and built for linux/amd64 platform. (Use buildx on MacOS)
+ * @param {string} params.userWalletPublicAddress
+ * @param {string} params.pushToken auth token with push access, TTL 5 min
+ * @param {string} params.templateLanguage
+ * @param {Object} options
+ * @param {WebSocket} options.ws optional ws connection with the client
+ * @returns
+ */
+export async function sconify(
+  {
+    dockerImageToSconify,
+    userWalletPublicAddress,
+    pushToken,
+    templateLanguage,
+  },
+  { ws } = {}
+) {
+  let currentPushToken = pushToken;
+
   logger.info(
     {
       dockerImageToSconify,
@@ -57,7 +71,7 @@ export async function sconify({
   );
 
   await checkPushToken({
-    pushToken,
+    pushToken: currentPushToken,
     repository: `${dockerUserName}/${imageName}`,
   }).catch((e) => {
     throw new ForbiddenError(
@@ -146,11 +160,20 @@ export async function sconify({
   let fingerprint;
   try {
     logger.info('---------- 6 ---------- Pushing image to user dockerhub...');
+
+    if (ws) {
+      logger.info('Ask for renew dockerhubPushToken');
+      ws.send(serializeData({ action: 'RENEW_PUSH_TOKEN' }));
+      const { dockerhubPushToken: renewedPushToken } = await waitForMessage(ws);
+      logger.info('dockerhubPushToken renewed');
+      currentPushToken = renewedPushToken;
+    }
+
     pushed = await pushImage({
       image: sconifiedImageId,
       repo: imageRepo,
       tag: sconifiedImageTag,
-      pushToken,
+      pushToken: currentPushToken,
     });
     logger.info(pushed, 'Pushed image');
 

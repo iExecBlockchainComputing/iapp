@@ -1,14 +1,18 @@
 import express from 'express';
+import http from 'node:http';
 import { readFile } from 'fs/promises';
 import pino from 'pino';
-import { sconifyHandler } from './sconify/sconify.handler.js';
+import { sconifyHandler, sconifyWsHandler } from './sconify/sconify.handler.js';
 import { loggerMiddleware } from './utils/logger.js';
 import { requestIdMiddleware } from './utils/requestId.js';
 import { errorHandlerMiddleware } from './utils/errors.js';
+import { WebSocketServer } from 'ws';
 
-const app = express();
 const hostname = '0.0.0.0';
 const port = 3000;
+
+const app = express();
+const server = http.createServer(app);
 
 const rootLogger = pino({
   level: process.env.LOG_LEVEL || 'info',
@@ -37,9 +41,15 @@ app.get('/', (req, res) => {
   res.status(200).send('Hello from iExec iApp API 👋');
 });
 
+// websocket endpoint
+const wss = new WebSocketServer({ server, path: '/ws/sconify' });
+wss.on('connection', (ws) => {
+  sconifyWsHandler(ws);
+});
+
 app.use(errorHandlerMiddleware);
 
-app.listen(port, hostname, () => {
+server.listen(port, hostname, () => {
   rootLogger.info(`Server running at http://${hostname}:${port}/`);
 });
 

@@ -4,7 +4,8 @@ export const WORKERPOOL_DEBUG = 'debug-v8-learn.main.pools.iexec.eth';
 
 export const WORKERPOOL_PROD = 'prod-v8-learn.main.pools.iexec.eth';
 
-export const SCONIFY_API_URL = 'https://iapp-api.iex.ec';
+export const SCONIFY_API_URL = 'http://localhost:3000';
+export const SCONIFY_API_WS_URL = 'ws://localhost:3000';
 
 export const CONFIG_FILE = 'iapp.config.json';
 export const TEST_INPUT_DIR = 'input';

@@ -8,7 +8,7 @@
  * @param { string } params.action docker action scope (ex "pull", "push")
  * @param { string } params.dockerhubUsername docker hub username (must have specified "action" access to repository)
  * @param { string } params.dockerhubAccessToken docker hub access token (must have specified "action" access to repository)
- * @returns { string } token
+ * @returns { Promise<string> } token
  */
 export async function getAuthToken({
   repository,
