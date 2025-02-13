@@ -5,10 +5,8 @@ import { TEST_INPUT_DIR } from '../config/config.js';
 // TODO we may want to cache to avoid downloading large input files over and over
 /**
  * download input file in input dir and returns file name
- * @param {string} url
- * @returns {string} fileName
  */
-export async function prepareInputFile(url) {
+export async function prepareInputFile(url: string): Promise<string> {
   try {
     /**
      * the worker names the file after the url part after the last `/` occurrence 🤨 looks weird and leads to bugs.

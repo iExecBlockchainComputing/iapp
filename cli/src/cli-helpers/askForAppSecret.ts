@@ -1,11 +1,13 @@
 import { readIAppConfig, writeIAppConfig } from '../utils/iAppConfigFile.js';
 import { CONFIG_FILE } from '../config/config.js';
 import * as color from './color.js';
+import type { Spinner } from './spinner.js';
 
-/**
- * @returns {Promise<string | null>}
- */
-export async function askForAppSecret({ spinner }) {
+export async function askForAppSecret({
+  spinner,
+}: {
+  spinner: Spinner;
+}): Promise<string | null> {
   const config = await readIAppConfig();
   const { appSecret: savedAppSecret } = config;
 
@@ -26,19 +28,17 @@ export async function askForAppSecret({ spinner }) {
     type: 'confirm',
     name: 'useAppSecret',
     message: 'Do you want to attach an app secret to your iApp?',
-    default: false,
+    initial: false,
   });
 
   if (!useAppSecret) {
-    const { saveNull } = await spinner.prompt([
-      {
-        type: 'confirm',
-        name: 'saveNull',
-        message:
-          'Do you want to save your choice (no app secret) to your config?',
-        default: false,
-      },
-    ]);
+    const { saveNull } = await spinner.prompt({
+      type: 'confirm',
+      name: 'saveNull',
+      message:
+        'Do you want to save your choice (no app secret) to your config?',
+      initial: false,
+    });
     if (saveNull) {
       config.appSecret = null;
       await writeIAppConfig(config);
@@ -59,7 +59,7 @@ export async function askForAppSecret({ spinner }) {
       type: 'confirm',
       name: 'saveAppSecret',
       message: 'Do you want to save this app secret to your config?',
-      default: false,
+      initial: false,
     },
   ]);
 

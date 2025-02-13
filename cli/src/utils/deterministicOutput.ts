@@ -15,7 +15,11 @@ const computedJsonFileSchema = z.object({
   [IEXEC_DETERMINISTIC_OUTPUT_PATH_KEY]: z.string().startsWith(IEXEC_OUT),
 });
 
-export async function checkDeterministicOutputExists({ outputPath }) {
+export async function checkDeterministicOutputExists({
+  outputPath,
+}: {
+  outputPath: string;
+}) {
   const { deterministicOutputLocalPath } = await getDeterministicOutputPath({
     outputPath,
   });
@@ -29,7 +33,14 @@ export async function checkDeterministicOutputExists({ outputPath }) {
   }
 }
 
-export async function getDeterministicOutputAsText({ outputPath }) {
+export async function getDeterministicOutputAsText({
+  outputPath,
+}: {
+  outputPath: string;
+}): Promise<{
+  text: string;
+  path: string;
+}> {
   const { deterministicOutputLocalPath } = await getDeterministicOutputPath({
     outputPath,
   });
@@ -47,7 +58,14 @@ export async function getDeterministicOutputAsText({ outputPath }) {
   };
 }
 
-async function getDeterministicOutputPath({ outputPath }) {
+async function getDeterministicOutputPath({
+  outputPath,
+}: {
+  outputPath: string;
+}): Promise<{
+  deterministicOutputRawPath: string;
+  deterministicOutputLocalPath: string;
+}> {
   const computed = await readComputedJson({ outputPath });
   let computedObj;
   try {
@@ -69,9 +87,14 @@ async function getDeterministicOutputPath({ outputPath }) {
   };
 }
 
-async function readComputedJson({ outputPath }) {
+async function readComputedJson({
+  outputPath,
+}: {
+  outputPath: string;
+}): Promise<object> {
   const content = await readFile(
-    join(outputPath || TEST_OUTPUT_DIR, IEXEC_COMPUTED_JSON)
+    join(outputPath || TEST_OUTPUT_DIR, IEXEC_COMPUTED_JSON),
+    'utf8'
   ).catch(() => {
     throw Error(`Failed to read ${IEXEC_COMPUTED_JSON}: missing file`);
   });

@@ -18,7 +18,11 @@ export async function dockerBuild({
   tag = undefined,
   isForTest = false,
   progressCallback = () => {},
-}) {
+}: {
+  tag?: string;
+  isForTest?: boolean;
+  progressCallback?: (msg: string) => void;
+}): Promise<string> {
   const osType = os.type();
   const buildArgs = {
     context: process.cwd(), // Use current working directory
@@ -37,7 +41,7 @@ export async function dockerBuild({
   const buildImageStream = await docker.buildImage(buildArgs, {
     t: tag,
     platform,
-    pull: true, // docker store does not support multi platform image, this can cause issues when switching build target platform, pulling ensures the right image is used
+    pull: 'always', // docker store does not support multi platform image, this can cause issues when switching build target platform, pulling ensures the right image is used
     abortSignal: signal,
   });
 
@@ -105,6 +109,11 @@ export async function pushDockerImage({
   dockerhubUsername,
   dockerhubAccessToken,
   progressCallback = () => {},
+}: {
+  tag: string;
+  dockerhubUsername?: string;
+  dockerhubAccessToken: string;
+  progressCallback?: (msg: string) => void;
 }) {
   if (!dockerhubUsername || !dockerhubAccessToken) {
     throw new Error('Missing DockerHub credentials.');
@@ -168,6 +177,13 @@ export async function runDockerContainer({
   env = [],
   memory = undefined,
   logsCallback = () => {},
+}: {
+  image: string;
+  cmd: string[];
+  volumes?: string[];
+  env?: string[];
+  memory?: number;
+  logsCallback?: (msg: string) => void;
 }) {
   const sigint = createSigintAbortSignal();
   const container = await docker.createContainer({
@@ -205,7 +221,7 @@ export async function runDockerContainer({
     logsCallback(logData);
   });
   logsStream.on('error', (err) => {
-    logsCallback('Error streaming logs:', err.message);
+    logsCallback(`Error streaming logs: ${err.message}`);
   });
 
   // Wait for the container to finish

@@ -1,8 +1,9 @@
 import { resolve } from 'node:path';
 import { readdir } from 'node:fs/promises';
 import { CONFIG_FILE } from '../config/config.js';
+import type { Spinner } from './spinner.js';
 
-async function locateConfigFileDir(currentPath) {
+async function locateConfigFileDir(currentPath: string): Promise<string> {
   try {
     const files = await readdir(currentPath, { withFileTypes: true });
     const configFile = files.find(
@@ -23,7 +24,7 @@ async function locateConfigFileDir(currentPath) {
   }
 }
 
-export async function goToProjectRoot({ spinner }) {
+export async function goToProjectRoot({ spinner }: { spinner: Spinner }) {
   const cwd = process.cwd();
   const projectPath = await locateConfigFileDir(cwd);
   if (cwd !== projectPath) {

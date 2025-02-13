@@ -1,6 +1,6 @@
 import boxen from 'boxen';
 
-export function hintBox(message) {
+export function hintBox(message: string) {
   return boxen(message, {
     padding: 1,
     margin: 1,
@@ -9,6 +9,6 @@ export function hintBox(message) {
   });
 }
 
-export function objectBox(message) {
+export function objectBox(message: string) {
   return boxen(message, { margin: 1 });
 }

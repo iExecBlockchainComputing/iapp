@@ -1,10 +1,18 @@
-import ora from 'ora';
+import ora, { type Ora } from 'ora';
 import prompts from 'prompts';
 
-export const getSpinner = () => {
+export type Spinner = Ora & {
+  log: (msg: string) => void;
+  newLine: () => void;
+  prompt: (
+    oneQuestion: prompts.PromptObject<string> | prompts.PromptObject<string>[]
+  ) => Promise<prompts.Answers<string>>;
+};
+
+export const getSpinner = (): Spinner => {
   const spinner = ora();
 
-  const log = (msg) => {
+  const log = (msg: string) => {
     const { isSpinning } = spinner;
     if (isSpinning) {
       spinner.stop();
@@ -18,7 +26,9 @@ export const getSpinner = () => {
 
   const newLine = () => log('');
 
-  const prompt = async (oneQuestion) => {
+  const prompt = async (
+    oneQuestion: prompts.PromptObject<string> | prompts.PromptObject<string>[]
+  ) => {
     const { isSpinning } = spinner;
     if (isSpinning) {
       spinner.stop();

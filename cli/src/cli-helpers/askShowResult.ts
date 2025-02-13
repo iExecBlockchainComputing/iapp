@@ -1,8 +1,15 @@
 import { readdir } from 'node:fs/promises';
 import { getDeterministicOutputAsText } from '../utils/deterministicOutput.js';
 import * as color from './color.js';
+import type { Spinner } from './spinner.js';
 
-export async function askShowResult({ spinner, outputPath }) {
+export async function askShowResult({
+  spinner,
+  outputPath,
+}: {
+  spinner: Spinner;
+  outputPath: string;
+}) {
   // Prompt user to view result
   const continueAnswer = await spinner.prompt({
     type: 'confirm',

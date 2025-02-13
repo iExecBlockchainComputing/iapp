@@ -1,6 +1,6 @@
 import { addDeploymentData } from './cacheExecutions.js';
 import { SCONIFY_API_URL } from '../config/config.js';
-import { getAuthToken } from '../utils/dockerhub.js';
+import { getAuthToken } from './dockerhub.js';
 import { sleep } from './sleep.js';
 
 const INITIAL_RETRY_PERIOD = 20 * 1000; // 20s
@@ -14,7 +14,17 @@ export async function sconify({
   dockerhubAccessToken,
   dockerhubUsername,
   tryCount = 0,
-}) {
+}: {
+  iAppNameToSconify: string;
+  template: string;
+  walletAddress: string;
+  dockerhubAccessToken: string;
+  dockerhubUsername: string;
+  tryCount?: number;
+}): Promise<{
+  sconifiedImage: string;
+  appContractAddress: string;
+}> {
   let appContractAddress;
   let sconifiedImage;
   try {
@@ -82,6 +92,7 @@ export async function sconify({
       await sleep(INITIAL_RETRY_PERIOD * Math.pow(2, tryCount));
       return sconify({
         iAppNameToSconify,
+        template,
         walletAddress,
         dockerhubAccessToken,
         dockerhubUsername,

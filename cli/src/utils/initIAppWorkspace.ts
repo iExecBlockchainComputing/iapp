@@ -30,6 +30,14 @@ export async function initIAppWorkspace({
   useInputFile = false,
   useRequesterSecret = false,
   useAppSecret = false,
+}: {
+  projectName: string;
+  language?: string;
+  useArgs?: boolean;
+  useProtectedData?: boolean;
+  useInputFile?: boolean;
+  useRequesterSecret?: boolean;
+  useAppSecret?: boolean;
 }) {
   try {
     // Copy template
@@ -63,7 +71,15 @@ async function createProjectDirectories() {
   ]);
 }
 
-async function createConfigurationFiles({ projectName, appSecret, template }) {
+async function createConfigurationFiles({
+  projectName,
+  appSecret,
+  template,
+}: {
+  projectName: string;
+  appSecret?: string | null;
+  template: string;
+}) {
   // Create a simple iApp configuration file
   const configContent = {
     projectName,
@@ -92,7 +108,7 @@ async function copyChosenTemplateFiles({
     'templates'
   );
 
-  const write = async (file, content) => {
+  const write = async (file: string, content?: string) => {
     const targetPath = path.join(process.cwd(), file);
     if (content) {
       await fs.writeFile(targetPath, content);

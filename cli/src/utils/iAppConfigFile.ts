@@ -25,7 +25,12 @@ const dockerImageNameSchema = z
 const jsonConfigFileSchema = z.object({
   projectName: projectNameSchema,
   template: z
-    .enum(Object.values(TEMPLATE_LANGUAGES))
+    .enum(
+      Object.values(TEMPLATE_LANGUAGES).map((value) => value) as [
+        string,
+        ...[string],
+      ]
+    )
     .default(TEMPLATE_LANGUAGES.JS),
   dockerhubUsername: z.string().optional(),
   dockerhubAccessToken: z.string().optional(),

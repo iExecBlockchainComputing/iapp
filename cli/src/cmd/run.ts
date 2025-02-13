@@ -23,6 +23,12 @@ export async function run({
   protectedData,
   inputFile: inputFiles = [], // rename variable (it's an array)
   requesterSecret: requesterSecrets = [], // rename variable (it's an array)
+}: {
+  iAppAddress: string;
+  args?: string;
+  protectedData?: string;
+  inputFile: string[];
+  requesterSecret?: { key: number; value: string }[];
 }) {
   const spinner = getSpinner();
   try {
@@ -208,8 +214,9 @@ export async function runInDebug({
   });
 
   const task = await iexec.task.show(taskId);
+  const { location } = task.results as { storage: string; location?: string };
   spinner.succeed(`Task finalized
-You can download the result of your task here: ${color.link(`https://ipfs-gateway.v8-bellecour.iex.ec${task?.results?.location}`)}`);
+You can download the result of your task here: ${color.link(`https://ipfs-gateway.v8-bellecour.iex.ec${location}`)}`);
 
   const downloadAnswer = await spinner.prompt({
     type: 'confirm',

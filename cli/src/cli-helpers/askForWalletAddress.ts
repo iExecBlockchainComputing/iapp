@@ -2,8 +2,13 @@ import { isAddress } from 'ethers';
 import { readIAppConfig, writeIAppConfig } from '../utils/iAppConfigFile.js';
 import { CONFIG_FILE } from '../config/config.js';
 import * as color from './color.js';
+import type { Spinner } from './spinner.js';
 
-export async function askForWalletAddress({ spinner }) {
+export async function askForWalletAddress({
+  spinner,
+}: {
+  spinner: Spinner;
+}): Promise<string> {
   const config = await readIAppConfig();
   const walletAddress = config.walletAddress || '';
   if (walletAddress) {

@@ -166,14 +166,12 @@ export async function mockProtectedData() {
 ${objectBox(JSON.stringify(dataSchema, null, 2))}`
       );
 
-      const { addMore } = await spinner.prompt([
-        {
-          type: 'confirm',
-          name: 'addMore',
-          message: `Would you add more data?`,
-          default: true,
-        },
-      ]);
+      const { addMore } = await spinner.prompt({
+        type: 'confirm',
+        name: 'addMore',
+        message: `Would you add more data?`,
+        initial: true,
+      });
       if (addMore) {
         return buildData({ dataState, dataSchema });
       }

@@ -1,4 +1,4 @@
-import { Parser } from 'yargs/helpers';
+import Parser from 'yargs-parser';
 import { rm, mkdir, readdir, stat } from 'node:fs/promises';
 import { join } from 'node:path';
 import { hexlify, randomBytes } from 'ethers';
@@ -31,6 +31,11 @@ export async function test({
   protectedData: protectedDataMock,
   inputFile: inputFiles = [], // rename variable (it's an array)
   requesterSecret: requesterSecrets = [], // rename variable (it's an array)
+}: {
+  args: string;
+  protectedData?: string;
+  inputFile?: string[];
+  requesterSecret?: { key: number; value: string }[];
 }) {
   const spinner = getSpinner();
   try {

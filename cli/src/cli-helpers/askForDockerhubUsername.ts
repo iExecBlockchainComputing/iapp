@@ -1,8 +1,13 @@
 import { readIAppConfig, writeIAppConfig } from '../utils/iAppConfigFile.js';
 import { CONFIG_FILE } from '../config/config.js';
 import * as color from './color.js';
+import type { Spinner } from './spinner.js';
 
-export async function askForDockerhubUsername({ spinner }) {
+export async function askForDockerhubUsername({
+  spinner,
+}: {
+  spinner: Spinner;
+}): Promise<string> {
   const config = await readIAppConfig();
 
   const dockerhubUsername = config.dockerhubUsername || '';

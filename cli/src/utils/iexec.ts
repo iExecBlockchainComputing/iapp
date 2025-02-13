@@ -1,10 +1,6 @@
 import { IExec, utils } from 'iexec';
 
-/**
- * @param {string} privateKey
- * @returns {IExec}
- */
-export function getIExecDebug(privateKey) {
+export function getIExecDebug(privateKey: string): IExec {
   return new IExec(
     {
       ethProvider: utils.getSignerFromPrivateKey('bellecour', privateKey),
