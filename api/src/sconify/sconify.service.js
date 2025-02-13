@@ -104,7 +104,7 @@ export async function sconify({
 
     // Pull the SCONE image
     logger.info('---------- 4 ---------- Pulling Scone image');
-    if (configTemplate.sconeImage !== '') {
+    if (configTemplate.sconeImage) {
       await pullSconeImage(configTemplate.sconeImage);
     }
 
