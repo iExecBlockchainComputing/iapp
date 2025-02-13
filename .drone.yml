@@ -39,6 +39,15 @@ steps:
       - cd cli
       - npm ci
 
+  - name: build
+    image: node:20
+    pull: always
+    commands:
+      - cd cli
+      - npm run build
+    depends_on:
+      - install-deps
+
   - name: check-format
     image: node:20
     commands:
@@ -64,6 +73,7 @@ steps:
       - iapp -h
     depends_on:
       - install-deps
+      - build
 
   - name: set-version-nightly
     image: node:20
@@ -91,6 +101,7 @@ steps:
       target:
         - cli-publish-nightly
     depends_on:
+      - build
       - test-no-crash
       - set-version-nightly
 
@@ -108,4 +119,5 @@ steps:
       target:
         - cli-publish-latest
     depends_on:
+      - build
       - test-no-crash

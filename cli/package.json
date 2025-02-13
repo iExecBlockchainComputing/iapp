@@ -2,15 +2,15 @@
   "name": "@iexec/iapp",
   "version": "0.0.1-alpha",
   "description": "A CLI to guide you through the process of building an iExec iApp",
-  "main": "src/index.js",
+  "main": "dist/index.js",
   "type": "module",
   "bin": {
-    "iapp": "src/index.js"
+    "iapp": "dist/index.js"
   },
   "homepage": "https://github.com/iExecBlockchainComputing/iapp/blob/main/cli/README.md",
   "scripts": {
-    "start": "./src/index.js --help",
-    "iapp": "./src/index.js",
+    "build": "rimraf dist && tsc --project tsconfig.json",
+    "build:watch": "npm run build -- --watch",
     "check-format": "prettier --check .",
     "format": "prettier --write .",
     "lint": "eslint src"
@@ -29,6 +29,7 @@
   },
   "files": [
     "src",
+    "dist",
     "templates"
   ],
   "dependencies": {
@@ -54,7 +55,10 @@
     "@types/prompts": "^2.4.9",
     "@types/yargs": "^17.0.33",
     "eslint": "^9.15.0",
+    "eslint-plugin-unicorn": "^56.0.1",
     "globals": "^15.12.0",
-    "prettier": "^3.3.3"
+    "prettier": "^3.3.3",
+    "rimraf": "^5.0.10",
+    "typescript-eslint": "^8.24.0"
   }
 }

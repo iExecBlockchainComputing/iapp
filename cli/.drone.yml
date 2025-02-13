@@ -14,6 +14,14 @@ steps:
       - cd cli
       - npm ci
 
+  - name: build
+    image: node:20
+    commands:
+      - cd cli
+      - npm run build
+    depends_on:
+      - install-deps
+
   - name: check-format
     image: node:20
     commands:
@@ -39,6 +47,7 @@ steps:
       - iapp -h
     depends_on:
       - install-deps
+      - build
 
   - name: npm publish dry-run
     image: node:20
@@ -47,3 +56,4 @@ steps:
       - npm publish --dry-run
     depends_on:
       - install-deps
+      - build

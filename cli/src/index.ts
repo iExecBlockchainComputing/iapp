@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import yargs from 'yargs';
+import yargs, { Options } from 'yargs';
 import { hideBin } from 'yargs/helpers';
 import { init } from './cmd/init.js';
 import { deploy } from './cmd/deploy.js';
@@ -9,7 +9,7 @@ import { test } from './cmd/test.js';
 import { mockProtectedData } from './cmd/mock-protected-data.js';
 
 // define common options
-const options = {
+const options: Record<string, [string, Options]> = {
   args: [
     'args',
     {
@@ -85,10 +85,10 @@ yargsInstance
   .command('init', 'Initialize your app structure', () => {}, init)
 
   // Test command
-  .command(
-    'test',
-    'Test your app',
-    (yargs) => {
+  .command({
+    command: 'test',
+    describe: 'Test your app',
+    builder: (yargs) => {
       return yargs
         .option(...options.args)
         .option(...options.inputFile)
@@ -97,21 +97,21 @@ yargsInstance
         .option(...options.requesterSecret)
         .array(options.requesterSecret[0]);
     },
-    test
-  )
+    handler: test as any, // TODO
+  })
 
   // Build and publish docker image
-  .command(
-    'deploy',
-    'Transform you app into a TEE app and deploy it on iExec',
-    deploy
-  )
+  .command({
+    command: 'deploy',
+    describe: 'Transform you app into a TEE app and deploy it on iExec',
+    handler: deploy,
+  })
 
   // Run a published docker image
-  .command(
-    'run <iAppAddress>',
-    'Run your deployed iApp',
-    (yargs) => {
+  .command({
+    command: 'run <iAppAddress>',
+    describe: 'Run your deployed iApp',
+    builder: (yargs) => {
       return yargs
         .positional('iAppAddress', {
           describe: 'The iApp address to run',
@@ -124,23 +124,23 @@ yargsInstance
         .option(...options.requesterSecret)
         .array(options.requesterSecret[0]);
     },
-    run
-  )
+    handler: run as any, // TODO
+  })
 
-  .command(
-    'mock <inputType>',
-    'Create a mocked input for test',
-    (yargs) =>
+  .command({
+    command: 'mock <inputType>',
+    describe: 'Create a mocked input for test',
+    builder: (yargs) =>
       yargs.positional('inputType', {
         describe: 'Type of input to mock',
         choices: ['protectedData'],
       }),
-    ({ inputType, ...argv }) => {
+    handler: ({ inputType }) => {
       if (inputType === 'protectedData') {
-        return mockProtectedData(argv);
+        return mockProtectedData();
       }
-    }
-  )
+    },
+  })
 
   .help()
   .completion('completion', false) // create hidden "completion" command
