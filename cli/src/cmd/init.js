@@ -1,6 +1,7 @@
 import chalk from 'chalk';
 import figlet from 'figlet';
 import { mkdir } from 'node:fs/promises';
+import { fromError } from 'zod-validation-error';
 import { folderExists } from '../utils/fs.utils.js';
 import { initIAppWorkspace } from '../utils/initIAppWorkspace.js';
 import { getSpinner } from '../cli-helpers/spinner.js';
@@ -8,6 +9,7 @@ import { handleCliError } from '../cli-helpers/handleCliError.js';
 import { generateWallet } from '../utils/generateWallet.js';
 import * as color from '../cli-helpers/color.js';
 import { hintBox } from '../cli-helpers/box.js';
+import { projectNameSchema } from '../utils/iAppConfigFile.js';
 
 const targetDir = 'hello-world';
 
@@ -30,6 +32,16 @@ export async function init() {
       name: 'projectName',
       message: `What's your project name? ${color.promptHelper('(A folder with this name will be created)')}`,
       initial: targetDir,
+      validate: (value) => {
+        try {
+          projectNameSchema.parse(value);
+          return true;
+        } catch (e) {
+          return fromError(e)
+            .details.map((issue) => issue.message)
+            .join('; ');
+        }
+      },
     });
 
     if (await folderExists(projectName)) {

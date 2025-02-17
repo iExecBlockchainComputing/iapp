@@ -13,7 +13,7 @@ export const RUN_OUTPUT_DIR = 'output'; // Same as TEST_OUTPUT_DIR
 export const CACHE_DIR = 'cache';
 export const PROTECTED_DATA_MOCK_DIR = 'mock/protectedData';
 
-export const IEXEC_OUT = '/iexec_out/';
+export const IEXEC_OUT = '/iexec_out';
 export const IEXEC_COMPUTED_JSON = 'computed.json';
 export const IEXEC_DETERMINISTIC_OUTPUT_PATH_KEY = 'deterministic-output-path';
 export const IEXEC_WORKER_HEAP_SIZE = 1024 * 1024 * 1024; // iExec worker memory limit (1 GiB)

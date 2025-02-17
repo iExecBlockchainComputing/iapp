@@ -1,4 +1,4 @@
-# iExec iApp Maker > CLI
+# iExec iApp Generator CLI
 
 This CLI provides an interface to guide you through different steps:
 
@@ -32,7 +32,7 @@ This CLI provides an interface to guide you through different steps:
 ## Install
 
 ```sh
-npm i -g @iexec/iapp-maker
+npm i -g @iexec/iapp
 ```
 
 > ℹ️ when you install this package for the fist time, run `iapp completion` to
@@ -86,7 +86,8 @@ Options:
 - use `--requesterSecret <key=value...>` to provide one or more
   [requester secrets](https://protocol.docs.iex.ec/for-developers/technical-references/application-io#requester-secrets)
   to your iApp during testing.
-- use `--protectedData [mock-name]` if your iApp processes protected data,
+- use `--protectedData [mock-name]` if your iApp processes
+  [protected data](https://protocol.docs.iex.ec/for-developers/technical-references/application-io#protected-data),
   include the `--protectedData` option followed by the name of a protected data
   mock.
 
@@ -121,11 +122,16 @@ Description: Run your deployed iApp. Provide the address of your iApp
 
 Options:
 
-- use `--args <args>` to provide input arguments to your iApp during run (use
-  quotes to provide multiple args).
-- use `--protectedData <address>` if your iApp processes protected data, include
-  the `--protectedData` option followed by the address of the protected data.
-- use `--inputFile <url...>` to provide one or more input files to your iApp
-  during run.
-- use `--requesterSecret <key=value...>` to provide one or more requester
-  secrets to your iApp during run.
+- use `--args <args>` to provide input
+  [arguments](https://protocol.docs.iex.ec/for-developers/technical-references/application-io#args)
+  to your iApp during run (use quotes to provide multiple args).
+- use `--inputFile <url...>` to provide one or more
+  [input files](https://protocol.docs.iex.ec/for-developers/technical-references/application-io#input-files)
+  to your iApp during run.
+- use `--requesterSecret <key=value...>` to provide one or more
+  [requester secrets](https://protocol.docs.iex.ec/for-developers/technical-references/application-io#requester-secrets)
+  to your iApp during run.
+- use `--protectedData <address>` if your iApp processes
+  [protected data](https://protocol.docs.iex.ec/for-developers/technical-references/application-io#protected-data),
+  include the `--protectedData` option followed by the address of the protected
+  data.
