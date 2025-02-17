@@ -1,6 +1,6 @@
 import express from 'express';
 import { readFile } from 'fs/promises';
-import pino from 'pino';
+import { pino } from 'pino';
 import { sconifyHandler } from './sconify/sconify.handler.js';
 import { loggerMiddleware } from './utils/logger.js';
 import { requestIdMiddleware } from './utils/requestId.js';
@@ -16,7 +16,7 @@ const rootLogger = pino({
 
 // Read package.json to get the version
 const packageJson = JSON.parse(
-  await readFile(new URL('../package.json', import.meta.url))
+  await readFile(new URL('../package.json', import.meta.url), 'utf8')
 );
 
 app.use(express.json());

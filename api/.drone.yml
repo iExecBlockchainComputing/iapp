@@ -19,6 +19,12 @@ steps:
       - cd api
       - npm run lint
 
+  - name: check types
+    image: node:20
+    commands:
+      - cd api
+      - npm run check-types
+
   - name: check format
     image: node:20
     commands:
