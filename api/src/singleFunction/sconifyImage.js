@@ -2,9 +2,9 @@ import Docker from 'dockerode';
 import { SCONIFY_IMAGE } from '../constants/constants.js';
 import { logger } from '../utils/logger.js';
 import { inspectImage } from './inspectImage.js';
+import { pruneBuilderCache } from './pruneBuilderCache.js';
 import { pullSconeImage } from './pullSconeImage.js';
 import { removeContainer } from './removeContainer.js';
-import { pruneBuilderCache } from './pruneBuilderCache.js';
 
 const docker = new Docker();
 
@@ -17,7 +17,7 @@ const docker = new Docker();
  *
  * @returns { Promise<String> } sconified image id (`"sha256:..."`)
  */
-export async function sconifyImage({ fromImage, entrypoint }) {
+export async function sconifyImage({ fromImage, entrypoint, binary }) {
   logger.info({ fromImage, entrypoint }, 'Running sconify command...');
 
   logger.info({ sconeImage: SCONIFY_IMAGE }, 'Pulling scone image...');
@@ -35,7 +35,7 @@ export async function sconifyImage({ fromImage, entrypoint }) {
       '--fs-dir=/app',
       '--host-path=/etc/hosts',
       '--host-path=/etc/resolv.conf',
-      '--binary=/usr/local/bin/node',
+      `--binary=${binary}`,
       '--heap=1G',
       '--dlopen=1',
       '--no-color',
