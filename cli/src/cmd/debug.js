@@ -38,8 +38,7 @@ export async function debug({ taskId }) {
     });
 
     spinner.succeed('Task logs retrieved successfully.');
-  } catch (err) {
-    spinner.fail(color.error(`Error: ${err.message}`));
-    throw err;
+  } catch (error) {
+    handleCliError({ spinner, error });
   }
 }
