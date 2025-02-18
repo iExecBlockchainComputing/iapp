@@ -184,17 +184,22 @@ export async function runInDebug({
     workerpoolorder,
     requestorder,
   });
-  await addRunData({ iAppAddress, dealid, txHash });
+  const taskid = await iexec.deal.computeTaskId(dealid, 0);
+  await addRunData({ iAppAddress, dealid, taskid, txHash });
   spinner.succeed(
-    `Deal created successfully, this is your deal ID: https://explorer.iex.ec/bellecour/deal/${dealid}`
+    `Deal created successfully
+  - deal: ${dealid} ${color.link(`https://explorer.iex.ec/bellecour/deal/${dealid}`)}
+  - task: ${taskid}`
   );
 
   spinner.start('Observing task...');
-  const taskId = await iexec.deal.computeTaskId(dealid, 0);
-  const taskObservable = await iexec.task.obsTask(taskId, { dealid: dealid });
+  const taskObservable = await iexec.task.obsTask(taskid, { dealid: dealid });
   const taskTimeoutWarning = setTimeout(() => {
     const spinnerText = spinner.text;
     spinner.warn('Task is taking longer than expected...');
+    spinner.info(
+      `Tip: You can debug this task using ${color.command(`iapp debug ${taskid}`)}`
+    );
     spinner.start(spinnerText); // restart spinning
   }, TASK_OBSERVATION_TIMEOUT);
   await new Promise((resolve, reject) => {
@@ -207,7 +212,7 @@ export async function runInDebug({
     clearTimeout(taskTimeoutWarning);
   });
 
-  const task = await iexec.task.show(taskId);
+  const task = await iexec.task.show(taskid);
   spinner.succeed(`Task finalized
 You can download the result of your task here: ${color.link(`https://ipfs-gateway.v8-bellecour.iex.ec${task?.results?.location}`)}`);
 
@@ -224,7 +229,7 @@ You can download the result of your task here: ${color.link(`https://ipfs-gatewa
 
   spinner.start('Downloading result...');
   const outputFolder = RUN_OUTPUT_DIR;
-  const taskResult = await iexec.task.fetchResults(taskId);
+  const taskResult = await iexec.task.fetchResults(taskid);
   const resultBuffer = await taskResult.arrayBuffer();
   await extractZipToFolder(resultBuffer, outputFolder);
   spinner.succeed(`Result downloaded to ${color.file(outputFolder)}`);

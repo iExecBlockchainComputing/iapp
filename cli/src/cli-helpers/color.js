@@ -28,3 +28,11 @@ export const link = chalk.blue.underline;
  * use to color errors
  */
 export const error = chalk.red;
+/**
+ * use to color success messages
+ */
+export const success = chalk.greenBright;
+/**
+ * use to color worker logs
+ */
+export const worker = chalk.bold.blue;
