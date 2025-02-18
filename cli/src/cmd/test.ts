@@ -16,7 +16,7 @@ import {
   TEST_INPUT_DIR,
   TEST_OUTPUT_DIR,
 } from '../config/config.js';
-import { getSpinner, Spinner } from '../cli-helpers/spinner.js';
+import { getSpinner, type Spinner } from '../cli-helpers/spinner.js';
 import { handleCliError } from '../cli-helpers/handleCliError.js';
 import { prepareInputFile } from '../utils/prepareInputFile.js';
 import { askForAppSecret } from '../cli-helpers/askForAppSecret.js';

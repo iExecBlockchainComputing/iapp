@@ -9,7 +9,7 @@ import {
   TASK_OBSERVATION_TIMEOUT,
 } from '../config/config.js';
 import { addRunData } from '../utils/cacheExecutions.js';
-import { getSpinner, Spinner } from '../cli-helpers/spinner.js';
+import { getSpinner, type Spinner } from '../cli-helpers/spinner.js';
 import { handleCliError } from '../cli-helpers/handleCliError.js';
 import { getIExecDebug } from '../utils/iexec.js';
 import { extractZipToFolder } from '../utils/extractZipToFolder.js';
