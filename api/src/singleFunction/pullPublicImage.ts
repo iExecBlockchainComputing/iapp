@@ -3,14 +3,14 @@ import { logger } from '../utils/logger.js';
 
 const docker = new Docker();
 
-export async function pullPublicImage(image) {
+export async function pullPublicImage(image: string) {
   try {
     await docker.ping();
   } catch {
     throw new Error('VM docker daemon not up?');
   }
 
-  return new Promise((resolve, reject) => {
+  return new Promise<void>((resolve, reject) => {
     docker.pull(image, function (err, stream) {
       if (err) {
         logger.error(err, 'Error pulling the image');

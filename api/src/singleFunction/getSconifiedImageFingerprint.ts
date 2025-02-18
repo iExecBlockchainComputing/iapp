@@ -3,13 +3,12 @@ import { logger } from '../utils/logger.js';
 
 const docker = new Docker();
 
-/**
- * @param { Object } params
- * @param { String } params.image sconified image to get the fingerprint from
- *
- * @returns { Promise<String> } scone hash fingerprint
- */
-export async function getSconifiedImageFingerprint({ image }) {
+export async function getSconifiedImageFingerprint(
+  /**
+   * sconified image to get the fingerprint from
+   */
+  image: string
+) {
   const container = await docker.createContainer({
     Image: image,
     Cmd: [],

@@ -1,4 +1,4 @@
-import pino from 'pino';
+import { pino } from 'pino';
 import { pinoHttp } from 'pino-http';
 import { getRequestId } from './requestId.js';
 

@@ -11,7 +11,16 @@ export const SCONIFY_IMAGE = `registry.scontain.com/scone-production/iexec-sconi
 // It will be pulled if it's not yet in the local docker
 // https://hub.docker.com/layers/library/alpine/3.15/images/sha256-6a0657acfef760bd9e293361c9b558e98e7d740ed0dffca823d17098a4ffddf5?context=explore
 
-export const TEMPLATE_CONFIG = {
+export type TemplateName = 'JavaScript' | 'Python';
+
+export const TEMPLATE_CONFIG: Record<
+  TemplateName,
+  {
+    template: TemplateName;
+    binary: string;
+    sconeImage: string;
+  }
+> = {
   JavaScript: {
     template: 'JavaScript',
     binary: '/usr/local/bin/node',

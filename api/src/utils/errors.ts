@@ -1,5 +1,6 @@
 import { ValidationError } from 'zod-validation-error';
 import { logger } from './logger.js';
+import type { ErrorRequestHandler } from 'express';
 
 /**
  * An error that can be exposed to the user
@@ -17,7 +18,12 @@ export class ForbiddenError extends OperationalError {}
 /**
  * should be the last middleware
  */
-export const errorHandlerMiddleware = (err, req, res, next) => {
+export const errorHandlerMiddleware: ErrorRequestHandler = (
+  err,
+  req,
+  res,
+  next
+) => {
   if (res.headersSent) {
     logger.warn(
       { err },

@@ -5,17 +5,25 @@ const docker = new Docker();
 
 /**
  * remove a docker container
- *
- * @param {Object} params
- * @param {string} params.containerId id of the container to remove
- * @param {boolean} params.kill if true force removing the container even if it is running
- * @param {boolean} params.volumes if true remove volumes mounted to the container
  */
 export async function removeContainer({
   containerId,
   kill = false,
   volumes = false,
-} = {}) {
+}: {
+  /**
+   * id of the container to remove
+   */
+  containerId: string;
+  /**
+   * if true force removing the container even if it is running
+   */
+  kill?: boolean;
+  /**
+   * if true remove volumes mounted to the container
+   */
+  volumes?: boolean;
+}) {
   try {
     logger.info({ containerId, kill, volumes }, `removeContainer`);
     const container = docker.getContainer(containerId);
@@ -24,7 +32,9 @@ export async function removeContainer({
     await container.remove({ force: !!kill });
 
     const mountedVolumes = containerInfoFull.Mounts.filter(
-      (mount) => mount.Type === 'volume' && mount.Name
+      (
+        mount: any /** any to workaround issue in @types/dockerode https://github.com/DefinitelyTyped/DefinitelyTyped/pull/71974 */
+      ) => mount?.Type === 'volume' && mount.Name
     );
 
     if (mountedVolumes.length > 0) {

@@ -10,14 +10,25 @@ const docker = new Docker();
 
 /**
  * Sconifies an iapp docker image
- *
- * @param { Object } params
- * @param { String } params.fromImage image to sconify
- * @param { String } params.entrypoint command to run the app (whitelisted)
- *
- * @returns { Promise<String> } sconified image id (`"sha256:..."`)
  */
-export async function sconifyImage({ fromImage, entrypoint, binary }) {
+export async function sconifyImage({
+  fromImage,
+  entrypoint,
+  binary,
+}: {
+  /**
+   * image to sconify
+   */
+  fromImage: string;
+  /**
+   * command to run the app (whitelisted)
+   */
+  entrypoint: string;
+  /**
+   * whitelisted binary
+   */
+  binary: string;
+}): Promise<string> {
   logger.info({ fromImage, entrypoint }, 'Running sconify command...');
 
   logger.info({ sconeImage: SCONIFY_IMAGE }, 'Pulling scone image...');
@@ -107,7 +118,7 @@ export async function sconifyImage({ fromImage, entrypoint, binary }) {
     });
   }
 
-  let builtImage;
+  let builtImage: Docker.ImageInspectInfo;
   try {
     builtImage = await inspectImage(toImage);
   } catch (error) {

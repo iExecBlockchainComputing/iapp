@@ -5,12 +5,20 @@ const docker = new Docker();
 
 /**
  * remove a docker image
- *
- * @param {Object} params
- * @param {string} params.imageId id of the image to remove
- * @param {string} params.force if true kill containers running the image and remove all references
  */
-export async function removeImage({ imageId, force = false } = {}) {
+export async function removeImage({
+  imageId,
+  force = false,
+}: {
+  /**
+   * id of the image to remove
+   */
+  imageId: string;
+  /**
+   * if true kill containers running the image and remove all references
+   */
+  force?: boolean;
+}): Promise<void> {
   try {
     logger.info({ imageId, force }, `removeImage`);
     const img = docker.getImage(imageId);

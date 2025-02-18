@@ -15,19 +15,30 @@ import { ForbiddenError } from '../utils/errors.js';
 import { logger } from '../utils/logger.js';
 import { parseImagePath } from '../utils/parseImagePath.js';
 
-/**
- * Examples of valid dockerImageToSconify:
- * "robiniexec/hello-world:1.0.0"
- *
- * This image needs to be publicly available on Docker Hub.
- * This image needs to be built for linux/amd64 platform. (Use buildx on MacOS)
- */
 export async function sconify({
   dockerImageToSconify,
   userWalletPublicAddress,
-  pushToken, // auth token with push access, TTL 5 min may be an issue if sconification takes too much time
+  pushToken,
   templateLanguage,
-}) {
+}: {
+  /**
+   * Examples of valid dockerImageToSconify:
+   * "robiniexec/hello-world:1.0.0"
+   *
+   * This image needs to be publicly available on Docker Hub.
+   * This image needs to be built for linux/amd64 platform. (Use buildx on MacOS)
+   */
+  dockerImageToSconify: string;
+  userWalletPublicAddress: string;
+  /**
+   * auth token with push access, TTL 5 min may be an issue if sconification takes too much time
+   */
+  pushToken: string;
+  templateLanguage: string;
+}): Promise<{
+  sconifiedImage: string;
+  appContractAddress: string;
+}> {
   logger.info(
     {
       dockerImageToSconify,
@@ -155,9 +166,7 @@ export async function sconify({
     logger.info(pushed, 'Pushed image');
 
     logger.info('---------- 7 ---------- Getting TEE image fingerprint...');
-    fingerprint = await getSconifiedImageFingerprint({
-      image: sconifiedImageId,
-    });
+    fingerprint = await getSconifiedImageFingerprint(sconifiedImageId);
     logger.info({ sconifiedImageFingerprint: fingerprint });
   } finally {
     logger.info(

@@ -9,7 +9,7 @@ const registryAuth = {
   serveraddress: process.env.SCONTAIN_REGISTRY_SERVERADDRESS,
 };
 
-export function pullSconeImage(image) {
+export function pullSconeImage(image: string) {
   if (
     !process.env.SCONTAIN_REGISTRY_USERNAME ||
     !process.env.SCONTAIN_REGISTRY_PASSWORD ||
@@ -22,7 +22,7 @@ export function pullSconeImage(image) {
 
   logger.info(`Pulling image: ${image}...`);
 
-  return new Promise((resolve, reject) => {
+  return new Promise<void>((resolve, reject) => {
     docker.pull(image, { authconfig: registryAuth }, function (err, stream) {
       if (err) {
         logger.error(err, 'Error pulling the image:');
@@ -31,13 +31,13 @@ export function pullSconeImage(image) {
 
       docker.modem.followProgress(stream, onFinished, onProgress);
 
-      function onFinished(err, output) {
+      function onFinished(err) {
         if (err) {
           logger.error(err, 'Error in image pulling process');
           return reject(err);
         }
         logger.info(`Image ${image} pulled successfully.`);
-        resolve(output);
+        resolve();
       }
 
       function onProgress(event) {

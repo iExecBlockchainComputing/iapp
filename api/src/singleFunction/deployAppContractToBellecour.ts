@@ -3,9 +3,6 @@ import { getSignerFromPrivateKey } from 'iexec/utils';
 import { IExec, IExecConfig } from 'iexec';
 import { logger } from '../utils/logger.js';
 
-/**
- * @returns {Promise<{appContractAddress: string}>}
- */
 export async function deployAppContractToBellecour({
   userWalletPublicAddress,
   appName,
@@ -13,6 +10,13 @@ export async function deployAppContractToBellecour({
   dockerImageDigest,
   fingerprint,
   entrypoint,
+}: {
+  userWalletPublicAddress: string;
+  appName: string;
+  dockerImage: string;
+  dockerImageDigest: string;
+  fingerprint: string;
+  entrypoint: string;
 }) {
   const privateKey = Wallet.createRandom().privateKey;
   const config = new IExecConfig({

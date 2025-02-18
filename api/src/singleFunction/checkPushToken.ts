@@ -3,8 +3,16 @@ import { jwtDecode } from 'jwt-decode';
 /**
  * Checks the pushToken can be used to push on a specified repository
  */
-export async function checkPushToken({ pushToken, repository }) {
-  const decoded = jwtDecode(pushToken);
+export async function checkPushToken({
+  pushToken,
+  repository,
+}: {
+  pushToken: string;
+  repository: string;
+}) {
+  const decoded = jwtDecode<{
+    access?: Array<{ type?: string; name?: string; actions?: Array<string> }>;
+  }>(pushToken);
 
   if (!Array.isArray(decoded?.access)) {
     throw Error('Missing access in jwt');
@@ -31,7 +39,7 @@ export async function checkPushToken({ pushToken, repository }) {
   }).catch((e) => {
     throw Error(`Failed to contact server ${DOCKER_REGISTRY}`, { cause: e });
   });
-  if (!response.status === 200) {
+  if (!(response.status === 200)) {
     throw Error(`Token validity check against ${DOCKER_REGISTRY} failed`);
   }
 }

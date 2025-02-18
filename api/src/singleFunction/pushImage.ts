@@ -3,16 +3,29 @@ import { logger } from '../utils/logger.js';
 
 const docker = new Docker();
 
-/**
- * @param {Object} params
- * @param {string} params.image image to push
- * @param {string} params.repo target image repository
- * @param {string} params.tag target image tag
- * @param {string} params.pushToken auth token with pull,push access to the target image repository
- *
- * @returns {Promise<{ Tag: string, Digest: string, Size: number }>}
- */
-export async function pushImage({ image, repo, tag, pushToken }) {
+export async function pushImage({
+  image,
+  repo,
+  tag,
+  pushToken,
+}: {
+  /**
+   * image to push
+   */
+  image: string;
+  /**
+   * target image repository
+   */
+  repo: string;
+  /**
+   * target image tag
+   */
+  tag: string;
+  /**
+   * auth token with pull,push access to the target image repository
+   */
+  pushToken: string;
+}): Promise<{ Tag: string; Digest: string; Size: number }> {
   logger.info(
     { image, repo, tag },
     `Pushing image: ${repo}:${tag} to DockerHub...`

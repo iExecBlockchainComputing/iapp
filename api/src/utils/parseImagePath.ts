@@ -1,4 +1,4 @@
-export function parseImagePath(dockerImagePath) {
+export function parseImagePath(dockerImagePath: string) {
   const dockerUserName = dockerImagePath.split('/')[0];
   const nameWithTag = dockerImagePath.split('/')[1];
   const imageName = nameWithTag.split(':')[0];

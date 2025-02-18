@@ -3,6 +3,7 @@ import { createMessageBuilder, fromError } from 'zod-validation-error';
 import { TEMPLATE_CONFIG } from '../constants/constants.js';
 import { ethereumAddressZodSchema } from '../utils/ethereumAddressZodSchema.js';
 import { sconify } from './sconify.service.js';
+import type { Request, Response } from 'express';
 
 const bodySchema = z.object({
   yourWalletPublicAddress: ethereumAddressZodSchema,
@@ -20,11 +21,16 @@ const bodySchema = z.object({
       'An auth token with push access to dockerhub repository is required.'
     ),
   template: z
-    .enum(Object.values(TEMPLATE_CONFIG).map((config) => config.template))
+    .enum(
+      Object.values(TEMPLATE_CONFIG).map((config) => config.template) as [
+        string,
+        ...[string],
+      ]
+    )
     .default(TEMPLATE_CONFIG.JavaScript.template),
 });
 
-export async function sconifyHandler(req, res) {
+export async function sconifyHandler(req: Request, res: Response) {
   let yourWalletPublicAddress;
   let dockerhubImageToSconify;
   let dockerhubPushToken;
