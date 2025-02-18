@@ -3,6 +3,8 @@ import { logger } from '../utils/logger.js';
 
 const docker = new Docker();
 
+type ProgressEvent = { stream?: string; error?: Error };
+
 const registryAuth = {
   username: process.env.SCONTAIN_REGISTRY_USERNAME,
   password: process.env.SCONTAIN_REGISTRY_PASSWORD,
@@ -31,7 +33,7 @@ export function pullSconeImage(image: string) {
 
       docker.modem.followProgress(stream, onFinished, onProgress);
 
-      function onFinished(err) {
+      function onFinished(err: Error) {
         if (err) {
           logger.error(err, 'Error in image pulling process');
           return reject(err);
@@ -40,7 +42,7 @@ export function pullSconeImage(image: string) {
         resolve();
       }
 
-      function onProgress(event) {
+      function onProgress(event: ProgressEvent) {
         logger.debug(event, '[pull] onProgress');
       }
     });

@@ -1,6 +1,7 @@
 import {
   SCONIFY_IMAGE_VERSION,
   TEMPLATE_CONFIG,
+  type TemplateName,
 } from '../constants/constants.js';
 import { checkPushToken } from '../singleFunction/checkPushToken.js';
 import { deployAppContractToBellecour } from '../singleFunction/deployAppContractToBellecour.js';
@@ -34,7 +35,7 @@ export async function sconify({
    * auth token with push access, TTL 5 min may be an issue if sconification takes too much time
    */
   pushToken: string;
-  templateLanguage: string;
+  templateLanguage: TemplateName;
 }): Promise<{
   sconifiedImage: string;
   appContractAddress: string;

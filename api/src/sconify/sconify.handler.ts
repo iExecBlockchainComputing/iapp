@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { createMessageBuilder, fromError } from 'zod-validation-error';
-import { TEMPLATE_CONFIG } from '../constants/constants.js';
+import { TEMPLATE_CONFIG, type TemplateName } from '../constants/constants.js';
 import { ethereumAddressZodSchema } from '../utils/ethereumAddressZodSchema.js';
 import { sconify } from './sconify.service.js';
 import type { Request, Response } from 'express';
@@ -23,8 +23,7 @@ const bodySchema = z.object({
   template: z
     .enum(
       Object.values(TEMPLATE_CONFIG).map((config) => config.template) as [
-        string,
-        ...[string],
+        TemplateName,
       ]
     )
     .default(TEMPLATE_CONFIG.JavaScript.template),
@@ -34,7 +33,7 @@ export async function sconifyHandler(req: Request, res: Response) {
   let yourWalletPublicAddress;
   let dockerhubImageToSconify;
   let dockerhubPushToken;
-  let template;
+  let template: TemplateName;
   try {
     ({
       yourWalletPublicAddress,

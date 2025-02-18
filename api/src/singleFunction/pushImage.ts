@@ -3,6 +3,9 @@ import { logger } from '../utils/logger.js';
 
 const docker = new Docker();
 
+type PushResult = { Tag: string; Digest: string; Size: number };
+type ProgressEvent = { stream?: string; error?: Error; aux?: PushResult };
+
 export async function pushImage({
   image,
   repo,
@@ -44,7 +47,7 @@ export async function pushImage({
         },
       },
       function (err, stream) {
-        let pushedImageResult;
+        let pushedImageResult: PushResult;
         let isError = false;
 
         if (err) {
@@ -54,7 +57,7 @@ export async function pushImage({
 
         docker.modem.followProgress(stream, onFinished, onProgress);
 
-        function onFinished(err) {
+        function onFinished(err: Error) {
           if (err || isError) {
             logger.error(err, 'Error in image pushing process:');
             return reject(err);
@@ -66,8 +69,8 @@ export async function pushImage({
           resolve(pushedImageResult);
         }
 
-        function onProgress(event) {
-          if (event.error) {
+        function onProgress(event: ProgressEvent) {
+          if (event?.error) {
             logger.error(event, '[img.push] onProgress ERROR');
             isError = true;
           } else {
