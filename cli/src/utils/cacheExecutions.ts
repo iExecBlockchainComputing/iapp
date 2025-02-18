@@ -30,15 +30,18 @@ async function addDataToCache(fileName: string, data: object) {
 export async function addRunData({
   iAppAddress,
   dealid,
+  taskid,
   txHash,
 }: {
   iAppAddress: string;
   dealid: string;
+  taskid: string;
   txHash: string;
 }) {
   const runData = {
     iAppAddress,
     dealid,
+    taskid,
     txHash,
   };
   await addDataToCache('runs.json', runData);

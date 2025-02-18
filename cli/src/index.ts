@@ -7,6 +7,7 @@ import { deploy } from './cmd/deploy.js';
 import { run } from './cmd/run.js';
 import { test } from './cmd/test.js';
 import { mockProtectedData } from './cmd/mock-protected-data.js';
+import { debug } from './cmd/debug.js';
 
 const coerceRequesterSecret = (
   values: string[]
@@ -118,6 +119,19 @@ yargsInstance
         });
     },
     handler: (y) => run(y),
+  })
+
+  .command({
+    command: 'debug <taskId>',
+    describe:
+      'Retrieve detailed execution logs from worker nodes for a specific task',
+    builder: (y) => {
+      return y.positional('taskId', {
+        describe: 'Unique identifier of the task to debug',
+        type: 'string',
+      });
+    },
+    handler: (y) => debug(y),
   })
 
   .command({
