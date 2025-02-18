@@ -197,8 +197,8 @@ export async function runInDebug({
   const taskTimeoutWarning = setTimeout(() => {
     const spinnerText = spinner.text;
     spinner.warn('Task is taking longer than expected...');
-    spinner.log(
-      `💡Tip: You can debug this task using: ${color.command(`iapp debug ${taskid}`)}`
+    spinner.info(
+      `Tip: You can debug this task using ${color.command(`iapp debug ${taskid}`)}`
     );
     spinner.start(spinnerText); // restart spinning
   }, TASK_OBSERVATION_TIMEOUT);
