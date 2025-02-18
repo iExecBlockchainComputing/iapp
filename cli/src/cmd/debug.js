@@ -26,7 +26,7 @@ export async function debug({ taskId }) {
         spinner.log(color.emphasis.bold('\n[STDOUT]'));
         spinner.log(stdout);
       } else {
-        spinner.log(color.comment('[STDOUT] No output'));
+        spinner.log(color.comment('\n[STDOUT] No output'));
       }
 
       if (stderr) {
