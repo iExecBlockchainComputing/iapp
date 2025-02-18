@@ -15,7 +15,6 @@ export default pluginTs.config(
     },
     rules: {
       'no-console': 'error',
-      '@typescript-eslint/no-explicit-any': 'warn', // TODO enforce error
     },
   }
 );
