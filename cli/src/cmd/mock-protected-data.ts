@@ -8,6 +8,10 @@ import {
   createZipFromObject,
   extractDataSchema,
   ALLOWED_KEY_NAMES_REGEXP,
+  DataScalarType,
+  DataObject,
+  DataSchema,
+  DataSchemaEntryType,
 } from '../libs/dataprotector.js';
 import { goToProjectRoot } from '../cli-helpers/goToProjectRoot.js';
 import * as color from '../cli-helpers/color.js';
@@ -19,7 +23,7 @@ export async function mockProtectedData() {
     await goToProjectRoot({ spinner });
     async function buildData({ dataState = {}, dataSchema = {} } = {}) {
       // get data fragment key
-      const { key } = await spinner.prompt({
+      const { key }: { key: string } = await spinner.prompt<'key'>({
         type: 'text',
         name: 'key',
         message:
@@ -60,33 +64,29 @@ export async function mockProtectedData() {
         });
 
         // get data fragment value
-        let value;
+        let value: DataScalarType;
         switch (type) {
           case BOOLEAN:
             {
-              const res = await spinner.prompt([
-                {
-                  type: 'select',
-                  name: 'value',
-                  message: `What is the value of \`${key}\`?`,
-                  choices: [
-                    { title: 'true', value: true },
-                    { title: 'false', value: false },
-                  ],
-                },
-              ]);
+              const res = await spinner.prompt({
+                type: 'select',
+                name: 'value',
+                message: `What is the value of \`${key}\`?`,
+                choices: [
+                  { title: 'true', value: true },
+                  { title: 'false', value: false },
+                ],
+              });
               value = res.value;
             }
             break;
           case NUMBER:
             {
-              const res = await spinner.prompt([
-                {
-                  type: 'text',
-                  name: 'value',
-                  message: `What is the value of \`${key}\`? (${NUMBER})`,
-                },
-              ]);
+              const res = await spinner.prompt({
+                type: 'text',
+                name: 'value',
+                message: `What is the value of \`${key}\`? (${NUMBER})`,
+              });
               const numValue = Number(res.value);
               if (!Number.isNaN(numValue)) {
                 value = numValue;
@@ -97,25 +97,21 @@ export async function mockProtectedData() {
             break;
           case STRING:
             {
-              const res = await spinner.prompt([
-                {
-                  type: 'text',
-                  name: 'value',
-                  message: `What is the value of \`${key}\`? (${STRING})`,
-                },
-              ]);
+              const res = await spinner.prompt({
+                type: 'text',
+                name: 'value',
+                message: `What is the value of \`${key}\`? (${STRING})`,
+              });
               value = res.value;
             }
             break;
           case FILE:
             {
-              const { path } = await spinner.prompt([
-                {
-                  type: 'text',
-                  name: 'path',
-                  message: `Where is the file located? (path)`,
-                },
-              ]);
+              const { path } = await spinner.prompt({
+                type: 'text',
+                name: 'path',
+                message: `Where is the file located? (path)`,
+              });
               const exists = await fileExists(path);
               if (exists) {
                 const stats = await stat(path);
@@ -138,7 +134,14 @@ export async function mockProtectedData() {
 
         // build data fragment
         if (value !== undefined) {
-          const setNestedKeyValue = (obj, path, value) => {
+          const setNestedKeyValue = <
+            O extends DataObject | DataSchema,
+            T extends DataScalarType | DataSchemaEntryType,
+          >(
+            obj: O,
+            path: string[],
+            value: T
+          ) => {
             const [currentKey, ...nextPath] = path;
             if (nextPath.length === 0) {
               obj[currentKey] = value;
@@ -150,12 +153,20 @@ export async function mockProtectedData() {
               ) {
                 obj[currentKey] = {};
               }
-              setNestedKeyValue(obj[currentKey], nextPath, value);
+              setNestedKeyValue(
+                obj[currentKey] as DataObject | DataSchema,
+                nextPath,
+                value
+              );
             }
           };
           setNestedKeyValue(dataState, keyPath, value);
-          const { dataType } = await extractDataSchema({ dataType: value });
-          setNestedKeyValue(dataSchema, keyPath, dataType);
+          const schema = await extractDataSchema({ dataType: value });
+          setNestedKeyValue(
+            dataSchema,
+            keyPath,
+            schema.dataType as DataSchemaEntryType
+          );
         }
       } else {
         spinner.warn(`Invalid key: ${keyFragmentErrors.join(', ')}`);

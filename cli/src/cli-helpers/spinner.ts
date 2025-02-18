@@ -4,9 +4,9 @@ import prompts from 'prompts';
 export type Spinner = Ora & {
   log: (msg: string) => void;
   newLine: () => void;
-  prompt: (
-    oneQuestion: prompts.PromptObject<string> | prompts.PromptObject<string>[]
-  ) => Promise<prompts.Answers<string>>;
+  prompt: <T extends string>(
+    questions: prompts.PromptObject<T> | prompts.PromptObject<T>[]
+  ) => Promise<prompts.Answers<T>>;
 };
 
 export const getSpinner = (): Spinner => {
@@ -26,14 +26,14 @@ export const getSpinner = (): Spinner => {
 
   const newLine = () => log('');
 
-  const prompt = async (
-    oneQuestion: prompts.PromptObject<string> | prompts.PromptObject<string>[]
+  const prompt = async <T extends string>(
+    questions: prompts.PromptObject<T> | prompts.PromptObject<T>[]
   ) => {
     const { isSpinning } = spinner;
     if (isSpinning) {
       spinner.stop();
     }
-    const res = await prompts(oneQuestion, {
+    const res = await prompts(questions, {
       onCancel: () => {
         spinner?.fail('Operation cancelled');
         process.exit(0);

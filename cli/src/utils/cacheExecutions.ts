@@ -27,7 +27,15 @@ async function addDataToCache(fileName: string, data: object) {
 }
 
 // Function to add run data to runs.json
-export async function addRunData({ iAppAddress, dealid, txHash }) {
+export async function addRunData({
+  iAppAddress,
+  dealid,
+  txHash,
+}: {
+  iAppAddress: string;
+  dealid: string;
+  txHash: string;
+}) {
   const runData = {
     iAppAddress,
     dealid,
@@ -41,6 +49,10 @@ export async function addDeploymentData({
   sconifiedImage,
   appContractAddress,
   owner,
+}: {
+  sconifiedImage: string;
+  appContractAddress: string;
+  owner: string;
 }) {
   const deploymentData = {
     sconifiedImage,

@@ -101,6 +101,14 @@ async function copyChosenTemplateFiles({
   useInputFile,
   useRequesterSecret,
   useAppSecret,
+}: {
+  template: string;
+  srcFiles: string[];
+  useArgs: boolean;
+  useProtectedData: boolean;
+  useInputFile: boolean;
+  useRequesterSecret: boolean;
+  useAppSecret: boolean;
 }) {
   const templatesBaseDir = path.resolve(
     fileURLToPath(import.meta.url),

@@ -2,6 +2,10 @@ import Docker from 'dockerode';
 import os from 'os';
 import { createSigintAbortSignal } from '../utils/abortController.js';
 
+type ProgressEvent = { stream?: string };
+type FinishOutputRow = { error?: string };
+type FinishBuildOutputRow = FinishOutputRow & { aux?: { ID?: string } };
+
 const docker = new Docker();
 
 export async function checkDockerDaemon() {
@@ -48,7 +52,7 @@ export async function dockerBuild({
   return new Promise((resolve, reject) => {
     docker.modem.followProgress(buildImageStream, onFinished, onProgress);
 
-    function onFinished(err, output) {
+    function onFinished(err: Error, output: FinishBuildOutputRow[]) {
       clear();
       /**
        * expected output format for image id
@@ -95,7 +99,7 @@ export async function dockerBuild({
       }
     }
 
-    function onProgress(event) {
+    function onProgress(event: ProgressEvent) {
       if (event?.stream) {
         progressCallback(event.stream);
       }
@@ -131,7 +135,7 @@ export async function pushDockerImage({
   await new Promise((resolve, reject) => {
     docker.modem.followProgress(imagePushStream, onFinished, onProgress);
 
-    function onFinished(err, output) {
+    function onFinished(err: Error, output: FinishOutputRow[]) {
       sigint.clear();
       /**
        * 2 kind of error possible, we want to catch each of them:
@@ -162,7 +166,7 @@ export async function pushDockerImage({
       resolve(tag);
     }
 
-    function onProgress(event) {
+    function onProgress(event: ProgressEvent) {
       if (event?.stream) {
         progressCallback(event.stream);
       }

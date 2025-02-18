@@ -3,6 +3,16 @@ import { z } from 'zod';
 import { fromError } from 'zod-validation-error';
 import { CONFIG_FILE, TEMPLATE_LANGUAGES } from '../config/config.js';
 
+type IAppConfig = {
+  projectName?: string;
+  template?: string;
+  dockerhubUsername?: string;
+  dockerhubAccessToken?: string;
+  walletAddress?: string;
+  walletPrivateKey?: string;
+  appSecret?: string;
+};
+
 export const projectNameSchema = z
   .string()
   .min(2, 'Must contain at least 2 characters') // docker image name constraint
@@ -46,7 +56,7 @@ export function projectNameToImageName(projectName = '') {
 }
 
 // Read JSON configuration file
-export async function readIAppConfig() {
+export async function readIAppConfig(): Promise<IAppConfig> {
   const configContent = await readFile(CONFIG_FILE, 'utf8').catch(() => {
     throw Error(
       `Failed to read \`${CONFIG_FILE}\` file. Are you in your iApp project folder?`
@@ -71,6 +81,6 @@ export async function readIAppConfig() {
 }
 
 // Utility function to write the iApp JSON configuration file
-export async function writeIAppConfig(config) {
+export async function writeIAppConfig(config: IAppConfig) {
   await writeFile(CONFIG_FILE, JSON.stringify(config, null, 2));
 }

@@ -23,13 +23,13 @@ type MimeType =
 
 type ScalarType = 'bool' | 'i128' | 'f64' | 'string';
 
-type DataSchemaEntryType = ScalarType | MimeType;
+export type DataSchemaEntryType = ScalarType | MimeType;
 
-type DataSchema = {
+export type DataSchema = {
   [key: string]: DataSchema | DataSchemaEntryType;
 };
 
-type DataScalarType =
+export type DataScalarType =
   | boolean
   | number
   | bigint
@@ -38,7 +38,7 @@ type DataScalarType =
   | ArrayBuffer
   | File;
 
-type DataObject = {
+export type DataObject = {
   [key: string]: DataObject | DataScalarType;
 };
 

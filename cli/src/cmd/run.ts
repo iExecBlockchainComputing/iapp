@@ -9,13 +9,14 @@ import {
   TASK_OBSERVATION_TIMEOUT,
 } from '../config/config.js';
 import { addRunData } from '../utils/cacheExecutions.js';
-import { getSpinner } from '../cli-helpers/spinner.js';
+import { getSpinner, Spinner } from '../cli-helpers/spinner.js';
 import { handleCliError } from '../cli-helpers/handleCliError.js';
 import { getIExecDebug } from '../utils/iexec.js';
 import { extractZipToFolder } from '../utils/extractZipToFolder.js';
 import { askShowResult } from '../cli-helpers/askShowResult.js';
 import { goToProjectRoot } from '../cli-helpers/goToProjectRoot.js';
 import * as color from '../cli-helpers/color.js';
+import { IExec } from 'iexec';
 
 export async function run({
   iAppAddress,
@@ -54,6 +55,13 @@ export async function runInDebug({
   inputFiles = [],
   requesterSecrets = [],
   spinner,
+}: {
+  iAppAddress: string;
+  args?: string;
+  protectedData?: string;
+  inputFiles?: string[];
+  requesterSecrets?: { key: number; value: string }[];
+  spinner: Spinner;
 }) {
   // Is valid iApp address
   if (!ethers.isAddress(iAppAddress)) {
@@ -241,18 +249,27 @@ You can download the result of your task here: ${color.link(`https://ipfs-gatewa
 
 /**
  * push a requester secret with a random uuid
- * @param {Object} params
- * @param {IExec} params.iexec
- * @param {string} params.value
  * @returns {string} secretName
  */
-async function pushRequesterSecret({ iexec, value }) {
+async function pushRequesterSecret({
+  iexec,
+  value,
+}: {
+  iexec: IExec;
+  value: string;
+}) {
   const secretName = uuidV4();
   await iexec.secrets.pushRequesterSecret(secretName, value);
   return secretName;
 }
 
-async function cleanRunOutput({ spinner, outputFolder }) {
+async function cleanRunOutput({
+  spinner,
+  outputFolder,
+}: {
+  spinner: Spinner;
+  outputFolder: string;
+}) {
   // just start the spinner, no need to persist success in terminal
   spinner.start('Cleaning output directory...');
   await rm(outputFolder, { recursive: true, force: true });

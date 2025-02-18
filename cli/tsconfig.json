@@ -8,7 +8,8 @@
     "esModuleInterop": true,
     "moduleResolution": "nodenext",
     "skipLibCheck": true,
-    "allowJs": false
+    "allowJs": false,
+    "noImplicitAny": true
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "templates"]

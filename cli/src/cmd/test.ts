@@ -16,7 +16,7 @@ import {
   TEST_INPUT_DIR,
   TEST_OUTPUT_DIR,
 } from '../config/config.js';
-import { getSpinner } from '../cli-helpers/spinner.js';
+import { getSpinner, Spinner } from '../cli-helpers/spinner.js';
 import { handleCliError } from '../cli-helpers/handleCliError.js';
 import { prepareInputFile } from '../utils/prepareInputFile.js';
 import { askForAppSecret } from '../cli-helpers/askForAppSecret.js';
@@ -65,14 +65,14 @@ export async function test({
   }
 }
 
-async function cleanTestInput({ spinner }) {
+async function cleanTestInput({ spinner }: { spinner: Spinner }) {
   // just start the spinner, no need to persist success in terminal
   spinner.start('Cleaning input directory...');
   await rm(TEST_INPUT_DIR, { recursive: true, force: true });
   await mkdir(TEST_INPUT_DIR);
 }
 
-async function cleanTestOutput({ spinner }) {
+async function cleanTestOutput({ spinner }: { spinner: Spinner }) {
   // just start the spinner, no need to persist success in terminal
   spinner.start('Cleaning output directory...');
   await rm(TEST_OUTPUT_DIR, { recursive: true, force: true });
@@ -87,9 +87,9 @@ function parseArgsString(args = '') {
     },
   });
   // avoid numbers
-  const stringify = (arg) => `${arg}`;
+  const stringify = (arg: string | number) => `${arg}`;
   // strip surrounding quotes of tokenized args
-  const stripSurroundingQuotes = (arg) => {
+  const stripSurroundingQuotes = (arg: string) => {
     if (
       (arg.startsWith('"') && arg.endsWith('"')) ||
       (arg.startsWith("'") && arg.endsWith("'"))
@@ -107,6 +107,12 @@ export async function testApp({
   requesterSecrets = [],
   spinner,
   protectedDataMock,
+}: {
+  args?: string;
+  inputFiles?: string[];
+  requesterSecrets?: { key: number; value: string }[];
+  spinner: Spinner;
+  protectedDataMock: string;
 }) {
   const appSecret = await askForAppSecret({ spinner });
 
@@ -161,7 +167,7 @@ export async function testApp({
     spinner.warn('Task is taking longer than expected...');
     spinner.start(spinnerText); // restart spinning
   }, TASK_OBSERVATION_TIMEOUT);
-  const appLogs = [];
+  const appLogs: string[] = [];
   const { exitCode, outOfMemory } = await runDockerContainer({
     image: imageId,
     cmd: parseArgsString(args), // args https://protocol.docs.iex.ec/for-developers/technical-references/application-io#args
@@ -235,7 +241,7 @@ ${appLogs.join('')}`);
   }
 }
 
-async function getDirectorySize(directoryPath) {
+async function getDirectorySize(directoryPath: string) {
   let totalSize = 0;
   const files = await readdir(directoryPath);
   for (const file of files) {
@@ -250,7 +256,7 @@ async function getDirectorySize(directoryPath) {
   return totalSize;
 }
 
-async function checkTestOutput({ spinner }) {
+async function checkTestOutput({ spinner }: { spinner: Spinner }) {
   spinner.start('Checking test output...');
   const errors = [];
   await checkDeterministicOutputExists({ outputPath: TEST_OUTPUT_DIR }).catch(

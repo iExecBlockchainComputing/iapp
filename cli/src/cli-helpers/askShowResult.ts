@@ -18,7 +18,7 @@ export async function askShowResult({
     initial: true,
   });
   if (continueAnswer.continue) {
-    const files = await readdir(outputPath).catch(() => []);
+    const files = await readdir(outputPath).catch(() => [] as string[]);
     spinner.newLine();
     if (files.length === 0) {
       spinner.warn('output directory is empty');
