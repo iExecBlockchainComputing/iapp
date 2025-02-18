@@ -45,7 +45,7 @@ export async function dockerBuild({
   const buildImageStream = await docker.buildImage(buildArgs, {
     t: tag,
     platform,
-    pull: 'always', // docker store does not support multi platform image, this can cause issues when switching build target platform, pulling ensures the right image is used
+    pull: 'true', // TODO true or 'true'? this seems to be a typing issue based on an error is docker engine API doc // docker store does not support multi platform image, this can cause issues when switching build target platform, pulling ensures the right image is used
     abortSignal: signal,
   });
 
