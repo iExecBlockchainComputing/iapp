@@ -31,7 +31,7 @@ export async function debug({ taskId }) {
 
       if (stderr) {
         spinner.log(color.error.bold('\n[STDERR]'));
-        spinner.log(color.error(stderr));
+        spinner.log(stderr);
       } else {
         spinner.log(color.comment('[STDERR] No errors'));
       }
