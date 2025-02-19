@@ -9,7 +9,7 @@ export default pluginTs.config(
   pluginTs.configs.recommended,
   // pluginUnicorn.configs['flat/recommended'], // TODO activate unicorn
   {
-    files: ['src/**/*.ts', 'src/**/*.js'],
+    files: ['src/**/*.ts'],
     languageOptions: {
       globals: globals.node,
     },
