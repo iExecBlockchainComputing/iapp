@@ -1,13 +1,20 @@
 import globals from 'globals';
 import pluginJs from '@eslint/js';
+import pluginTs from 'typescript-eslint';
+// import pluginUnicorn from 'eslint-plugin-unicorn';
 
-/** @type {import('eslint').Linter.Config[]} */
-export default [
+// https://typescript-eslint.io/getting-started
+export default pluginTs.config(
+  pluginJs.configs.recommended,
+  pluginTs.configs.recommended,
+  // pluginUnicorn.configs['flat/recommended'], // TODO activate unicorn
   {
-    languageOptions: { globals: globals.node },
+    files: ['src/**/*.ts', 'src/**/*.js'],
+    languageOptions: {
+      globals: globals.node,
+    },
     rules: {
       'no-console': 'error',
     },
-  },
-  pluginJs.configs.recommended,
-];
+  }
+);
