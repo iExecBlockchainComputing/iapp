@@ -74,7 +74,7 @@ export async function pushImage({
             logger.error(event, '[img.push] onProgress ERROR');
             isError = true;
           } else {
-            logger.debug(event, '[img.push] onProgress');
+            logger.trace(event, '[img.push] onProgress');
             if (event.aux) {
               pushedImageResult = event.aux;
             }

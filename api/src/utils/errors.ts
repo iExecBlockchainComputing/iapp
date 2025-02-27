@@ -15,6 +15,41 @@ class OperationalError extends Error {
  */
 export class ForbiddenError extends OperationalError {}
 
+export const errorHandler = (
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  err: any,
+  callback: (errorDigest: { code: number; error: string }) => void
+) => {
+  if (
+    // handle Zod validation errors
+    err instanceof ValidationError ||
+    // handle body-parser errors
+    (err.status && err.status === 400)
+  ) {
+    logger.info({ err }, err.name);
+    callback({
+      code: 400,
+      error: err.toString(),
+    });
+  }
+  // handle business errors
+  else if (err instanceof ForbiddenError) {
+    logger.info({ err }, err.name);
+    callback({
+      code: 403,
+      error: err.toString(),
+    });
+  }
+  // everything else is unexpected and treated as internal error
+  else {
+    logger.error({ err }, 'Unexpected error');
+    callback({
+      code: 500,
+      error: 'Internal error',
+    });
+  }
+};
+
 /**
  * should be the last middleware
  */
@@ -31,32 +66,10 @@ export const errorHandlerMiddleware: ErrorRequestHandler = (
     );
     return next(err);
   }
-  if (
-    // handle Zod validation errors
-    err instanceof ValidationError ||
-    // handle body-parser errors
-    (err.status && err.status === 400)
-  ) {
-    logger.info({ err }, err.name);
-    res.status(400).json({
+  errorHandler(err, ({ code, error }) => {
+    res.status(code).json({
       success: false,
-      error: err.toString(),
+      error,
     });
-  }
-  // handle business errors
-  else if (err instanceof ForbiddenError) {
-    logger.info({ err }, err.name);
-    res.status(403).json({
-      success: false,
-      error: err.toString(),
-    });
-  }
-  // everything else is unexpected and treated as internal error
-  else {
-    logger.error({ err }, 'Unexpected error');
-    res.status(500).json({
-      success: false,
-      error: 'Internal error',
-    });
-  }
+  });
 };

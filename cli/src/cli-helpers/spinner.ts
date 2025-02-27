@@ -10,7 +10,7 @@ export type Spinner = Ora & {
 };
 
 export const getSpinner = (): Spinner => {
-  const spinner = ora();
+  const spinner = ora({ isEnabled: !process.env.DEBUG }); // disable spinner when DEBUG is enabled
 
   const log = (msg: string) => {
     const { isSpinning } = spinner;

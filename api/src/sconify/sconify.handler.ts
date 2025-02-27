@@ -29,7 +29,7 @@ const bodySchema = z.object({
     .default(TEMPLATE_CONFIG.JavaScript.template),
 });
 
-export async function sconifyHandler(req: Request, res: Response) {
+async function handleSconifyRequest(requestObj: object) {
   let yourWalletPublicAddress;
   let dockerhubImageToSconify;
   let dockerhubPushToken;
@@ -40,7 +40,7 @@ export async function sconifyHandler(req: Request, res: Response) {
       dockerhubImageToSconify,
       dockerhubPushToken,
       template,
-    } = bodySchema.parse(req.body || {}));
+    } = bodySchema.parse(requestObj));
   } catch (error) {
     throw fromError(error, {
       messageBuilder: createMessageBuilder({
@@ -54,6 +54,19 @@ export async function sconifyHandler(req: Request, res: Response) {
     userWalletPublicAddress: yourWalletPublicAddress,
     templateLanguage: template,
   });
+  return { sconifiedImage, appContractAddress };
+}
+
+export async function sconifyWsHandler(message: object) {
+  const { sconifiedImage, appContractAddress } =
+    await handleSconifyRequest(message);
+  return { sconifiedImage, appContractAddress };
+}
+
+export async function sconifyHttpHandler(req: Request, res: Response) {
+  const { sconifiedImage, appContractAddress } = await handleSconifyRequest(
+    req.body || {}
+  );
   res.status(200).json({
     success: true,
     sconifiedImage,

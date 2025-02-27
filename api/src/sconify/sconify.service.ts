@@ -15,6 +15,7 @@ import { sconifyImage } from '../singleFunction/sconifyImage.js';
 import { ForbiddenError } from '../utils/errors.js';
 import { logger } from '../utils/logger.js';
 import { parseImagePath } from '../utils/parseImagePath.js';
+import { isWsEnabled, sendWsMessage } from '../utils/websocket.js';
 
 export async function sconify({
   dockerImageToSconify,
@@ -40,10 +41,14 @@ export async function sconify({
   sconifiedImage: string;
   appContractAddress: string;
 }> {
+  let currentPushToken = pushToken;
+  const wsEnabled = isWsEnabled();
+
   logger.info(
     {
       dockerImageToSconify,
       userWalletPublicAddress,
+      wsEnabled,
     },
     'New sconify request'
   );
@@ -69,7 +74,7 @@ export async function sconify({
   );
 
   await checkPushToken({
-    pushToken,
+    pushToken: currentPushToken,
     repository: `${dockerUserName}/${imageName}`,
   }).catch((e) => {
     throw new ForbiddenError(
@@ -158,11 +163,35 @@ export async function sconify({
   let fingerprint;
   try {
     logger.info('---------- 6 ---------- Pushing image to user dockerhub...');
+
+    if (wsEnabled) {
+      logger.info('Ask for renew dockerhubPushToken');
+      const { dockerhubPushToken: renewedPushToken } = await sendWsMessage(
+        {
+          type: 'REQUEST',
+          target: 'RENEW_PUSH_TOKEN',
+        },
+        {
+          responseValidator: (obj: {
+            result: { dockerhubPushToken: string };
+          }) => {
+            if (typeof obj?.result?.dockerhubPushToken !== 'string') {
+              throw Error('Invalid response');
+            }
+            return obj.result;
+          },
+          strict: true,
+        }
+      );
+      logger.info('dockerhubPushToken renewed');
+      currentPushToken = renewedPushToken;
+    }
+
     pushed = await pushImage({
       image: sconifiedImageId,
       repo: imageRepo,
       tag: sconifiedImageTag,
-      pushToken,
+      pushToken: currentPushToken,
     });
     logger.info(pushed, 'Pushed image');
 
