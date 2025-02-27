@@ -32,10 +32,7 @@ export async function removeContainer({
     await container.remove({ force: !!kill });
 
     const mountedVolumes = containerInfoFull.Mounts.filter(
-      (
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        mount: any /** TODO any to workaround issue in @types/dockerode https://github.com/DefinitelyTyped/DefinitelyTyped/pull/71974 */
-      ) => mount?.Type === 'volume' && mount.Name
+      (mount) => mount?.Type === 'volume' && mount.Name
     );
 
     if (mountedVolumes.length > 0) {
