@@ -1,4 +1,5 @@
 import WebSocket, { RawData } from 'ws';
+import { pack, unpack } from 'msgpackr';
 import { debug } from './debug.js';
 import { sleep } from './sleep.js';
 
@@ -41,7 +42,7 @@ export type WsMessage = {
  */
 export function serializeData<T extends WsMessage>(data: T) {
   try {
-    return Buffer.from(JSON.stringify(data));
+    return pack(data);
   } catch {
     throw Error('Failed to serialize WS data');
   }
@@ -52,7 +53,7 @@ export function serializeData<T extends WsMessage>(data: T) {
  */
 export function deserializeData<T extends WsMessage>(data: RawData): T {
   try {
-    return JSON.parse(data.toString('utf8'));
+    return unpack(data as Buffer);
   } catch {
     throw Error('Failed to deserialize WS data');
   }

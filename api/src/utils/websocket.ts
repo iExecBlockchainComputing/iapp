@@ -1,6 +1,7 @@
 import type { IncomingMessage } from 'node:http';
 import { WebSocket, RawData } from 'ws';
 import { v4 as uuidv4 } from 'uuid';
+import { pack, unpack } from 'msgpackr';
 import { bindSession, session } from './requestContext.js';
 import { logger } from './logger.js';
 import { WebSocketServer } from 'ws';
@@ -45,7 +46,7 @@ export type WsMessage = {
  */
 function serializeData<T extends WsMessage>(data: T) {
   try {
-    return Buffer.from(JSON.stringify(data));
+    return pack(data);
   } catch {
     throw Error('Failed to serialize WS data');
   }
@@ -56,11 +57,12 @@ function serializeData<T extends WsMessage>(data: T) {
  */
 export function deserializeData<T extends WsMessage>(data: RawData): T {
   try {
-    return JSON.parse(data.toString('utf8'));
+    return unpack(data as Buffer);
   } catch {
     throw Error('Failed to deserialize WS data');
   }
 }
+
 type WsLiveCheck = { isAlive: boolean };
 type WsAckNonce = { ack: number };
 
