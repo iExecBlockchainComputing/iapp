@@ -24,6 +24,7 @@
     "pino-http": "^10.3.0",
     "tsx": "^4.19.2",
     "uuid": "^11.0.3",
+    "ws": "^8.18.1",
     "zod": "^3.23.8",
     "zod-validation-error": "^3.4.0"
   },
@@ -32,6 +33,7 @@
     "@types/cls-hooked": "^4.3.9",
     "@types/dockerode": "^3.3.34",
     "@types/express": "^5.0.0",
+    "@types/ws": "^8.5.14",
     "eslint": "^9.20.1",
     "eslint-plugin-unicorn": "^56.0.1",
     "globals": "^15.15.0",
