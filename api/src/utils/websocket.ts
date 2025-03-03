@@ -1,11 +1,12 @@
 import type { IncomingMessage } from 'node:http';
-import { WebSocket, RawData } from 'ws';
+import { WebSocket, RawData, type WebSocketServer } from 'ws';
+import { type Duplex } from 'node:stream';
 import { v4 as uuidv4 } from 'uuid';
 import { pack, unpack } from 'msgpackr';
 import { bindSession, session } from './requestContext.js';
 import { logger } from './logger.js';
-import { WebSocketServer } from 'ws';
 import { sleep } from './utils.js';
+import { errorHandler } from './errors.js';
 
 export type WsMessage = {
   type:
@@ -93,7 +94,17 @@ export const useHeartbeat = (wss: WebSocketServer) => {
 };
 
 export const bootstrapWsSession =
-  (handler: (ws: WebSocket) => void) =>
+  ({
+    wss,
+    socket,
+    requestRouter,
+  }: {
+    wss: WebSocketServer;
+    socket: Duplex;
+    requestRouter: (
+      requestTarget: string
+    ) => (requestMessage: object) => Promise<object> | void;
+  }) =>
   (ws: WebSocket & WsLiveCheck & WsAckNonce, request: IncomingMessage) => {
     /**
      * clean reference to the session after this
@@ -105,6 +116,8 @@ export const bootstrapWsSession =
     ws.on('pong', () => {
       ws.isAlive = true;
     });
+
+    let isNew = false;
 
     // handle reconnection based on sid
     let sid = request.headers['sec-websocket-protocol'];
@@ -119,6 +132,7 @@ export const bootstrapWsSession =
       wsSessions[sid] = { ws };
       logger.info({ sid }, 'new ws session');
       ws.send(serializeData({ type: 'NEW_SESSION', ack: 0, sid }));
+      isNew = true;
     }
 
     ws.ack = 1;
@@ -160,7 +174,48 @@ export const bootstrapWsSession =
       })
     );
 
-    handler(ws);
+    wss.emit('connection', socket, request);
+
+    if (isNew) {
+      const handleFirstRequest = bindSession((data: RawData) => {
+        try {
+          const message = deserializeData(data);
+          if ((message.type === 'REQUEST', message.target)) {
+            const requestHandler = requestRouter(message.target);
+            if (requestHandler) {
+              // request handled, stop listening new requests
+              ws.removeListener('message', handleFirstRequest);
+              (requestHandler as (message: object) => Promise<object>)(message)
+                // handle success
+                .then(async (result) => {
+                  await sendWsMessage({
+                    type: 'RESPONSE',
+                    target: message.target,
+                    success: true,
+                    result,
+                  });
+                })
+                // handle error
+                .catch((e) =>
+                  errorHandler(e, async ({ code, error }) => {
+                    await sendWsMessage({
+                      type: 'RESPONSE',
+                      target: message.target,
+                      success: false,
+                      code,
+                      error,
+                    });
+                  })
+                );
+            }
+          }
+        } catch (e) {
+          logger.warn(e, 'error on WS message');
+        }
+      });
+
+      ws.on('message', handleFirstRequest);
+    }
   };
 
 export const isWsEnabled = () => {

@@ -6,16 +6,10 @@ import {
   sconifyHttpHandler,
   sconifyWsHandler,
 } from './sconify/sconify.handler.js';
-import { logger, loggerMiddleware } from './utils/logger.js';
+import { loggerMiddleware } from './utils/logger.js';
 import { createRequestId, requestIdMiddleware } from './utils/requestId.js';
-import { errorHandler, errorHandlerMiddleware } from './utils/errors.js';
-import {
-  bootstrapWsSession,
-  deserializeData,
-  sendWsMessage,
-  useHeartbeat,
-} from './utils/websocket.js';
-import { bindSession } from './utils/requestContext.js';
+import { errorHandlerMiddleware } from './utils/errors.js';
+import { bootstrapWsSession, useHeartbeat } from './utils/websocket.js';
 
 const app = express();
 const hostname = '0.0.0.0';
@@ -63,49 +57,14 @@ server.on('upgrade', (request, socket, head) => {
       request,
       socket,
       head,
-      bootstrapWsSession(async (ws) => {
-        wss.emit('connection', socket, request);
-        ws.on(
-          'message',
-          bindSession((data) => {
-            try {
-              const message = deserializeData(data);
-              if ((message.type === 'REQUEST', message.target)) {
-                let requestHandler: Promise<object>;
-                if (message.target === 'SCONIFY') {
-                  requestHandler = sconifyWsHandler(message);
-                }
-                // Add other handler here
-                if (requestHandler) {
-                  requestHandler
-                    // handle success
-                    .then(async (result) => {
-                      await sendWsMessage({
-                        type: 'RESPONSE',
-                        target: message.target,
-                        success: true,
-                        result,
-                      });
-                    })
-                    // handle error
-                    .catch((e) =>
-                      errorHandler(e, async ({ code, error }) => {
-                        await sendWsMessage({
-                          type: 'RESPONSE',
-                          target: message.target,
-                          success: false,
-                          code,
-                          error,
-                        });
-                      })
-                    );
-                }
-              }
-            } catch (e) {
-              logger.warn(e, 'error on WS message');
-            }
-          })
-        );
+      bootstrapWsSession({
+        wss,
+        socket,
+        requestRouter: (requestTarget) => {
+          if (requestTarget === 'SCONIFY') {
+            return sconifyWsHandler;
+          }
+        },
       })
     )
   );
