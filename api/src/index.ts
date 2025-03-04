@@ -1,15 +1,14 @@
 import { readFile } from 'node:fs/promises';
 import express from 'express';
-import { WebSocketServer } from 'ws';
 import { pino } from 'pino';
 import {
   sconifyHttpHandler,
   sconifyWsHandler,
 } from './sconify/sconify.handler.js';
 import { loggerMiddleware } from './utils/logger.js';
-import { createRequestId, requestIdMiddleware } from './utils/requestId.js';
+import { requestIdMiddleware } from './utils/requestId.js';
 import { errorHandlerMiddleware } from './utils/errors.js';
-import { bootstrapWsSession, useHeartbeat } from './utils/websocket.js';
+import { attachWebSocketServer } from './utils/websocket.js';
 
 const app = express();
 const hostname = '0.0.0.0';
@@ -49,25 +48,13 @@ const server = app.listen(port, hostname, () => {
 });
 
 // websocket
-const wss = new WebSocketServer({ noServer: true });
-useHeartbeat(wss);
-server.on('upgrade', (request, socket, head) => {
-  createRequestId(() =>
-    wss.handleUpgrade(
-      request,
-      socket,
-      head,
-      bootstrapWsSession({
-        wss,
-        socket,
-        requestRouter: (requestTarget) => {
-          if (requestTarget === 'SCONIFY') {
-            return sconifyWsHandler;
-          }
-        },
-      })
-    )
-  );
+attachWebSocketServer({
+  server,
+  requestRouter: (requestTarget) => {
+    if (requestTarget === 'SCONIFY') {
+      return sconifyWsHandler;
+    }
+  },
 });
 
 process.on('uncaughtException', (err) => {

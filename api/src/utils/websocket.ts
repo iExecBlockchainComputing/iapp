@@ -1,5 +1,5 @@
-import type { IncomingMessage } from 'node:http';
-import { WebSocket, RawData, type WebSocketServer } from 'ws';
+import type { IncomingMessage, Server } from 'node:http';
+import { WebSocket, WebSocketServer, type RawData } from 'ws';
 import { type Duplex } from 'node:stream';
 import { v4 as uuidv4 } from 'uuid';
 import { pack, unpack } from 'msgpackr';
@@ -7,6 +7,7 @@ import { bindSession, session } from './requestContext.js';
 import { logger } from './logger.js';
 import { sleep } from './utils.js';
 import { errorHandler } from './errors.js';
+import { createRequestId } from './requestId.js';
 
 export type WsMessage = {
   type:
@@ -43,6 +44,25 @@ export type WsMessage = {
 };
 
 /**
+ * handle message with type REQUEST returns a promise of a response object
+ */
+export type WebSocketRequestHandler = (message: WsMessage) => Promise<object>;
+
+/**
+ * handle message with type REQUEST and return appropriate handler based on the "target" field
+ */
+export type WebSocketRequestRouter = (
+  target?: string
+) => WebSocketRequestHandler | void;
+
+/**
+ * message acknowledge nonce attached to a WebSocket
+ */
+type WsAckNonce = { ack: number };
+
+type MayBeUndefined<T> = T extends undefined ? undefined : T;
+
+/**
  * serialize data to send through a websocket
  */
 function serializeData<T extends WsMessage>(data: T) {
@@ -56,7 +76,7 @@ function serializeData<T extends WsMessage>(data: T) {
 /**
  * deserialize data received through a websocket
  */
-export function deserializeData<T extends WsMessage>(data: RawData): T {
+function deserializeData<T extends WsMessage>(data: RawData): T {
   try {
     return unpack(data as Buffer);
   } catch {
@@ -64,165 +84,19 @@ export function deserializeData<T extends WsMessage>(data: RawData): T {
   }
 }
 
-type WsLiveCheck = { isAlive: boolean };
-type WsAckNonce = { ack: number };
-
 const wsSessions: Record<
   string,
   { ws: WebSocket & WsAckNonce; cleanupTimeout?: NodeJS.Timeout }
 > = {};
-
-/**
- * use heartbeat to ensure websocket liveness
- * ws connection must be handled by bootstrapWsSession or will be terminated after the first heartbeat round
- */
-export const useHeartbeat = (wss: WebSocketServer) => {
-  const HEARTBEAT_INTERVAL = 15_000;
-  const interval = setInterval(() => {
-    wss.clients.forEach((ws: WebSocket & WsLiveCheck) => {
-      if (ws.isAlive === false) {
-        logger.warn('ws heartbeat failed closing connection');
-        return ws.terminate();
-      }
-      ws.isAlive = false;
-      ws.ping();
-    });
-  }, HEARTBEAT_INTERVAL);
-  wss.on('close', () => {
-    clearInterval(interval);
-  });
-};
-
-export const bootstrapWsSession =
-  ({
-    wss,
-    socket,
-    requestRouter,
-  }: {
-    wss: WebSocketServer;
-    socket: Duplex;
-    requestRouter: (
-      requestTarget: string
-    ) => (requestMessage: object) => Promise<object> | void;
-  }) =>
-  (ws: WebSocket & WsLiveCheck & WsAckNonce, request: IncomingMessage) => {
-    /**
-     * clean reference to the session after this
-     */
-    const SESSION_TIMEOUT = 60_000;
-
-    // handle heartbeat reset
-    ws.isAlive = true;
-    ws.on('pong', () => {
-      ws.isAlive = true;
-    });
-
-    let isNew = false;
-
-    // handle reconnection based on sid
-    let sid = request.headers['sec-websocket-protocol'];
-    if (sid && wsSessions[sid] && wsSessions[sid].cleanupTimeout) {
-      clearTimeout(wsSessions[sid].cleanupTimeout);
-      delete wsSessions[sid].cleanupTimeout;
-      wsSessions[sid] = { ws };
-      logger.info({ sid }, 'recovering ws session');
-      ws.send(serializeData({ type: 'RECOVERED_SESSION', ack: 0, sid }));
-    } else {
-      sid = uuidv4();
-      wsSessions[sid] = { ws };
-      logger.info({ sid }, 'new ws session');
-      ws.send(serializeData({ type: 'NEW_SESSION', ack: 0, sid }));
-      isNew = true;
-    }
-
-    ws.ack = 1;
-    wsSessions[sid] = { ws };
-    // attach ws sid to the session
-    session.set('websocketSid', sid);
-
-    const destroySession = () => {
-      delete wsSessions[sid];
-      logger.info({ sid }, 'ws session destroyed');
-    };
-
-    ws.on(
-      'close',
-      // bind session to handler
-      bindSession((code) => {
-        ws.removeAllListeners();
-        ws.terminate();
-        delete wsSessions[sid].ws;
-        logger.info({ code, sid }, 'ws closed');
-        if (code === 1000) {
-          destroySession();
-        } else {
-          // when ws connection breaks keep the session for 60sec
-          wsSessions[sid].cleanupTimeout = setTimeout(
-            destroySession,
-            SESSION_TIMEOUT
-          );
-        }
-      })
-    );
-
-    ws.on(
-      'error',
-      // bind session to handler
-      bindSession((error) => {
-        logger.warn(error, 'ws error');
-        ws.close();
-      })
-    );
-
-    wss.emit('connection', socket, request);
-
-    if (isNew) {
-      const handleFirstRequest = bindSession((data: RawData) => {
-        try {
-          const message = deserializeData(data);
-          if ((message.type === 'REQUEST', message.target)) {
-            const requestHandler = requestRouter(message.target);
-            if (requestHandler) {
-              // request handled, stop listening new requests
-              ws.removeListener('message', handleFirstRequest);
-              (requestHandler as (message: object) => Promise<object>)(message)
-                // handle success
-                .then(async (result) => {
-                  await sendWsMessage({
-                    type: 'RESPONSE',
-                    target: message.target,
-                    success: true,
-                    result,
-                  });
-                })
-                // handle error
-                .catch((e) =>
-                  errorHandler(e, async ({ code, error }) => {
-                    await sendWsMessage({
-                      type: 'RESPONSE',
-                      target: message.target,
-                      success: false,
-                      code,
-                      error,
-                    });
-                  })
-                );
-            }
-          }
-        } catch (e) {
-          logger.warn(e, 'error on WS message');
-        }
-      });
-
-      ws.on('message', handleFirstRequest);
-    }
-  };
 
 export const isWsEnabled = () => {
   const sid = session.get('websocketSid');
   return sid !== undefined;
 };
 
+/**
+ * get the websocket attached to the request session
+ */
 const getWsSession = async (): Promise<WebSocket & WsAckNonce> => {
   // recover ws sid from the session
   const sid = session.get('websocketSid');
@@ -236,10 +110,8 @@ const getWsSession = async (): Promise<WebSocket & WsAckNonce> => {
   return wsSessions[sid].ws;
 };
 
-type MayBeUndefined<T> = T extends undefined ? undefined : T;
-
 /**
- * send message through a websocket and wait for response
+ * send message through the websocket attached to the request session and wait for response
  */
 export async function sendWsMessage<
   M extends WsMessage = undefined,
@@ -256,7 +128,8 @@ export async function sendWsMessage<
   }: {
     /**
      * validate/transform incoming data object, must return response or throw
-     * default validate message delivery acknowledge
+     *
+     * default: validates message delivery acknowledge
      */
     responseValidator?: (data: object) => R extends undefined ? never : R;
     /**
@@ -371,3 +244,210 @@ export async function sendWsMessage<
     }
   }
 }
+
+/**
+ * attach a WebSocket server to an existing server
+ *
+ * for each clients, the first message of a session with type REQUEST matching WebSocketRequestHandler is forwarded to this WebSocketRequestHandler
+ *
+ * the server
+ */
+export const attachWebSocketServer = ({
+  server,
+  requestRouter,
+}: {
+  /**
+   * http server
+   */
+  server: Server;
+  /**
+   * route requests to the handler based on the "target" field of REQUEST type messages
+   */
+  requestRouter: WebSocketRequestRouter;
+  /**
+   *
+   */
+}) => {
+  const wss = new WebSocketServer({ noServer: true });
+
+  // heartbeat to check connection liveness
+  type WsLiveCheck = { isAlive: boolean };
+  const HEARTBEAT_INTERVAL = 15_000;
+  const heartbeatInterval = setInterval(() => {
+    wss.clients.forEach((ws: WebSocket & WsLiveCheck) => {
+      if (ws.isAlive === false) {
+        logger.warn('ws heartbeat failed closing connection');
+        return ws.terminate();
+      }
+      ws.isAlive = false;
+      ws.ping();
+    });
+  }, HEARTBEAT_INTERVAL);
+  wss.on('close', () => {
+    clearInterval(heartbeatInterval);
+  });
+
+  /**
+   * create the upgrade callback with the following features
+   * - heartbeat reset
+   * - session creation / reconnection
+   * - request routing
+   * - response to request
+   */
+  const createUpgradeCallback =
+    ({
+      wss,
+      socket,
+      requestRouter,
+    }: {
+      wss: WebSocketServer;
+      socket: Duplex;
+      requestRouter: WebSocketRequestRouter;
+    }) =>
+    /**
+     * upgrade callback
+     */
+    (ws: WebSocket & WsLiveCheck & WsAckNonce, request: IncomingMessage) => {
+      /**
+       * clean reference to the session after this
+       */
+      const SESSION_TIMEOUT = 60_000;
+
+      // handle heartbeat reset
+      ws.isAlive = true;
+      ws.on('pong', () => {
+        ws.isAlive = true;
+      });
+
+      let isNew = false;
+
+      // handle reconnection based on sid
+      let sid = request.headers['sec-websocket-protocol'];
+      if (sid && wsSessions[sid] && wsSessions[sid].cleanupTimeout) {
+        clearTimeout(wsSessions[sid].cleanupTimeout);
+        delete wsSessions[sid].cleanupTimeout;
+        wsSessions[sid] = { ws };
+        logger.info({ sid }, 'recovering ws session');
+        ws.send(serializeData({ type: 'RECOVERED_SESSION', ack: 0, sid }));
+      } else {
+        sid = uuidv4();
+        wsSessions[sid] = { ws };
+        logger.info({ sid }, 'new ws session');
+        ws.send(serializeData({ type: 'NEW_SESSION', ack: 0, sid }));
+        isNew = true;
+      }
+      ws.ack = 1;
+      wsSessions[sid] = { ws };
+      session.set('websocketSid', sid);
+
+      // cleanup session on connection close
+      const destroySession = () => {
+        delete wsSessions[sid];
+        logger.info({ sid }, 'ws session destroyed');
+      };
+      ws.on(
+        'close',
+        // bind session to handler
+        bindSession((code) => {
+          ws.removeAllListeners();
+          ws.terminate();
+          delete wsSessions[sid].ws;
+          logger.info({ code, sid }, 'ws closed');
+          if (code === 1000) {
+            destroySession();
+          } else {
+            // when ws connection breaks keep the session for 60sec
+            wsSessions[sid].cleanupTimeout = setTimeout(
+              destroySession,
+              SESSION_TIMEOUT
+            );
+          }
+        })
+      );
+
+      // close connection on error
+      ws.on(
+        'error',
+        // bind session to handler
+        bindSession((error) => {
+          logger.warn(error, 'ws error');
+          ws.close();
+        })
+      );
+
+      // register request router handler for new session
+      if (isNew) {
+        const handleFirstRequest = bindSession((data: RawData) => {
+          try {
+            const message = deserializeData(data);
+            if ((message.type === 'REQUEST', message.target)) {
+              const requestHandler = requestRouter(message.target);
+              if (requestHandler) {
+                // request handled, stop listening new requests
+                ws.removeListener('message', handleFirstRequest);
+
+                logger.info(
+                  { sid, target: message.target },
+                  'websocket new request'
+                );
+
+                (requestHandler as (message: object) => Promise<object>)(
+                  message
+                )
+                  // handle success
+                  .then(async (result) => {
+                    await sendWsMessage({
+                      type: 'RESPONSE',
+                      target: message.target,
+                      success: true,
+                      result,
+                    });
+                  })
+                  // handle error
+                  .catch((e) =>
+                    errorHandler(e, async ({ code, error }) => {
+                      await sendWsMessage({
+                        type: 'RESPONSE',
+                        target: message.target,
+                        success: false,
+                        code,
+                        error,
+                      });
+                    })
+                  )
+                  // close connection after the response is received by the client
+                  .finally(() => {
+                    ws.close(1000);
+                    logger.info(
+                      { sid, target: message.target },
+                      'websocket request treated'
+                    );
+                  });
+              }
+            }
+          } catch (e) {
+            logger.warn(e, 'error on WS message');
+          }
+        });
+        ws.on('message', handleFirstRequest);
+      }
+
+      // notify client connection is established
+      wss.emit('connection', socket, request);
+    };
+
+  server.on('upgrade', (request, socket, head) => {
+    createRequestId(() =>
+      wss.handleUpgrade(
+        request,
+        socket,
+        head,
+        createUpgradeCallback({
+          wss,
+          socket,
+          requestRouter,
+        })
+      )
+    );
+  });
+};

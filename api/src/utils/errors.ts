@@ -15,6 +15,9 @@ class OperationalError extends Error {
  */
 export class ForbiddenError extends OperationalError {}
 
+/**
+ * Clean error for sending to client
+ */
 export const errorHandler = (
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   err: any,
