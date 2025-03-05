@@ -377,6 +377,15 @@ export const attachWebSocketServer = ({
 
       // register request router handler for new session
       if (isNew) {
+        // close connection if client does not submit valid request after opening a new session
+        const closeIdleConnectionTimeout = setTimeout(() => {
+          logger.warn({ sid }, 'Closing idle ws connection');
+          ws.close(1000);
+        }, 5_000);
+        ws.on('close', () => {
+          clearTimeout(closeIdleConnectionTimeout);
+        });
+
         const handleFirstRequest = bindSession((data: RawData) => {
           try {
             const message = deserializeData(data);
@@ -385,6 +394,7 @@ export const attachWebSocketServer = ({
               if (requestHandler) {
                 // request handled, stop listening new requests
                 ws.removeListener('message', handleFirstRequest);
+                clearTimeout(closeIdleConnectionTimeout);
 
                 logger.info(
                   { sid, target: message.target },
