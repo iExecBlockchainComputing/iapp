@@ -141,109 +141,97 @@ export async function sendWsMessage<
      * set true if it should throw on fail
      */
     strict?: boolean;
-  } = {},
-  {
-    tryCount = 0,
-  }: {
-    /**
-     * current retry
-     */
-    tryCount?: number;
   } = {}
 ): Promise<MayBeUndefined<R>> {
-  logger.trace({ tryCount, strict }, 'sendWsMessage');
-  try {
-    const response: MayBeUndefined<R> = await new Promise<MayBeUndefined<R>>(
-      (resolve, reject) => {
-        getWsSession()
-          .then((ws) => {
-            // send message with unique acknowledge id
-            const { ack } = ws;
-            ws.ack = ws.ack + 1;
-            // ensure rejection after timeout
-            const rejectTimeout = setTimeout(() => {
-              clean();
-              reject(Error('ws send message timeout reached'));
-            }, WS_SEND_MESSAGE_RESPONSE_TIMEOUT);
-            // ensure rejection if socket is closed
-            ws.on('close', handleClose);
-            // ensure client answer or acknowledge message reception
-            ws.on('message', handleMessage);
-            ws.send(
-              serializeData({ ...message, ack }),
-              // rejection when failing to write out message
-              (err) => {
-                if (err) {
+  logger.trace({ strict }, 'sendWsMessage');
+
+  const retryableSend = async (tryCount = 0) => {
+    try {
+      const response: MayBeUndefined<R> = await new Promise<MayBeUndefined<R>>(
+        (resolve, reject) => {
+          getWsSession()
+            .then((ws) => {
+              // send message with unique acknowledge id
+              const { ack } = ws;
+              ws.ack = ws.ack + 1;
+              // ensure rejection after timeout
+              const rejectTimeout = setTimeout(() => {
+                clean();
+                reject(Error('ws send message timeout reached'));
+              }, WS_SEND_MESSAGE_RESPONSE_TIMEOUT);
+              // ensure rejection if socket is closed
+              ws.on('close', handleClose);
+              // ensure client answer or acknowledge message reception
+              ws.on('message', handleMessage);
+              ws.send(
+                serializeData({ ...message, ack }),
+                // rejection when failing to write out message
+                (err) => {
+                  if (err) {
+                    clean();
+                    reject(err);
+                  }
+                }
+              );
+
+              /**
+               * call to clean callbacks before resolve of reject
+               */
+              function clean() {
+                clearTimeout(rejectTimeout);
+                ws.removeListener('close', handleClose);
+                ws.removeListener('message', handleMessage);
+              }
+              function handleClose() {
+                clean();
+                reject(Error('ws closed'));
+              }
+              function validateAck(obj: WsMessage) {
+                if ((obj?.type === 'ACK', obj?.ack !== ack))
+                  throw Error('Not ack');
+              }
+              function handleMessage(data: RawData) {
+                try {
+                  const dataObj = deserializeData(data);
+                  logger.trace(dataObj, 'handleMessage');
+                  const res = responseValidator
+                    ? responseValidator(dataObj)
+                    : validateAck(dataObj);
                   clean();
-                  reject(err);
+                  resolve(res as MayBeUndefined<R>);
+                } catch (e) {
+                  logger.trace(e, 'handleMessage catch');
+                  // noop response validation failed
                 }
               }
-            );
-
-            /**
-             * call to clean callbacks before resolve of reject
-             */
-            function clean() {
-              clearTimeout(rejectTimeout);
-              ws.removeListener('close', handleClose);
-              ws.removeListener('message', handleMessage);
-            }
-            function handleClose() {
-              clean();
-              reject(Error('ws closed'));
-            }
-            function validateAck(obj: WsMessage) {
-              if ((obj?.type === 'ACK', obj?.ack !== ack))
-                throw Error('Not ack');
-            }
-            function handleMessage(data: RawData) {
-              try {
-                const dataObj = deserializeData(data);
-                logger.trace(dataObj, 'handleMessage');
-                const res = responseValidator
-                  ? responseValidator(dataObj)
-                  : validateAck(dataObj);
-                clean();
-                resolve(res as MayBeUndefined<R>);
-              } catch (e) {
-                logger.trace(e, 'handleMessage catch');
-                // noop response validation failed
-              }
-            }
-          })
-          .catch(reject);
+            })
+            .catch(reject);
+        }
+      ).catch((error) => {
+        logger.debug(
+          { tryCount, error: error?.message },
+          'sendWsMessage try fail'
+        );
+        if (tryCount < 3) {
+          return sleep(
+            Math.pow(2, tryCount) * WS_SEND_MESSAGE_INITIAL_RETRY_DELAY
+          ).then(() => {
+            return retryableSend(tryCount + 1);
+          });
+        }
+        throw error;
+      });
+      logger.debug({ response, tryCount }, 'sendWsMessage response');
+      return response;
+    } catch (error) {
+      logger.warn({ tryCount, error, strict }, 'sendWsMessage fail');
+      if (strict) {
+        throw error;
       }
-    ).catch((error) => {
-      logger.debug(
-        { tryCount, error: error?.message },
-        'sendWsMessage try fail'
-      );
-      if (tryCount < 3) {
-        return sleep(
-          Math.pow(2, tryCount) * WS_SEND_MESSAGE_INITIAL_RETRY_DELAY
-        ).then(() => {
-          return sendWsMessage(
-            message,
-            {
-              responseValidator,
-              strict,
-            },
-            {
-              tryCount: tryCount + 1,
-            }
-          );
-        });
-      }
-      throw error;
-    });
-    logger.debug({ response, tryCount }, 'sendWsMessage response');
-    return response;
-  } catch (error) {
-    logger.warn({ tryCount, error, strict }, 'sendWsMessage fail');
-    if (strict) {
-      throw error;
     }
-  }
+  };
+
+  return retryableSend();
 }
 
 /**
