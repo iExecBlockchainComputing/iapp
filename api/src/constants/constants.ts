@@ -33,3 +33,20 @@ export const TEMPLATE_CONFIG: Record<
     sconeImage: '',
   },
 };
+
+/**
+ * timeout to reconnect a websocket session, sessions are cleared after this delay
+ */
+export const WS_SESSION_TIMEOUT = 60_000;
+/**
+ * websocket heartbeat interval
+ */
+export const WS_HEARTBEAT_INTERVAL = 15_000;
+/**
+ * websocket message confirmation timeout
+ */
+export const WS_SEND_MESSAGE_RESPONSE_TIMEOUT = 15_000;
+/**
+ * websocket send message initial delay before retry sending unconfirmed message
+ */
+export const WS_SEND_MESSAGE_INITIAL_RETRY_DELAY = 5_000;

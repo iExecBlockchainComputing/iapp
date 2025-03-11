@@ -26,3 +26,10 @@ export const TEMPLATE_LANGUAGES = {
   JS: 'JavaScript',
   PYTHON: 'Python',
 };
+
+const WS_SERVER_SESSION_TIMEOUT = 60_000; // session retention after websocket close proposed by the API
+export const WS_SERVER_HEARTBEAT_INTERVAL = 15_000; // heartbeat proposed by the API
+export const WS_RECONNECTION_DELAY = 6_000;
+export const WS_RECONNECTION_MAX_ATTEMPTS = Math.floor(
+  WS_SERVER_SESSION_TIMEOUT / WS_RECONNECTION_DELAY
+);

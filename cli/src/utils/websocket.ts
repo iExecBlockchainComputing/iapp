@@ -2,6 +2,11 @@ import WebSocket, { RawData } from 'ws';
 import { pack, unpack } from 'msgpackr';
 import { debug } from './debug.js';
 import { sleep } from './sleep.js';
+import {
+  WS_RECONNECTION_DELAY,
+  WS_RECONNECTION_MAX_ATTEMPTS,
+  WS_SERVER_HEARTBEAT_INTERVAL,
+} from '../config/config.js';
 
 export type WsMessage = {
   type:
@@ -93,10 +98,6 @@ export function createReconnectingWs(
     errorCallback = () => {},
   } = options;
 
-  const SERVER_HEARTBEAT_INTERVAL = 15_000; // heartbeat proposed by the API
-  const RECONNECTION_DELAY = 6_000;
-  const MAX_RECONNECTION = 4; // naturalNumberSum(MAX_RECONNECTION) * RECONNECTION_DELAY must be <= api/utils/websocket.ts SESSION_TIMEOUT
-
   const ws: WebSocket & { pingTimeout?: NodeJS.Timeout } = new WebSocket(
     host,
     sid
@@ -157,7 +158,7 @@ export function createReconnectingWs(
       debug('ws heartbeat fail');
       teardown();
       reconnect();
-    }, 1.5 * SERVER_HEARTBEAT_INTERVAL);
+    }, 1.5 * WS_SERVER_HEARTBEAT_INTERVAL);
   };
   const ping = () => {
     debug('ws ping');
@@ -174,11 +175,13 @@ export function createReconnectingWs(
    */
   const reconnect = async () => {
     debug('ws try reconnect');
-    if (tryCount > MAX_RECONNECTION) {
+    if (tryCount >= WS_RECONNECTION_MAX_ATTEMPTS) {
       return errorCallback(Error('Reconnection to server failed'));
     }
-    // first reconnect try occurs immediately
-    await sleep(tryCount * RECONNECTION_DELAY);
+    // first reconnect attempt occurs immediately
+    if (tryCount > 0) {
+      await sleep(WS_RECONNECTION_DELAY);
+    }
     createReconnectingWs(
       host,
       {

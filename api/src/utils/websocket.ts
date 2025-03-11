@@ -8,6 +8,12 @@ import { logger } from './logger.js';
 import { sleep } from './utils.js';
 import { errorHandler } from './errors.js';
 import { createRequestId } from './requestId.js';
+import {
+  WS_HEARTBEAT_INTERVAL,
+  WS_SEND_MESSAGE_INITIAL_RETRY_DELAY,
+  WS_SEND_MESSAGE_RESPONSE_TIMEOUT,
+  WS_SESSION_TIMEOUT,
+} from '../constants/constants.js';
 
 export type WsMessage = {
   type:
@@ -123,7 +129,6 @@ export async function sendWsMessage<
   message: M,
   {
     responseValidator,
-    timeout = 30_000, // TODO should it be correlated with heartbeat?
     strict = false,
   }: {
     /**
@@ -132,10 +137,6 @@ export async function sendWsMessage<
      * default: validates message delivery acknowledge
      */
     responseValidator?: (data: object) => R extends undefined ? never : R;
-    /**
-     * reject after timeout
-     */
-    timeout?: number;
     /**
      * set true if it should throw on fail
      */
@@ -150,8 +151,7 @@ export async function sendWsMessage<
     tryCount?: number;
   } = {}
 ): Promise<MayBeUndefined<R>> {
-  const RETRY_DELAY = 5_000; // TODO should it be correlated with heartbeat?
-  logger.trace({ tryCount, timeout, strict }, 'sendWsMessage');
+  logger.trace({ tryCount, strict }, 'sendWsMessage');
   try {
     const response: MayBeUndefined<R> = await new Promise<MayBeUndefined<R>>(
       (resolve, reject) => {
@@ -164,7 +164,7 @@ export async function sendWsMessage<
             const rejectTimeout = setTimeout(() => {
               clean();
               reject(Error('ws send message timeout reached'));
-            }, timeout);
+            }, WS_SEND_MESSAGE_RESPONSE_TIMEOUT);
             // ensure rejection if socket is closed
             ws.on('close', handleClose);
             // ensure client answer or acknowledge message reception
@@ -219,12 +219,13 @@ export async function sendWsMessage<
         'sendWsMessage try fail'
       );
       if (tryCount < 3) {
-        return sleep(Math.pow(2, tryCount) * RETRY_DELAY).then(() => {
+        return sleep(
+          Math.pow(2, tryCount) * WS_SEND_MESSAGE_INITIAL_RETRY_DELAY
+        ).then(() => {
           return sendWsMessage(
             message,
             {
               responseValidator,
-              timeout,
               strict,
             },
             {
@@ -238,7 +239,7 @@ export async function sendWsMessage<
     logger.debug({ response, tryCount }, 'sendWsMessage response');
     return response;
   } catch (error) {
-    logger.warn({ tryCount, timeout, error, strict }, 'sendWsMessage fail');
+    logger.warn({ tryCount, error, strict }, 'sendWsMessage fail');
     if (strict) {
       throw error;
     }
@@ -272,7 +273,6 @@ export const attachWebSocketServer = ({
 
   // heartbeat to check connection liveness
   type WsLiveCheck = { isAlive: boolean };
-  const HEARTBEAT_INTERVAL = 15_000;
   const heartbeatInterval = setInterval(() => {
     wss.clients.forEach((ws: WebSocket & WsLiveCheck) => {
       if (ws.isAlive === false) {
@@ -282,7 +282,7 @@ export const attachWebSocketServer = ({
       ws.isAlive = false;
       ws.ping();
     });
-  }, HEARTBEAT_INTERVAL);
+  }, WS_HEARTBEAT_INTERVAL);
   wss.on('close', () => {
     clearInterval(heartbeatInterval);
   });
@@ -308,11 +308,6 @@ export const attachWebSocketServer = ({
      * upgrade callback
      */
     (ws: WebSocket & WsLiveCheck & WsAckNonce, request: IncomingMessage) => {
-      /**
-       * clean reference to the session after this
-       */
-      const SESSION_TIMEOUT = 60_000;
-
       // handle heartbeat reset
       ws.isAlive = true;
       ws.on('pong', () => {
@@ -359,7 +354,7 @@ export const attachWebSocketServer = ({
             // when ws connection breaks keep the session for 60sec
             wsSessions[sid].cleanupTimeout = setTimeout(
               destroySession,
-              SESSION_TIMEOUT
+              WS_SESSION_TIMEOUT
             );
           }
         })
