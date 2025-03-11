@@ -1,10 +1,14 @@
+import { readFile } from 'node:fs/promises';
 import express from 'express';
-import { readFile } from 'fs/promises';
 import { pino } from 'pino';
-import { sconifyHandler } from './sconify/sconify.handler.js';
+import {
+  sconifyHttpHandler,
+  sconifyWsHandler,
+} from './sconify/sconify.handler.js';
 import { loggerMiddleware } from './utils/logger.js';
 import { requestIdMiddleware } from './utils/requestId.js';
 import { errorHandlerMiddleware } from './utils/errors.js';
+import { attachWebSocketServer } from './utils/websocket.js';
 
 const app = express();
 const hostname = '0.0.0.0';
@@ -23,7 +27,7 @@ app.use(express.json());
 app.use(requestIdMiddleware);
 app.use(loggerMiddleware);
 
-app.post('/sconify', sconifyHandler);
+app.post('/sconify', sconifyHttpHandler);
 
 // Health endpoint
 app.get('/health', (req, res) => {
@@ -39,8 +43,18 @@ app.get('/', (req, res) => {
 
 app.use(errorHandlerMiddleware);
 
-app.listen(port, hostname, () => {
+const server = app.listen(port, hostname, () => {
   rootLogger.info(`Server running at http://${hostname}:${port}/`);
+});
+
+// websocket
+attachWebSocketServer({
+  server,
+  requestRouter: (requestTarget) => {
+    if (requestTarget === 'SCONIFY') {
+      return sconifyWsHandler;
+    }
+  },
 });
 
 process.on('uncaughtException', (err) => {

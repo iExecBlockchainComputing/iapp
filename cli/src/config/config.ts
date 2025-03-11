@@ -4,7 +4,8 @@ export const WORKERPOOL_DEBUG = 'debug-v8-learn.main.pools.iexec.eth';
 
 export const WORKERPOOL_PROD = 'prod-v8-learn.main.pools.iexec.eth';
 
-export const SCONIFY_API_URL = 'https://iapp-api.iex.ec';
+export const SCONIFY_API_HTTP_URL = 'https://iapp-api.iex.ec';
+export const SCONIFY_API_WS_URL = 'wss://iapp-api.iex.ec';
 
 export const CONFIG_FILE = 'iapp.config.json';
 export const TEST_INPUT_DIR = 'input';
@@ -25,3 +26,10 @@ export const TEMPLATE_LANGUAGES = {
   JS: 'JavaScript',
   PYTHON: 'Python',
 };
+
+const WS_SERVER_SESSION_TIMEOUT = 60_000; // session retention after websocket close proposed by the API
+export const WS_SERVER_HEARTBEAT_INTERVAL = 15_000; // heartbeat proposed by the API
+export const WS_RECONNECTION_DELAY = 6_000;
+export const WS_RECONNECTION_MAX_ATTEMPTS = Math.floor(
+  WS_SERVER_SESSION_TIMEOUT / WS_RECONNECTION_DELAY
+);

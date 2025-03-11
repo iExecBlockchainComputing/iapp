@@ -69,7 +69,7 @@ export async function sconifyImage({
         }
         stream.on('data', function (data) {
           const readableData = data.toString('utf8');
-          logger.debug(readableData);
+          logger.trace(readableData);
         });
       }
     );

@@ -1,7 +1,13 @@
 import { addDeploymentData } from './cacheExecutions.js';
-import { SCONIFY_API_URL } from '../config/config.js';
+import { SCONIFY_API_HTTP_URL, SCONIFY_API_WS_URL } from '../config/config.js';
 import { getAuthToken } from './dockerhub.js';
 import { sleep } from './sleep.js';
+import {
+  createReconnectingWs,
+  deserializeData,
+  serializeData,
+} from './websocket.js';
+import { debug } from './debug.js';
 
 const INITIAL_RETRY_PERIOD = 20 * 1000; // 20s
 
@@ -30,62 +36,142 @@ export async function sconify({
   try {
     const [dockerRepository] = iAppNameToSconify.split(':');
 
-    const pushToken = await getAuthToken({
-      repository: dockerRepository,
-      action: 'pull,push',
-      dockerhubAccessToken,
-      dockerhubUsername,
-    });
-
-    const jsonResponse = await fetch(`${SCONIFY_API_URL}/sconify`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-wallet': walletAddress,
-      },
-      body: JSON.stringify({
-        template,
-        dockerhubImageToSconify: iAppNameToSconify,
-        dockerhubPushToken: pushToken, // used for pushing sconified image on user repo
-        yourWalletPublicAddress: walletAddress,
-      }),
-    })
-      .catch(() => {
-        throw Error("Can't reach TEE transformation server!");
-      })
-      .then((res) => {
-        if (res.ok) {
-          return res.json().catch(() => {
-            // failed to parse body
-            throw Error('Unexpected server response');
-          });
-        }
-        if (res.status === 429) {
-          throw new TooManyRequestsError(
-            'TEE transformation server is busy, retry later'
-          );
-        }
-        // try getting error message from json body
-        return res
-          .json()
-          .catch(() => {
-            // failed to parse body
-            throw Error('Unknown server error');
-          })
-          .then(({ error }) => {
-            throw Error(error || 'Unknown server error');
-          });
+    const getPushToken = async () =>
+      getAuthToken({
+        repository: dockerRepository,
+        action: 'pull,push',
+        dockerhubAccessToken,
+        dockerhubUsername,
       });
 
+    const pushToken = await getPushToken();
+
+    let sconifyResult: { appContractAddress?: string; sconifiedImage?: string };
+
+    if (process.env.EXPERIMENTAL_WS_API) {
+      // experimental ws connection
+      sconifyResult = await new Promise((resolve, reject) => {
+        createReconnectingWs(SCONIFY_API_WS_URL, {
+          connectCallback: (ws) => {
+            const handleError = (e: Error) => {
+              ws.close(1000); // normal ws close
+              reject(e);
+            };
+
+            ws.on('message', (data) => {
+              let message;
+              // handle communication errors
+              try {
+                message = deserializeData(data);
+                debug(`ws message: ${JSON.stringify(message, undefined, 2)}`);
+              } catch (e) {
+                handleError(e);
+              }
+
+              // handle server responses
+              if (message?.type === 'RESPONSE') {
+                if (message?.target === 'SCONIFY') {
+                  ws.close(1000); // normal ws close
+                  if (message?.success === true) {
+                    resolve(message.result);
+                  } else {
+                    reject(Error(message.error));
+                  }
+                }
+              }
+
+              // handle server requests
+              if (message?.type === 'REQUEST') {
+                if (message?.target === 'RENEW_PUSH_TOKEN') {
+                  getPushToken()
+                    .then((renewedPushToken) => {
+                      ws.send(
+                        serializeData({
+                          type: 'RESPONSE',
+                          target: 'RENEW_PUSH_TOKEN',
+                          result: {
+                            dockerhubPushToken: renewedPushToken,
+                          },
+                        })
+                      );
+                    })
+                    .catch(handleError);
+                }
+              }
+
+              // handle server info
+              if (message?.type === 'INFO') {
+                // TODO server feedback
+              }
+            });
+          },
+          initCallback: (ws) => {
+            ws.send(
+              serializeData({
+                type: 'REQUEST',
+                target: 'SCONIFY', // call sconify handler
+                template,
+                dockerhubImageToSconify: iAppNameToSconify,
+                dockerhubPushToken: pushToken,
+                yourWalletPublicAddress: walletAddress,
+              })
+            );
+          },
+          errorCallback: reject,
+        });
+      });
+    } else {
+      // standard http call
+      sconifyResult = await fetch(`${SCONIFY_API_HTTP_URL}/sconify`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-wallet': walletAddress,
+        },
+        body: JSON.stringify({
+          template,
+          dockerhubImageToSconify: iAppNameToSconify,
+          dockerhubPushToken: pushToken, // used for pushing sconified image on user repo
+          yourWalletPublicAddress: walletAddress,
+        }),
+      })
+        .catch(() => {
+          throw Error("Can't reach TEE transformation server!");
+        })
+        .then((res) => {
+          if (res.ok) {
+            return res.json().catch(() => {
+              // failed to parse body
+              throw Error('Unexpected server response');
+            });
+          }
+          if (res.status === 429) {
+            throw new TooManyRequestsError(
+              'TEE transformation server is busy, retry later'
+            );
+          }
+          // try getting error message from json body
+          return res
+            .json()
+            .catch(() => {
+              // failed to parse body
+              throw Error('Unknown server error');
+            })
+            .then(({ error }) => {
+              throw Error(error || 'Unknown server error');
+            });
+        });
+    }
+
     // Extract necessary information
-    if (!jsonResponse.appContractAddress) {
+    if (!sconifyResult.appContractAddress) {
       throw Error('Unexpected server response: missing appContractAddress');
     }
-    if (!jsonResponse.sconifiedImage) {
+    if (!sconifyResult.sconifiedImage) {
       throw Error('Unexpected server response: missing sconifiedImage');
     }
-    appContractAddress = jsonResponse.appContractAddress;
-    sconifiedImage = jsonResponse.sconifiedImage;
+    appContractAddress = sconifyResult.appContractAddress;
+    sconifiedImage = sconifyResult.sconifiedImage;
   } catch (err) {
     // retry with exponential backoff
     if (err instanceof TooManyRequestsError && tryCount < 3) {

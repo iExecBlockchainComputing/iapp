@@ -43,7 +43,7 @@ export function pullSconeImage(image: string) {
       }
 
       function onProgress(event: ProgressEvent) {
-        logger.debug(event, '[pull] onProgress');
+        logger.trace(event, '[pull] onProgress');
       }
     });
   });
