@@ -52,6 +52,9 @@ export async function sconify({
       // experimental ws connection
       sconifyResult = await new Promise((resolve, reject) => {
         createReconnectingWs(SCONIFY_API_WS_URL, {
+          headers: {
+            'x-wallet': walletAddress,
+          },
           connectCallback: (ws) => {
             const handleError = (e: Error) => {
               ws.close(1000); // normal ws close
@@ -173,9 +176,14 @@ export async function sconify({
     appContractAddress = sconifyResult.appContractAddress;
     sconifiedImage = sconifyResult.sconifiedImage;
   } catch (err) {
+    debug(`sconify error: ${err}`);
     // retry with exponential backoff
     if (err instanceof TooManyRequestsError && tryCount < 3) {
-      await sleep(INITIAL_RETRY_PERIOD * Math.pow(2, tryCount));
+      const retryAfter = INITIAL_RETRY_PERIOD * Math.pow(2, tryCount);
+      debug(
+        `server is busy retrying in after ${retryAfter} ms (count: ${tryCount})`
+      );
+      await sleep(retryAfter);
       return sconify({
         iAppNameToSconify,
         template,

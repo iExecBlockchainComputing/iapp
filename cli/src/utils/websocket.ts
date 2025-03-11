@@ -79,6 +79,10 @@ export function createReconnectingWs(
      * called when session with server is definitely broken
      */
     errorCallback?: (err: Error) => void;
+    /**
+     * connection headers
+     */
+    headers?: Record<string, string>;
   } = {}
 ) {
   const createWs = (sid?: string, failedReconnectCount: number = 0) => {
@@ -91,7 +95,7 @@ export function createReconnectingWs(
     const ws: WebSocket & { pingTimeout?: NodeJS.Timeout } = new WebSocket(
       host,
       sid,
-      { handshakeTimeout: 10_000 }
+      { handshakeTimeout: 10_000, headers: options.headers }
     );
 
     /**
