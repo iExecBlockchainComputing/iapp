@@ -173,12 +173,12 @@ export async function sconify({
         },
         {
           responseValidator: (obj: {
-            result: { dockerhubPushToken: string };
+            result?: { dockerhubPushToken?: string };
           }) => {
             if (typeof obj?.result?.dockerhubPushToken !== 'string') {
               throw Error('Invalid response');
             }
-            return obj.result;
+            return obj.result as { dockerhubPushToken: string };
           },
           strict: true,
         }

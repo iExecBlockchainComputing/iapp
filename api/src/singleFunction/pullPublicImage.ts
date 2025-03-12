@@ -19,9 +19,12 @@ export async function pullPublicImage(image: string) {
         return reject(err);
       }
 
+      if (!stream) {
+        return reject('Missing docker pull readable stream');
+      }
       docker.modem.followProgress(stream, onFinished, onProgress);
 
-      function onFinished(err: Error) {
+      function onFinished(err: Error | null) {
         if (err) {
           logger.error({ image, err }, 'Error in image pulling process');
           return reject(err);
