@@ -5,7 +5,7 @@ export const handleCliError = ({
   error,
 }: {
   spinner: Spinner;
-  error: Error;
+  error: unknown;
 }) => {
   const shouldBreakLine = !spinner.text.endsWith('\n');
   spinner.fail(

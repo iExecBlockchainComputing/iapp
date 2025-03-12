@@ -28,7 +28,7 @@ export async function run({
   iAppAddress: string;
   args?: string;
   protectedData?: string;
-  inputFile: string[];
+  inputFile?: string[];
   requesterSecret?: { key: number; value: string }[];
 }) {
   const spinner = getSpinner();
@@ -101,9 +101,9 @@ export async function runInDebug({
           `Your protectedData secret key is not registered in the debug secret management service (SMS) of iexec protocol`
         );
       }
-    } catch (e) {
+    } catch (err) {
       throw Error(
-        `Error while running your iApp with your protectedData: ${e.message}`
+        `Error while running your iApp with your protectedData: ${(err as Error)?.message}`
       );
     }
   }
