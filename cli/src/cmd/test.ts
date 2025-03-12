@@ -32,7 +32,7 @@ export async function test({
   inputFile: inputFiles = [], // rename variable (it's an array)
   requesterSecret: requesterSecrets = [], // rename variable (it's an array)
 }: {
-  args: string;
+  args?: string;
   protectedData?: string;
   inputFile?: string[];
   requesterSecret?: { key: number; value: string }[];
@@ -102,17 +102,17 @@ function parseArgsString(args = '') {
 }
 
 export async function testApp({
+  spinner,
   args = undefined,
   inputFiles = [],
   requesterSecrets = [],
-  spinner,
   protectedDataMock,
 }: {
+  spinner: Spinner;
   args?: string;
   inputFiles?: string[];
   requesterSecrets?: { key: number; value: string }[];
-  spinner: Spinner;
-  protectedDataMock: string;
+  protectedDataMock?: string;
 }) {
   const appSecret = await askForAppSecret({ spinner });
 
@@ -129,7 +129,7 @@ export async function testApp({
   });
   spinner.succeed(`App docker image built (${imageId})`);
 
-  let inputFilesPath;
+  let inputFilesPath: string[] = [];
   if (inputFiles.length > 0) {
     spinner.start('Preparing input files...\n');
     inputFilesPath = await Promise.all(

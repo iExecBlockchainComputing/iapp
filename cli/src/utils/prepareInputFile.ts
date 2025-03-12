@@ -13,15 +13,20 @@ export async function prepareInputFile(url: string): Promise<string> {
      * investigating with core team to name downloaded files with uuid or other name safe collision resistant solution
      */
     const name = url.split('/').pop();
-    if (name === '.' || name === '..') {
+    if (name === undefined || name === '.' || name === '..') {
       throw Error('Invalid computed file name');
     }
     await fetch(url).then(async (response) => {
       await mkdir(TEST_INPUT_DIR, { recursive: true }); // ensure input dir
+      if (!response.body) {
+        throw Error('Cannot read response body');
+      }
       await writeFile(join(TEST_INPUT_DIR, name), response.body);
     });
     return name;
-  } catch (e) {
-    throw Error(`Failed to prepare input file \`${url}\`: ${e}`);
+  } catch (err) {
+    throw Error(
+      `Failed to prepare input file \`${url}\`: ${(err as Error)?.message}`
+    );
   }
 }

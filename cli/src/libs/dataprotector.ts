@@ -105,7 +105,7 @@ export const extractDataSchema = async (
             return [...acc, curr.mime as MimeType];
           }
           return acc;
-        }, []);
+        }, [] as MimeType[]);
         // or fallback to 'application/octet-stream'
         schema[key] = mime || 'application/octet-stream';
       } else if (typeOfValue === 'boolean') {
@@ -126,7 +126,7 @@ export const extractDataSchema = async (
   return schema;
 };
 
-export const createZipFromObject = (obj: unknown): Promise<Uint8Array> => {
+export const createZipFromObject = (obj: object): Promise<Uint8Array> => {
   const zip = new JSZip();
   const promises: Array<Promise<void>> = [];
 
@@ -178,7 +178,7 @@ export const createZipFromObject = (obj: unknown): Promise<Uint8Array> => {
       }
       promises.push(
         zip
-          .file(fullPath, content)
+          .file(fullPath, content!)
           .generateAsync({ type: 'uint8array' })
           .then(() => {})
       );

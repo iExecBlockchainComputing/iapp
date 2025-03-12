@@ -98,7 +98,7 @@ export async function deploy() {
       dockerhubUsername,
     });
     spinner.succeed('TEE app deployed');
-    if (appSecret !== null) {
+    if (appSecret !== null && iexec) {
       spinner.start('Attaching app secret to the deployed app');
       await iexec.app.pushAppSecret(appContractAddress, appSecret);
       spinner.succeed('App secret attached to the app');

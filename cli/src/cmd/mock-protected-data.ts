@@ -64,7 +64,7 @@ export async function mockProtectedData() {
         });
 
         // get data fragment value
-        let value: DataScalarType;
+        let value: DataScalarType | undefined = undefined;
         switch (type) {
           case BOOLEAN:
             {
