@@ -64,9 +64,9 @@ export type WebSocketRequestRouter = (
 /**
  * message acknowledge nonce attached to a WebSocket
  */
-type WsAckNonce = { ack: number };
+type WsAckNonce = { ack?: number };
 
-type MayBeUndefined<T> = T extends undefined ? undefined : T;
+type MayBeUndefined<T> = T extends undefined ? never : T;
 
 /**
  * serialize data to send through a websocket
@@ -92,7 +92,7 @@ function deserializeData<T extends WsMessage>(data: RawData): T {
 
 const wsSessions: Record<
   string,
-  { ws: WebSocket & WsAckNonce; cleanupTimeout?: NodeJS.Timeout }
+  { ws?: WebSocket & WsAckNonce; cleanupTimeout?: NodeJS.Timeout }
 > = {};
 
 export const isWsEnabled = () => {
@@ -119,10 +119,7 @@ const getWsSession = async (): Promise<WebSocket & WsAckNonce> => {
 /**
  * send message through the websocket attached to the request session and wait for response
  */
-export async function sendWsMessage<
-  M extends WsMessage = undefined,
-  R = undefined,
->(
+export async function sendWsMessage<M extends WsMessage, R = undefined>(
   /**
    * object to send (must be JSON serializable)
    */
@@ -145,15 +142,15 @@ export async function sendWsMessage<
 ): Promise<MayBeUndefined<R>> {
   logger.trace({ strict }, 'sendWsMessage');
 
-  const retryableSend = async (tryCount = 0) => {
+  const retryableSend = async (tryCount = 0): Promise<MayBeUndefined<R>> => {
     try {
       const response: MayBeUndefined<R> = await new Promise<MayBeUndefined<R>>(
         (resolve, reject) => {
           getWsSession()
             .then((ws) => {
               // send message with unique acknowledge id
-              const { ack } = ws;
-              ws.ack = ws.ack + 1;
+              const { ack = 0 } = ws;
+              ws.ack = ack + 1;
               // ensure rejection after timeout
               const rejectTimeout = setTimeout(() => {
                 clean();
@@ -228,6 +225,7 @@ export async function sendWsMessage<
       if (strict) {
         throw error;
       }
+      return undefined as MayBeUndefined<R>;
     }
   };
 
@@ -260,7 +258,7 @@ export const attachWebSocketServer = ({
   const wss = new WebSocketServer({ noServer: true });
 
   // heartbeat to check connection liveness
-  type WsLiveCheck = { isAlive: boolean };
+  type WsLiveCheck = { isAlive?: boolean };
   const heartbeatInterval = setInterval(() => {
     wss.clients.forEach((ws: WebSocket & WsLiveCheck) => {
       if (ws.isAlive === false) {

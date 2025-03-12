@@ -63,8 +63,8 @@ export async function sconifyImage({
     sconifyContainer.attach(
       { stream: true, stdout: true, stderr: true },
       function (err, stream) {
-        if (err) {
-          logger.error(err, 'Error attaching to container');
+        if (err || !stream) {
+          logger.warn(err, 'Cannot get sconify container logs');
           return;
         }
         stream.on('data', function (data) {

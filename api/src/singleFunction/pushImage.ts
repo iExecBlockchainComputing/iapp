@@ -54,10 +54,12 @@ export async function pushImage({
           logger.error(err, 'Error pushing the image');
           return reject(err);
         }
-
+        if (!stream) {
+          return reject('Missing docker push readable stream');
+        }
         docker.modem.followProgress(stream, onFinished, onProgress);
 
-        function onFinished(err: Error) {
+        function onFinished(err: Error | null) {
           if (err || isError) {
             logger.error(err, 'Error in image pushing process:');
             return reject(err);
