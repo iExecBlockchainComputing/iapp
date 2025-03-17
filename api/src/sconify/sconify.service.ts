@@ -180,7 +180,6 @@ export async function sconify({
             }
             return obj.result as { dockerhubPushToken: string };
           },
-          strict: true,
         }
       );
       logger.info('dockerhubPushToken renewed');

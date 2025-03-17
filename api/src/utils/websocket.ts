@@ -126,25 +126,20 @@ export async function sendWsMessage<M extends WsMessage, R = undefined>(
   message: M,
   {
     responseValidator,
-    strict = false,
   }: {
     /**
      * validate/transform incoming data object, must return response or throw
      *
      * default: validates message delivery acknowledge
      */
-    responseValidator?: (data: object) => R extends undefined ? never : R;
-    /**
-     * set true if it should throw on fail
-     */
-    strict?: boolean;
+    responseValidator?: (data: object) => MayBeUndefined<R>;
   } = {}
 ): Promise<MayBeUndefined<R>> {
-  logger.trace({ strict }, 'sendWsMessage');
+  logger.trace({ message }, 'sendWsMessage');
 
   const retryableSend = async (tryCount = 0): Promise<MayBeUndefined<R>> => {
     try {
-      const response: MayBeUndefined<R> = await new Promise<MayBeUndefined<R>>(
+      const response = await new Promise<MayBeUndefined<R>>(
         (resolve, reject) => {
           getWsSession()
             .then((ws) => {
@@ -221,11 +216,8 @@ export async function sendWsMessage<M extends WsMessage, R = undefined>(
       logger.debug({ response, tryCount }, 'sendWsMessage response');
       return response;
     } catch (error) {
-      logger.warn({ tryCount, error, strict }, 'sendWsMessage fail');
-      if (strict) {
-        throw error;
-      }
-      return undefined as MayBeUndefined<R>;
+      logger.warn({ tryCount, error }, 'sendWsMessage fail');
+      throw error;
     }
   };
 
