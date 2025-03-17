@@ -27,13 +27,18 @@ export function pullSconeImage(image: string) {
   return new Promise<void>((resolve, reject) => {
     docker.pull(image, { authconfig: registryAuth }, function (err, stream) {
       if (err) {
-        logger.error(err, 'Error pulling the image:');
+        logger.error({ image, error: err }, 'Error pulling the image:');
         return reject(err);
       }
 
+      if (!stream) {
+        const error = new Error('Missing docker pull readable stream');
+        logger.error({ image, error }, error.message);
+        return reject(error);
+      }
       docker.modem.followProgress(stream, onFinished, onProgress);
 
-      function onFinished(err: Error) {
+      function onFinished(err: Error | null) {
         if (err) {
           logger.error(err, 'Error in image pulling process');
           return reject(err);

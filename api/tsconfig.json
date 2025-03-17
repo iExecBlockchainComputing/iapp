@@ -9,6 +9,7 @@
     "moduleResolution": "nodenext",
     "skipLibCheck": true,
     "allowJs": false,
+    "strict": true,
     "noImplicitAny": true
   },
   "include": ["src/**/*"],

@@ -43,8 +43,10 @@ export async function removeContainer({
           `container ${containerId} removing ${mountedVolumes.length} mounted volumes`
         );
         const volumePromises = mountedVolumes.map(async ({ Name }) => {
-          const volume = docker.getVolume(Name);
-          await volume.remove();
+          if (Name) {
+            const volume = docker.getVolume(Name);
+            await volume.remove();
+          }
         });
         const results = await Promise.allSettled(volumePromises);
         const rejections = results.filter(
