@@ -52,7 +52,7 @@ export async function dockerBuild({
   return new Promise((resolve, reject) => {
     docker.modem.followProgress(buildImageStream, onFinished, onProgress);
 
-    function onFinished(err: Error, output: FinishBuildOutputRow[]) {
+    function onFinished(err: Error | null, output: FinishBuildOutputRow[]) {
       clear();
       /**
        * expected output format for image id
@@ -95,7 +95,7 @@ export async function dockerBuild({
             : Error(errorOrErrorMessage);
         reject(error);
       } else {
-        resolve(builtImageId);
+        resolve(builtImageId!);
       }
     }
 
@@ -135,7 +135,7 @@ export async function pushDockerImage({
   await new Promise((resolve, reject) => {
     docker.modem.followProgress(imagePushStream, onFinished, onProgress);
 
-    function onFinished(err: Error, output: FinishOutputRow[]) {
+    function onFinished(err: Error | null, output: FinishOutputRow[]) {
       sigint.clear();
       /**
        * 2 kind of error possible, we want to catch each of them:

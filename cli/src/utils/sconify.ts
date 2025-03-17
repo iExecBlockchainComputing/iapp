@@ -22,7 +22,7 @@ export async function sconify({
   tryCount = 0,
 }: {
   iAppNameToSconify: string;
-  template: string;
+  template?: string;
   walletAddress: string;
   dockerhubAccessToken: string;
   dockerhubUsername: string;
@@ -56,7 +56,7 @@ export async function sconify({
             'x-wallet': walletAddress,
           },
           connectCallback: (ws) => {
-            const handleError = (e: Error) => {
+            const handleError = (e: unknown) => {
               ws.close(1000); // normal ws close
               reject(e);
             };
@@ -75,10 +75,10 @@ export async function sconify({
               if (message?.type === 'RESPONSE') {
                 if (message?.target === 'SCONIFY') {
                   ws.close(1000); // normal ws close
-                  if (message?.success === true) {
+                  if (message?.success === true && message.result) {
                     resolve(message.result);
                   } else {
-                    reject(Error(message.error));
+                    reject(Error(message.error || 'Server unknown error'));
                   }
                 }
               }
@@ -193,7 +193,9 @@ export async function sconify({
         tryCount: tryCount + 1,
       });
     }
-    throw Error(`Failed to transform your app into a TEE app: ${err.message}`);
+    throw Error(
+      `Failed to transform your app into a TEE app: ${(err as Error)?.message}`
+    );
   }
 
   // Add deployment data to deployments.json

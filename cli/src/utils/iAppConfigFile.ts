@@ -10,7 +10,7 @@ type IAppConfig = {
   dockerhubAccessToken?: string;
   walletAddress?: string;
   walletPrivateKey?: string;
-  appSecret?: string;
+  appSecret?: string | null;
 };
 
 export const projectNameSchema = z

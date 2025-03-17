@@ -13,20 +13,25 @@ const coerceRequesterSecret = (
   values: string[]
 ): { key: number; value: string }[] => {
   // create Array<{key: number, value: string}> from the values Array<string>
-  const secrets = values.reduce((acc, curr) => {
-    const separatorIndex = curr.indexOf('=');
-    const key = Number(curr.slice(0, separatorIndex));
-    const value = curr.slice(separatorIndex + 1);
-    if (!Number.isInteger(key) || key < 1) {
-      throw Error(`invalid secret index ${key} in requesterSecret \`${curr}\``);
-    }
-    if (value === undefined) {
-      throw Error(
-        `invalid secret value ${value} in requesterSecret \`${curr}\``
-      );
-    }
-    return [...acc, { key, value }];
-  }, []);
+  const secrets = values.reduce(
+    (acc, curr) => {
+      const separatorIndex = curr.indexOf('=');
+      const key = Number(curr.slice(0, separatorIndex));
+      const value = curr.slice(separatorIndex + 1);
+      if (!Number.isInteger(key) || key < 1) {
+        throw Error(
+          `invalid secret index ${key} in requesterSecret \`${curr}\``
+        );
+      }
+      if (value === undefined) {
+        throw Error(
+          `invalid secret value ${value} in requesterSecret \`${curr}\``
+        );
+      }
+      return [...acc, { key, value }];
+    },
+    [] as { key: number; value: string }[]
+  );
   return secrets;
 };
 
@@ -49,7 +54,6 @@ yargsInstance
         .option('args', {
           describe: `Arguments that will be accessible into the iApp. Spaces separates arguments, use quotes to group arguments (Ex: \`--args '"foo bar" baz'\` will interpret "foo bar" as first arg, "bar" as second arg)`,
           type: 'string',
-          demandOption: false,
         })
         .option('protectedData', {
           describe:
@@ -91,16 +95,15 @@ yargsInstance
         .positional('iAppAddress', {
           describe: 'The iApp address to run',
           type: 'string',
+          demandOption: true,
         })
         .option('args', {
           describe: `Arguments that will be accessible into the iApp. Spaces separates arguments, use quotes to group arguments (Ex: \`--args '"foo bar" baz'\` will interpret "foo bar" as first arg, "bar" as second arg)`,
           type: 'string',
-          demandOption: false,
         })
         .option('protectedData', {
           describe: 'Specify the protected data address',
           type: 'string',
-          default: null, // Set default to null or undefined to make it optional
         })
         .option('inputFile', {
           describe:
@@ -129,6 +132,7 @@ yargsInstance
       return y.positional('taskId', {
         describe: 'Unique identifier of the task to debug',
         type: 'string',
+        demandOption: true,
       });
     },
     handler: (y) => debug(y),
