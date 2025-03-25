@@ -20,6 +20,7 @@ import { getIExecDebug } from '../utils/iexec.js';
 import { goToProjectRoot } from '../cli-helpers/goToProjectRoot.js';
 import * as color from '../cli-helpers/color.js';
 import { hintBox } from '../cli-helpers/box.js';
+import { deployTdxApp, getIExecTdx, useTdx } from '../utils/tdx-poc.js';
 
 export async function deploy() {
   const spinner = getSpinner();
@@ -50,15 +51,20 @@ export async function deploy() {
     const walletAddress = await askForWalletAddress({ spinner });
 
     // if an app secret must be set we will need the app owner wallet to push it
+    // in TDX mode deployment is done by the client
     let iexec;
-    if (appSecret !== null) {
+    if (appSecret !== null || useTdx) {
       const privateKey = await askForWalletPrivateKey({ spinner });
       const wallet = new Wallet(privateKey);
       const address = await wallet.getAddress();
       if (address.toLowerCase() !== walletAddress.toLowerCase()) {
         throw Error('Provided address and private key mismatch');
       }
-      iexec = getIExecDebug(privateKey);
+      if (useTdx) {
+        iexec = getIExecTdx(privateKey);
+      } else {
+        iexec = getIExecDebug(privateKey);
+      }
     }
 
     // just start the spinner, no need to persist success in terminal
@@ -87,16 +93,28 @@ export async function deploy() {
     });
     spinner.succeed(`Pushed image ${imageTag} on dockerhub`);
 
-    spinner.start(
-      'Transforming your image into a TEE image and deploying on iExec, this may take a few minutes...'
-    );
-    const { sconifiedImage, appContractAddress } = await sconify({
-      iAppNameToSconify: imageTag,
-      template,
-      walletAddress,
-      dockerhubAccessToken,
-      dockerhubUsername,
-    });
+    let appDockerImage: string;
+    let appContractAddress: string;
+    if (useTdx && iexec) {
+      spinner.start('Deploying TDX TEE app on iExec...');
+      ({ tdxImage: appDockerImage, appContractAddress } = await deployTdxApp({
+        iexec,
+        image: imageTag,
+        dockerhubAccessToken,
+        dockerhubUsername,
+      }));
+    } else {
+      spinner.start(
+        'Transforming your image into a TEE image and deploying on iExec, this may take a few minutes...'
+      );
+      ({ sconifiedImage: appDockerImage, appContractAddress } = await sconify({
+        iAppNameToSconify: imageTag,
+        template,
+        walletAddress,
+        dockerhubAccessToken,
+        dockerhubUsername,
+      }));
+    }
     spinner.succeed('TEE app deployed');
     if (appSecret !== null && iexec) {
       spinner.start('Attaching app secret to the deployed app');
@@ -105,7 +123,7 @@ export async function deploy() {
     }
     spinner.succeed(
       `Deployment of your iApp completed successfully:
-  - Docker image: ${sconifiedImage}
+  - Docker image: ${appDockerImage}
   - iApp address: ${appContractAddress}`
     );
 
