@@ -17,6 +17,7 @@ import { askShowResult } from '../cli-helpers/askShowResult.js';
 import { goToProjectRoot } from '../cli-helpers/goToProjectRoot.js';
 import * as color from '../cli-helpers/color.js';
 import { IExec } from 'iexec';
+import { getIExecTdx, useTdx, WORKERPOOL_TDX } from '../utils/tdx-poc.js';
 
 export async function run({
   iAppAddress,
@@ -83,7 +84,12 @@ export async function runInDebug({
   const walletPrivateKey = await askForWalletPrivateKey({ spinner });
   const wallet = new ethers.Wallet(walletPrivateKey);
 
-  const iexec = getIExecDebug(walletPrivateKey);
+  let iexec: IExec;
+  if (useTdx) {
+    iexec = getIExecTdx(walletPrivateKey);
+  } else {
+    iexec = getIExecDebug(walletPrivateKey);
+  }
 
   // Make some ProtectedData preflight check
   if (protectedData) {
@@ -125,7 +131,7 @@ export async function runInDebug({
   // Workerpool Order
   spinner.start('Fetching workerpool order...');
   const workerpoolOrderbook = await iexec.orderbook.fetchWorkerpoolOrderbook({
-    workerpool: WORKERPOOL_DEBUG,
+    workerpool: useTdx ? WORKERPOOL_TDX : WORKERPOOL_DEBUG,
     app: iAppAddress,
     dataset: protectedData || ethers.ZeroAddress,
     minTag: SCONE_TAG,
