@@ -1,4 +1,3 @@
-import { addDeploymentData } from './cacheExecutions.js';
 import { SCONIFY_API_HTTP_URL, SCONIFY_API_WS_URL } from '../config/config.js';
 import { getAuthToken } from './dockerhub.js';
 import { sleep } from './sleep.js';
@@ -28,11 +27,15 @@ export async function sconify({
   dockerhubUsername: string;
   tryCount?: number;
 }): Promise<{
-  sconifiedImage: string;
-  appContractAddress: string;
+  dockerImage: string;
+  dockerImageDigest: string;
+  fingerprint: string;
+  entrypoint: string;
 }> {
-  let appContractAddress;
-  let sconifiedImage;
+  let dockerImage;
+  let dockerImageDigest;
+  let entrypoint;
+  let fingerprint;
   try {
     const [dockerRepository] = iAppNameToSconify.split(':');
 
@@ -46,7 +49,12 @@ export async function sconify({
 
     const pushToken = await getPushToken();
 
-    let sconifyResult: { appContractAddress?: string; sconifiedImage?: string };
+    let sconifyResult: {
+      dockerImage?: string;
+      dockerImageDigest?: string;
+      fingerprint?: string;
+      entrypoint?: string;
+    };
 
     if (process.env.EXPERIMENTAL_WS_API) {
       // experimental ws connection
@@ -73,7 +81,7 @@ export async function sconify({
 
               // handle server responses
               if (message?.type === 'RESPONSE') {
-                if (message?.target === 'SCONIFY') {
+                if (message?.target === 'SCONIFY_PREPARE') {
                   ws.close(1000); // normal ws close
                   if (message?.success === true && message.result) {
                     resolve(message.result);
@@ -112,7 +120,7 @@ export async function sconify({
             ws.send(
               serializeData({
                 type: 'REQUEST',
-                target: 'SCONIFY', // call sconify handler
+                target: 'SCONIFY_PREPARE', // call sconify handler
                 template,
                 dockerhubImageToSconify: iAppNameToSconify,
                 dockerhubPushToken: pushToken,
@@ -125,7 +133,7 @@ export async function sconify({
       });
     } else {
       // standard http call
-      sconifyResult = await fetch(`${SCONIFY_API_HTTP_URL}/sconify`, {
+      sconifyResult = await fetch(`${SCONIFY_API_HTTP_URL}/sconify/prepare`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -167,14 +175,22 @@ export async function sconify({
     }
 
     // Extract necessary information
-    if (!sconifyResult.appContractAddress) {
-      throw Error('Unexpected server response: missing appContractAddress');
+    if (!sconifyResult.dockerImage) {
+      throw Error('Unexpected server response: missing dockerImage');
     }
-    if (!sconifyResult.sconifiedImage) {
-      throw Error('Unexpected server response: missing sconifiedImage');
+    if (!sconifyResult.dockerImageDigest) {
+      throw Error('Unexpected server response: missing dockerImageDigest');
     }
-    appContractAddress = sconifyResult.appContractAddress;
-    sconifiedImage = sconifyResult.sconifiedImage;
+    if (!sconifyResult.entrypoint) {
+      throw Error('Unexpected server response: missing entrypoint');
+    }
+    if (!sconifyResult.fingerprint) {
+      throw Error('Unexpected server response: missing fingerprint');
+    }
+    dockerImage = sconifyResult.dockerImage;
+    dockerImageDigest = sconifyResult.dockerImageDigest;
+    entrypoint = sconifyResult.entrypoint;
+    fingerprint = sconifyResult.fingerprint;
   } catch (err) {
     debug(`sconify error: ${err}`);
     // retry with exponential backoff
@@ -198,15 +214,10 @@ export async function sconify({
     );
   }
 
-  // Add deployment data to deployments.json
-  await addDeploymentData({
-    sconifiedImage,
-    appContractAddress,
-    owner: walletAddress,
-  });
-
   return {
-    sconifiedImage,
-    appContractAddress,
+    dockerImage,
+    dockerImageDigest,
+    entrypoint,
+    fingerprint,
   };
 }

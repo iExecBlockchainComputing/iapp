@@ -20,6 +20,7 @@ import { getIExecDebug } from '../utils/iexec.js';
 import { goToProjectRoot } from '../cli-helpers/goToProjectRoot.js';
 import * as color from '../cli-helpers/color.js';
 import { hintBox } from '../cli-helpers/box.js';
+import { addDeploymentData } from '../utils/cacheExecutions.js';
 
 export async function deploy() {
   const spinner = getSpinner();
@@ -88,30 +89,65 @@ export async function deploy() {
     spinner.succeed(`Pushed image ${imageTag} on dockerhub`);
 
     spinner.start(
-      'Transforming your image into a TEE image and deploying on iExec, this may take a few minutes...'
+      'Transforming your image into a TEE image, this may take a few minutes...'
     );
-    const { sconifiedImage, appContractAddress } = await sconify({
-      iAppNameToSconify: imageTag,
-      template,
-      walletAddress,
-      dockerhubAccessToken,
-      dockerhubUsername,
+    const { dockerImage, dockerImageDigest, fingerprint, entrypoint } =
+      await sconify({
+        iAppNameToSconify: imageTag,
+        template,
+        walletAddress,
+        dockerhubAccessToken,
+        dockerhubUsername,
+      });
+    spinner.succeed(`Pushed image ${imageTag} on dockerhub`);
+
+    spinner.start(
+      'Deploying your TEE image on iExec, this may take a moment...'
+    );
+
+    const privateKey = await askForWalletPrivateKey({ spinner });
+    const wallet = new Wallet(privateKey);
+    const address = await wallet.getAddress();
+    if (address.toLowerCase() !== walletAddress.toLowerCase()) {
+      throw Error('Provided address and private key mismatch');
+    }
+    iexec = getIExecDebug(privateKey);
+
+    const deployment = await iexec.app.deployApp({
+      owner: address,
+      name: `${projectNameToImageName(projectName)}-${iAppVersion}`,
+      type: 'DOCKER',
+      multiaddr: dockerImage,
+      checksum: `0x${dockerImageDigest}`,
+      // Some code sample here: https://github.com/iExecBlockchainComputing/dataprotector-sdk/blob/v2/packages/protected-data-delivery-dapp/deployment/src/singleFunction/deployApp.ts
+      mrenclave: {
+        framework: 'SCONE',
+        version: 'v5',
+        entrypoint: entrypoint,
+        heapSize: 1073741824,
+        fingerprint,
+      },
     });
-    spinner.succeed('TEE app deployed');
+    // Add deployment data to deployments.json
+    await addDeploymentData({
+      sconifiedImage: dockerImage,
+      appContractAddress: deployment.address,
+      owner: walletAddress,
+    });
     if (appSecret !== null && iexec) {
       spinner.start('Attaching app secret to the deployed app');
-      await iexec.app.pushAppSecret(appContractAddress, appSecret);
+      await iexec.app.pushAppSecret(deployment.address, appSecret);
       spinner.succeed('App secret attached to the app');
     }
     spinner.succeed(
       `Deployment of your iApp completed successfully:
-  - Docker image: ${sconifiedImage}
-  - iApp address: ${appContractAddress}`
+  - Docker image: ${dockerImage}
+  - iApp address: ${deployment.address}`
     );
 
     spinner.log(
       hintBox(
-        `Run ${color.command(`iapp run ${appContractAddress}`)} to execute your iApp on an iExec TEE worker`
+        `Run ${color.command(`iapp run ${deployment.address}`)} to execute your iApp on an iExec TEE worker`
       )
     );
   } catch (error) {
