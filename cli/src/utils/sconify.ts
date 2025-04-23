@@ -120,7 +120,7 @@ export async function sconify({
             ws.send(
               serializeData({
                 type: 'REQUEST',
-                target: 'SCONIFY_PREPARE', // call sconify handler
+                target: 'SCONIFY_BUILD', // call sconify handler
                 template,
                 dockerhubImageToSconify: iAppNameToSconify,
                 dockerhubPushToken: pushToken,
