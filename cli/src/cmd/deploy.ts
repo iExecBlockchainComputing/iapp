@@ -50,17 +50,15 @@ export async function deploy() {
 
     const walletAddress = await askForWalletAddress({ spinner });
 
-    // if an app secret must be set we will need the app owner wallet to push it
-    let iexec;
-    if (appSecret !== null) {
+    // initialize iExec
       const privateKey = await askForWalletPrivateKey({ spinner });
       const wallet = new Wallet(privateKey);
       const address = await wallet.getAddress();
       if (address.toLowerCase() !== walletAddress.toLowerCase()) {
         throw Error('Provided address and private key mismatch');
       }
-      iexec = getIExecDebug(privateKey);
-    }
+      const iexec = getIExecDebug(privateKey);
+    
 
     // just start the spinner, no need to persist success in terminal
     spinner.start('Checking docker daemon is running...');
@@ -104,14 +102,6 @@ export async function deploy() {
     spinner.start(
       'Deploying your TEE image on iExec...'
     );
-
-    const privateKey = await askForWalletPrivateKey({ spinner });
-    const wallet = new Wallet(privateKey);
-    const address = await wallet.getAddress();
-    if (address.toLowerCase() !== walletAddress.toLowerCase()) {
-      throw Error('Provided address and private key mismatch');
-    }
-    iexec = getIExecDebug(privateKey);
 
     const deployment = await iexec.app.deployApp({
       owner: address,
