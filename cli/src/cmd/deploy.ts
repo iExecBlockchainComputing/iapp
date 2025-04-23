@@ -51,14 +51,13 @@ export async function deploy() {
     const walletAddress = await askForWalletAddress({ spinner });
 
     // initialize iExec
-      const privateKey = await askForWalletPrivateKey({ spinner });
-      const wallet = new Wallet(privateKey);
-      const address = await wallet.getAddress();
-      if (address.toLowerCase() !== walletAddress.toLowerCase()) {
-        throw Error('Provided address and private key mismatch');
-      }
-      const iexec = getIExecDebug(privateKey);
-    
+    const privateKey = await askForWalletPrivateKey({ spinner });
+    const wallet = new Wallet(privateKey);
+    const address = await wallet.getAddress();
+    if (address.toLowerCase() !== walletAddress.toLowerCase()) {
+      throw Error('Provided address and private key mismatch');
+    }
+    const iexec = getIExecDebug(privateKey);
 
     // just start the spinner, no need to persist success in terminal
     spinner.start('Checking docker daemon is running...');
@@ -99,9 +98,7 @@ export async function deploy() {
       });
     spinner.succeed(`Pushed image ${imageTag} on dockerhub`);
 
-    spinner.start(
-      'Deploying your TEE image on iExec...'
-    );
+    spinner.start('Deploying your TEE image on iExec...');
 
     const deployment = await iexec.app.deployApp({
       owner: address,
