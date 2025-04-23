@@ -9,6 +9,10 @@ import { loggerMiddleware } from './utils/logger.js';
 import { requestIdMiddleware } from './utils/requestId.js';
 import { errorHandlerMiddleware } from './utils/errors.js';
 import { attachWebSocketServer } from './utils/websocket.js';
+import {
+  sconifyBuildHttpHandler,
+  sconifyBuildWsHandler,
+} from './sconify/sconifyBuild.handler.js';
 
 const app = express();
 const hostname = '0.0.0.0';
@@ -28,6 +32,7 @@ app.use(requestIdMiddleware);
 app.use(loggerMiddleware);
 
 app.post('/sconify', sconifyHttpHandler);
+app.post('/sconify/build', sconifyBuildHttpHandler);
 
 // Health endpoint
 app.get('/health', (req, res) => {
@@ -53,6 +58,9 @@ attachWebSocketServer({
   requestRouter: (requestTarget) => {
     if (requestTarget === 'SCONIFY') {
       return sconifyWsHandler;
+    }
+    if (requestTarget === 'SCONIFY_BUILD') {
+      return sconifyBuildWsHandler;
     }
   },
 });
