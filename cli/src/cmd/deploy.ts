@@ -102,7 +102,7 @@ export async function deploy() {
     spinner.succeed(`Pushed image ${imageTag} on dockerhub`);
 
     spinner.start(
-      'Deploying your TEE image on iExec, this may take a moment...'
+      'Deploying your TEE image on iExec...'
     );
 
     const privateKey = await askForWalletPrivateKey({ spinner });
