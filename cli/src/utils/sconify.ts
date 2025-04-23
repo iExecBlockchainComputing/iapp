@@ -81,7 +81,7 @@ export async function sconify({
 
               // handle server responses
               if (message?.type === 'RESPONSE') {
-                if (message?.target === 'SCONIFY_PREPARE') {
+                if (message?.target === 'SCONIFY_BUILD') {
                   ws.close(1000); // normal ws close
                   if (message?.success === true && message.result) {
                     resolve(message.result);
@@ -133,7 +133,7 @@ export async function sconify({
       });
     } else {
       // standard http call
-      sconifyResult = await fetch(`${SCONIFY_API_HTTP_URL}/sconify/prepare`, {
+      sconifyResult = await fetch(`${SCONIFY_API_HTTP_URL}/sconify/build`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

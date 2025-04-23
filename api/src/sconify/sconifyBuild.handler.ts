@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { createMessageBuilder, fromError } from 'zod-validation-error';
 import { TEMPLATE_CONFIG, type TemplateName } from '../constants/constants.js';
 import { ethereumAddressZodSchema } from '../utils/ethereumAddressZodSchema.js';
-import { sconify } from './sconifyPrepare.service.js';
+import { sconify } from './sconifyBuild.service.js';
 import type { Request, Response } from 'express';
 
 const bodySchema = z.object({
@@ -58,13 +58,13 @@ async function handleSconifyRequest(requestObj: object) {
   return { dockerImage, dockerImageDigest, fingerprint, entrypoint };
 }
 
-export async function sconifyPrepareWsHandler(message: object) {
+export async function sconifyBuildWsHandler(message: object) {
   const { dockerImage, dockerImageDigest, fingerprint, entrypoint } =
     await handleSconifyRequest(message);
   return { dockerImage, dockerImageDigest, fingerprint, entrypoint };
 }
 
-export async function sconifyPrepareHttpHandler(req: Request, res: Response) {
+export async function sconifyBuildHttpHandler(req: Request, res: Response) {
   const { dockerImage, dockerImageDigest, fingerprint, entrypoint } =
     await handleSconifyRequest(req.body || {});
   res.status(200).json({
