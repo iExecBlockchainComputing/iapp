@@ -96,7 +96,7 @@ export async function deploy() {
         dockerhubAccessToken,
         dockerhubUsername,
       });
-    spinner.succeed(`Pushed image ${imageTag} on dockerhub`);
+    spinner.succeed(`Pushed TEE image ${dockerImage} on dockerhub`);
 
     spinner.start('Deploying your TEE image on iExec...');
 
