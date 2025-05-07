@@ -127,6 +127,7 @@ export async function deploy() {
       sconifiedImage: dockerImage,
       appContractAddress: deployment.address,
       owner: walletAddress,
+      chainName,
     });
     if (appSecret !== null && iexec) {
       spinner.start('Attaching app secret to the deployed app');

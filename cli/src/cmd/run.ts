@@ -206,7 +206,7 @@ export async function runInDebug({
     requestorder,
   });
   const taskid = await iexec.deal.computeTaskId(dealid, 0);
-  await addRunData({ iAppAddress, dealid, taskid, txHash });
+  await addRunData({ iAppAddress, dealid, taskid, txHash, chainName });
   spinner.succeed(
     `Deal created successfully
   - deal: ${dealid} ${color.link(`${chainConfig.iexecExplorerUrl}/deal/${dealid}`)}
