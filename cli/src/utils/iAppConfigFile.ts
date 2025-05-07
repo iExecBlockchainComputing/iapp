@@ -5,6 +5,7 @@ import {
   CHAINS_CONFIGURATIONS,
   CONFIG_FILE,
   DEFAULT_CHAIN,
+  SUPPORTED_CHAINS,
   TEMPLATE_LANGUAGES,
 } from '../config/config.js';
 
@@ -19,9 +20,7 @@ type IAppConfig = {
   appSecret?: string | null;
 };
 
-const chainNameSchema = z.enum(
-  Object.keys(CHAINS_CONFIGURATIONS) as [string, ...[string]]
-);
+const chainNameSchema = z.enum(SUPPORTED_CHAINS as [string, ...[string]]);
 
 export const projectNameSchema = z
   .string()

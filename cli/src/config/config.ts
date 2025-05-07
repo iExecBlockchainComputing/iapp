@@ -51,3 +51,5 @@ export const CHAINS_CONFIGURATIONS: Record<string, ChainConfig> = {
     workerpoolProd: 'prod-v8-learn.main.pools.iexec.eth',
   },
 };
+
+export const SUPPORTED_CHAINS = Object.keys(CHAINS_CONFIGURATIONS);

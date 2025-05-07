@@ -7,7 +7,13 @@ import { handleCliError } from '../cli-helpers/handleCliError.js';
 import { getChainConfig, readIAppConfig } from '../utils/iAppConfigFile.js';
 import { goToProjectRoot } from '../cli-helpers/goToProjectRoot.js';
 
-export async function debug({ taskId }: { taskId: string }) {
+export async function debug({
+  taskId,
+  chain,
+}: {
+  taskId: string;
+  chain?: string;
+}) {
   const spinner = getSpinner();
 
   try {
@@ -15,7 +21,8 @@ export async function debug({ taskId }: { taskId: string }) {
       throw Error('Invalid task ID');
     }
     await goToProjectRoot({ spinner });
-    const { defaultChain: chainName } = await readIAppConfig();
+    const { defaultChain } = await readIAppConfig();
+    const chainName = chain || defaultChain;
     const chainConfig = getChainConfig(chainName);
     spinner.info(`Using chain ${chainName}`);
     const walletPrivateKey = await askForWalletPrivateKey({ spinner });

@@ -24,12 +24,14 @@ export async function run({
   protectedData,
   inputFile: inputFiles = [], // rename variable (it's an array)
   requesterSecret: requesterSecrets = [], // rename variable (it's an array)
+  chain,
 }: {
   iAppAddress: string;
   args?: string;
   protectedData?: string;
   inputFile?: string[];
   requesterSecret?: { key: number; value: string }[];
+  chain?: string;
 }) {
   const spinner = getSpinner();
   try {
@@ -42,6 +44,7 @@ export async function run({
       inputFiles,
       requesterSecrets,
       spinner,
+      chain,
     });
   } catch (error) {
     handleCliError({ spinner, error });
@@ -55,15 +58,18 @@ export async function runInDebug({
   inputFiles = [],
   requesterSecrets = [],
   spinner,
+  chain,
 }: {
   iAppAddress: string;
   args?: string;
   protectedData?: string;
   inputFiles?: string[];
   requesterSecrets?: { key: number; value: string }[];
+  chain?: string;
   spinner: Spinner;
 }) {
-  const { defaultChain: chainName } = await readIAppConfig();
+  const { defaultChain } = await readIAppConfig();
+  const chainName = chain || defaultChain;
   const chainConfig = getChainConfig(chainName);
   spinner.info(`Using chain ${chainName}`);
 

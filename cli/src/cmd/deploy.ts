@@ -23,15 +23,12 @@ import * as color from '../cli-helpers/color.js';
 import { hintBox } from '../cli-helpers/box.js';
 import { addDeploymentData } from '../utils/cacheExecutions.js';
 
-export async function deploy() {
+export async function deploy({ chain }: { chain?: string }) {
   const spinner = getSpinner();
   try {
     await goToProjectRoot({ spinner });
-    const {
-      projectName,
-      template,
-      defaultChain: chainName,
-    } = await readIAppConfig();
+    const { projectName, template, defaultChain } = await readIAppConfig();
+    const chainName = chain || defaultChain;
     const chainConfig = getChainConfig(chainName);
     spinner.info(`Using chain ${chainName}`);
 
