@@ -1,9 +1,16 @@
 import { readFile, writeFile } from 'node:fs/promises';
 import { z } from 'zod';
 import { fromError } from 'zod-validation-error';
-import { CONFIG_FILE, TEMPLATE_LANGUAGES } from '../config/config.js';
+import {
+  CHAINS_CONFIGURATIONS,
+  CONFIG_FILE,
+  DEFAULT_CHAIN,
+  SUPPORTED_CHAINS,
+  TEMPLATE_LANGUAGES,
+} from '../config/config.js';
 
 type IAppConfig = {
+  defaultChain: string;
   projectName?: string;
   template?: string;
   dockerhubUsername?: string;
@@ -12,6 +19,8 @@ type IAppConfig = {
   walletPrivateKey?: string;
   appSecret?: string | null;
 };
+
+const chainNameSchema = z.enum(SUPPORTED_CHAINS as [string, ...[string]]);
 
 export const projectNameSchema = z
   .string()
@@ -33,6 +42,7 @@ const dockerImageNameSchema = z
   );
 
 const jsonConfigFileSchema = z.object({
+  defaultChain: chainNameSchema.default(DEFAULT_CHAIN),
   projectName: projectNameSchema,
   template: z
     .enum(
@@ -83,4 +93,12 @@ export async function readIAppConfig(): Promise<IAppConfig> {
 // Utility function to write the iApp JSON configuration file
 export async function writeIAppConfig(config: IAppConfig) {
   await writeFile(CONFIG_FILE, JSON.stringify(config, null, 2));
+}
+
+export function getChainConfig(name: string) {
+  const conf = CHAINS_CONFIGURATIONS[name];
+  if (!conf) {
+    throw Error(`Unsupported chain ${name}`);
+  }
+  return conf;
 }

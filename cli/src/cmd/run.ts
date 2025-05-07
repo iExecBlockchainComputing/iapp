@@ -4,7 +4,6 @@ import { mkdir, rm } from 'node:fs/promises';
 import { askForWalletPrivateKey } from '../cli-helpers/askForWalletPrivateKey.js';
 import {
   SCONE_TAG,
-  WORKERPOOL_DEBUG,
   RUN_OUTPUT_DIR,
   TASK_OBSERVATION_TIMEOUT,
 } from '../config/config.js';
@@ -17,6 +16,7 @@ import { askShowResult } from '../cli-helpers/askShowResult.js';
 import { goToProjectRoot } from '../cli-helpers/goToProjectRoot.js';
 import * as color from '../cli-helpers/color.js';
 import { IExec } from 'iexec';
+import { getChainConfig, readIAppConfig } from '../utils/iAppConfigFile.js';
 
 export async function run({
   iAppAddress,
@@ -24,12 +24,14 @@ export async function run({
   protectedData,
   inputFile: inputFiles = [], // rename variable (it's an array)
   requesterSecret: requesterSecrets = [], // rename variable (it's an array)
+  chain,
 }: {
   iAppAddress: string;
   args?: string;
   protectedData?: string;
   inputFile?: string[];
   requesterSecret?: { key: number; value: string }[];
+  chain?: string;
 }) {
   const spinner = getSpinner();
   try {
@@ -42,6 +44,7 @@ export async function run({
       inputFiles,
       requesterSecrets,
       spinner,
+      chain,
     });
   } catch (error) {
     handleCliError({ spinner, error });
@@ -55,14 +58,21 @@ export async function runInDebug({
   inputFiles = [],
   requesterSecrets = [],
   spinner,
+  chain,
 }: {
   iAppAddress: string;
   args?: string;
   protectedData?: string;
   inputFiles?: string[];
   requesterSecrets?: { key: number; value: string }[];
+  chain?: string;
   spinner: Spinner;
 }) {
+  const { defaultChain } = await readIAppConfig();
+  const chainName = chain || defaultChain;
+  const chainConfig = getChainConfig(chainName);
+  spinner.info(`Using chain ${chainName}`);
+
   // Is valid iApp address
   if (!ethers.isAddress(iAppAddress)) {
     throw Error(
@@ -83,7 +93,10 @@ export async function runInDebug({
   const walletPrivateKey = await askForWalletPrivateKey({ spinner });
   const wallet = new ethers.Wallet(walletPrivateKey);
 
-  const iexec = getIExecDebug(walletPrivateKey);
+  const iexec = getIExecDebug({
+    ...chainConfig,
+    privateKey: walletPrivateKey,
+  });
 
   // Make some ProtectedData preflight check
   if (protectedData) {
@@ -125,7 +138,7 @@ export async function runInDebug({
   // Workerpool Order
   spinner.start('Fetching workerpool order...');
   const workerpoolOrderbook = await iexec.orderbook.fetchWorkerpoolOrderbook({
-    workerpool: WORKERPOOL_DEBUG,
+    workerpool: chainConfig.workerpoolDebug,
     app: iAppAddress,
     dataset: protectedData || ethers.ZeroAddress,
     minTag: SCONE_TAG,
@@ -199,10 +212,10 @@ export async function runInDebug({
     requestorder,
   });
   const taskid = await iexec.deal.computeTaskId(dealid, 0);
-  await addRunData({ iAppAddress, dealid, taskid, txHash });
+  await addRunData({ iAppAddress, dealid, taskid, txHash, chainName });
   spinner.succeed(
     `Deal created successfully
-  - deal: ${dealid} ${color.link(`https://explorer.iex.ec/bellecour/deal/${dealid}`)}
+  - deal: ${dealid} ${color.link(`${chainConfig.iexecExplorerUrl}/deal/${dealid}`)}
   - task: ${taskid}`
   );
 
@@ -229,7 +242,7 @@ export async function runInDebug({
   const task = await iexec.task.show(taskid);
   const { location } = task.results as { storage: string; location?: string };
   spinner.succeed(`Task finalized
-You can download the result of your task here: ${color.link(`https://ipfs-gateway.v8-bellecour.iex.ec${location}`)}`);
+You can download the result of your task here: ${color.link(`${chainConfig.ipfsGatewayUrl}${location}`)}`);
 
   const downloadAnswer = await spinner.prompt({
     type: 'confirm',

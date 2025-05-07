@@ -1,9 +1,5 @@
 export const SCONE_TAG = ['tee', 'scone'];
 
-export const WORKERPOOL_DEBUG = 'debug-v8-learn.main.pools.iexec.eth';
-
-export const WORKERPOOL_PROD = 'prod-v8-learn.main.pools.iexec.eth';
-
 export const SCONIFY_API_HTTP_URL = 'https://iapp-api.iex.ec';
 export const SCONIFY_API_WS_URL = 'wss://iapp-api.iex.ec';
 
@@ -33,3 +29,27 @@ export const WS_RECONNECTION_DELAY = 6_000;
 export const WS_RECONNECTION_MAX_ATTEMPTS = Math.floor(
   WS_SERVER_SESSION_TIMEOUT / WS_RECONNECTION_DELAY
 );
+
+type ChainConfig = {
+  rpcHostUrl: string;
+  smsDebugUrl: string;
+  ipfsGatewayUrl: string;
+  iexecExplorerUrl: string;
+  workerpoolProd: string;
+  workerpoolDebug: string;
+};
+
+export const DEFAULT_CHAIN = 'bellecour';
+
+export const CHAINS_CONFIGURATIONS: Record<string, ChainConfig> = {
+  bellecour: {
+    rpcHostUrl: 'https://bellecour.iex.ec',
+    smsDebugUrl: 'https://sms.scone-debug.v8-bellecour.iex.ec',
+    ipfsGatewayUrl: 'https://ipfs-gateway.v8-bellecour.iex.ec',
+    iexecExplorerUrl: 'https://explorer.iex.ec/bellecour',
+    workerpoolDebug: 'debug-v8-learn.main.pools.iexec.eth',
+    workerpoolProd: 'prod-v8-learn.main.pools.iexec.eth',
+  },
+};
+
+export const SUPPORTED_CHAINS = Object.keys(CHAINS_CONFIGURATIONS);
