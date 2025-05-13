@@ -1,12 +1,20 @@
 import { IExec, utils } from 'iexec';
 
-export function getIExecDebug(privateKey: string): IExec {
+export function getIExecDebug({
+  privateKey,
+  rpcHostUrl,
+  smsDebugUrl,
+}: {
+  privateKey: string;
+  rpcHostUrl: string;
+  smsDebugUrl: string;
+}): IExec {
   return new IExec(
     {
-      ethProvider: utils.getSignerFromPrivateKey('bellecour', privateKey),
+      ethProvider: utils.getSignerFromPrivateKey(rpcHostUrl, privateKey),
     },
     {
-      smsURL: 'https://sms.scone-debug.v8-bellecour.iex.ec',
+      smsURL: smsDebugUrl,
     }
   );
 }

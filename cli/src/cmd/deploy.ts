@@ -7,6 +7,7 @@ import { sconify } from '../utils/sconify.js';
 import { askForDockerhubUsername } from '../cli-helpers/askForDockerhubUsername.js';
 import { askForWalletAddress } from '../cli-helpers/askForWalletAddress.js';
 import {
+  getChainConfig,
   projectNameToImageName,
   readIAppConfig,
 } from '../utils/iAppConfigFile.js';
@@ -22,11 +23,14 @@ import * as color from '../cli-helpers/color.js';
 import { hintBox } from '../cli-helpers/box.js';
 import { addDeploymentData } from '../utils/cacheExecutions.js';
 
-export async function deploy() {
+export async function deploy({ chain }: { chain?: string }) {
   const spinner = getSpinner();
   try {
     await goToProjectRoot({ spinner });
-    const { projectName, template } = await readIAppConfig();
+    const { projectName, template, defaultChain } = await readIAppConfig();
+    const chainName = chain || defaultChain;
+    const chainConfig = getChainConfig(chainName);
+    spinner.info(`Using chain ${chainName}`);
 
     const dockerhubUsername = await askForDockerhubUsername({ spinner });
     const dockerhubAccessToken = await askForDockerhubAccessToken({ spinner });
@@ -57,7 +61,7 @@ export async function deploy() {
     if (address.toLowerCase() !== walletAddress.toLowerCase()) {
       throw Error('Provided address and private key mismatch');
     }
-    const iexec = getIExecDebug(privateKey);
+    const iexec = getIExecDebug({ ...chainConfig, privateKey });
 
     // just start the spinner, no need to persist success in terminal
     spinner.start('Checking docker daemon is running...');
@@ -120,6 +124,7 @@ export async function deploy() {
       sconifiedImage: dockerImage,
       appContractAddress: deployment.address,
       owner: walletAddress,
+      chainName,
     });
     if (appSecret !== null && iexec) {
       spinner.start('Attaching app secret to the deployed app');

@@ -8,6 +8,7 @@ import { run } from './cmd/run.js';
 import { test } from './cmd/test.js';
 import { mockProtectedData } from './cmd/mock-protected-data.js';
 import { debug } from './cmd/debug.js';
+import { SUPPORTED_CHAINS } from './config/config.js';
 
 const coerceRequesterSecret = (
   values: string[]
@@ -83,7 +84,15 @@ yargsInstance
   .command({
     command: 'deploy',
     describe: 'Transform you app into a TEE app and deploy it on iExec',
-    handler: deploy,
+    builder: (y) => {
+      return y.option('chain', {
+        describe:
+          'Specify the blockchain on which the iApp will be deployed (overrides defaultChain configuration)',
+        type: 'string',
+        choices: SUPPORTED_CHAINS,
+      });
+    },
+    handler: (y) => deploy(y),
   })
 
   // Run a published docker image
@@ -119,6 +128,12 @@ yargsInstance
           requiresArg: true, // must be invoked with a value
           array: true,
           coerce: coerceRequesterSecret,
+        })
+        .option('chain', {
+          describe:
+            'Specify the blockchain on which the iApp is deployed (overrides defaultChain configuration)',
+          type: 'string',
+          choices: SUPPORTED_CHAINS,
         });
     },
     handler: (y) => run(y),
@@ -129,11 +144,18 @@ yargsInstance
     describe:
       'Retrieve detailed execution logs from worker nodes for a specific task',
     builder: (y) => {
-      return y.positional('taskId', {
-        describe: 'Unique identifier of the task to debug',
-        type: 'string',
-        demandOption: true,
-      });
+      return y
+        .positional('taskId', {
+          describe: 'Unique identifier of the task to debug',
+          type: 'string',
+          demandOption: true,
+        })
+        .option('chain', {
+          describe:
+            'Specify the blockchain on which the task is registered (overrides defaultChain configuration)',
+          type: 'string',
+          choices: SUPPORTED_CHAINS,
+        });
     },
     handler: (y) => debug(y),
   })
