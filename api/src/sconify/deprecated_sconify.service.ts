@@ -17,7 +17,7 @@ import { logger } from '../utils/logger.js';
 import { parseImagePath } from '../utils/parseImagePath.js';
 import { isWsEnabled, sendWsMessage } from '../utils/websocket.js';
 
-export async function sconify({
+export async function deprecated_sconify({
   dockerImageToSconify,
   userWalletPublicAddress,
   pushToken,

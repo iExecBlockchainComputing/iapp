@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { createMessageBuilder, fromError } from 'zod-validation-error';
 import { TEMPLATE_CONFIG, type TemplateName } from '../constants/constants.js';
 import { ethereumAddressZodSchema } from '../utils/ethereumAddressZodSchema.js';
-import { sconify } from './sconify.service.js';
+import { deprecated_sconify } from './deprecated_sconify.service.js';
 import type { Request, Response } from 'express';
 
 const bodySchema = z.object({
@@ -48,7 +48,7 @@ async function handleSconifyRequest(requestObj: object) {
       }),
     });
   }
-  const { sconifiedImage, appContractAddress } = await sconify({
+  const { sconifiedImage, appContractAddress } = await deprecated_sconify({
     dockerImageToSconify: dockerhubImageToSconify,
     pushToken: dockerhubPushToken,
     userWalletPublicAddress: yourWalletPublicAddress,
@@ -57,13 +57,16 @@ async function handleSconifyRequest(requestObj: object) {
   return { sconifiedImage, appContractAddress };
 }
 
-export async function sconifyWsHandler(message: object) {
+export async function deprecated_sconifyWsHandler(message: object) {
   const { sconifiedImage, appContractAddress } =
     await handleSconifyRequest(message);
   return { sconifiedImage, appContractAddress };
 }
 
-export async function sconifyHttpHandler(req: Request, res: Response) {
+export async function deprecated_sconifyHttpHandler(
+  req: Request,
+  res: Response
+) {
   const { sconifiedImage, appContractAddress } = await handleSconifyRequest(
     req.body || {}
   );
