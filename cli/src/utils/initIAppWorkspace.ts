@@ -7,24 +7,17 @@ import {
   TEST_OUTPUT_DIR,
   CACHE_DIR,
   PROTECTED_DATA_MOCK_DIR,
-  TEMPLATE_LANGUAGES,
+  TEMPLATES,
+  TemplateName,
 } from '../config/config.js';
 import { debug } from './debug.js';
 import { copy } from './fs.utils.js';
 
 // list all files to adapt depending on used features on a given template, first file is the entrypoint
-export const TEMPLATE_SRC_FILES = {
-  [TEMPLATE_LANGUAGES.JS]: ['src/app.js', 'package.json'],
-  [TEMPLATE_LANGUAGES.PYTHON]: [
-    'src/app.py',
-    'src/protected_data.py',
-    'requirements.txt',
-  ],
-};
 
 export async function initIAppWorkspace({
   projectName,
-  language = TEMPLATE_LANGUAGES.JS,
+  template = 'JavaScript',
   useArgs = false,
   useProtectedData = false,
   useInputFile = false,
@@ -32,7 +25,7 @@ export async function initIAppWorkspace({
   useAppSecret = false,
 }: {
   projectName: string;
-  language?: string;
+  template: TemplateName;
   useArgs?: boolean;
   useProtectedData?: boolean;
   useInputFile?: boolean;
@@ -42,8 +35,8 @@ export async function initIAppWorkspace({
   try {
     // Copy template
     await copyChosenTemplateFiles({
-      template: language,
-      srcFiles: TEMPLATE_SRC_FILES[language],
+      template,
+      srcFiles: TEMPLATES[template]?.sourceFiles,
       useArgs,
       useProtectedData,
       useInputFile,
@@ -53,7 +46,7 @@ export async function initIAppWorkspace({
     // Create other files
     await createConfigurationFiles({
       projectName,
-      template: language,
+      template,
       appSecret: useAppSecret ? undefined : null, // save `appSecret: null` to disable prompt when `useAppSecret: false`
     });
     await createProjectDirectories();
