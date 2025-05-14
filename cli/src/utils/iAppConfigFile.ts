@@ -5,8 +5,9 @@ import {
   CHAINS_CONFIGURATIONS,
   CONFIG_FILE,
   DEFAULT_CHAIN,
+  LEGACY_TEMPLATE_NAMES,
   SUPPORTED_CHAINS,
-  TEMPLATE_LANGUAGES,
+  TEMPLATES,
 } from '../config/config.js';
 
 type IAppConfig = {
@@ -46,12 +47,12 @@ const jsonConfigFileSchema = z.object({
   projectName: projectNameSchema,
   template: z
     .enum(
-      Object.values(TEMPLATE_LANGUAGES).map((value) => value) as [
+      Object.keys(TEMPLATES).concat(LEGACY_TEMPLATE_NAMES) as [
         string,
         ...[string],
       ]
     )
-    .default(TEMPLATE_LANGUAGES.JS),
+    .default('JavaScript'),
   dockerhubUsername: z.string().optional(),
   dockerhubAccessToken: z.string().optional(),
   walletAddress: z.string().optional(),

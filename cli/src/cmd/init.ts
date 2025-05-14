@@ -3,17 +3,14 @@ import figlet from 'figlet';
 import { mkdir } from 'node:fs/promises';
 import { fromError } from 'zod-validation-error';
 import { folderExists } from '../utils/fs.utils.js';
-import {
-  initIAppWorkspace,
-  TEMPLATE_SRC_FILES,
-} from '../utils/initIAppWorkspace.js';
+import { initIAppWorkspace } from '../utils/initIAppWorkspace.js';
 import { getSpinner } from '../cli-helpers/spinner.js';
 import { handleCliError } from '../cli-helpers/handleCliError.js';
 import { generateWallet } from '../utils/generateWallet.js';
 import * as color from '../cli-helpers/color.js';
 import { hintBox } from '../cli-helpers/box.js';
 import { projectNameSchema } from '../utils/iAppConfigFile.js';
-import { TEMPLATE_LANGUAGES } from '../config/config.js';
+import { TEMPLATES, type TemplateName } from '../config/config.js';
 
 const targetDir = 'hello-world';
 
@@ -57,22 +54,16 @@ export async function init() {
     const INIT_BASIC = 'basic';
     const INIT_ADVANCED = 'advanced';
 
-    const { language, initType } = await spinner.prompt([
+    const { template, initType } = await spinner.prompt([
       {
         type: 'select',
-        name: 'language',
+        name: 'template',
         message: 'Which language do you want to use?',
-        choices: [
-          {
-            title: TEMPLATE_LANGUAGES.JS,
-            value: TEMPLATE_LANGUAGES.JS,
-            selected: true,
-          },
-          {
-            title: TEMPLATE_LANGUAGES.PYTHON,
-            value: TEMPLATE_LANGUAGES.PYTHON,
-          },
-        ],
+        choices: Object.entries(TEMPLATES).map(([key, val]) => ({
+          title: val.title,
+          value: key,
+          selected: val?.default,
+        })),
       },
       {
         type: 'select',
@@ -93,6 +84,7 @@ export async function init() {
         ],
       },
     ]);
+    const templateTitle = TEMPLATES[template as TemplateName].title;
 
     const {
       useArgs = true,
@@ -148,17 +140,17 @@ export async function init() {
 
     // Copying simple project files from templates/
 
-    spinner.start(`Creating ${language} app...`);
+    spinner.start(`Creating ${templateTitle} app...`);
     await initIAppWorkspace({
       projectName,
-      language,
+      template,
       useArgs,
       useProtectedData,
       useInputFile,
       useRequesterSecret,
       useAppSecret,
     });
-    spinner.succeed(`${language} app setup complete.`);
+    spinner.succeed(`${templateTitle} app setup complete.`);
 
     spinner.start('Generating wallet...');
     const walletAddress = await generateWallet();
@@ -170,7 +162,7 @@ export async function init() {
     Navigate to your project folder:
     ${color.command(`$ cd ${projectName.split(' ').length > 1 ? `"${projectName}"` : `${projectName}`}`)}
   
-    ${color.emphasis('Make your changes in the')} ${color.file(TEMPLATE_SRC_FILES[language][0])} ${color.emphasis('file')}.
+    ${color.emphasis('Make your changes in the')} ${color.file(TEMPLATES[template as TemplateName]?.mainFile)} ${color.emphasis('file')}.
   
     -1- Test your iApp locally:
     ${color.command('$ iapp test')}${
