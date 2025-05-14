@@ -1,0 +1,5 @@
+# requirements must be compatible with python 3.13.3
+pyfiglet==1.0.2
+# <<protectedData>>
+borsh-construct==0.1.0
+# <</protectedData>>
