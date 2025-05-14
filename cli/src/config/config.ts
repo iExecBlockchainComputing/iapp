@@ -19,12 +19,12 @@ export const IEXEC_RESULT_UPLOAD_MAX_SIZE = 50 * 1024 * 1024; // Maximum allowed
 
 export const TASK_OBSERVATION_TIMEOUT = 180000; // 3 minutes
 
-export type TemplateName = 'JavaScript' | 'Python';
+export type TemplateName = 'JavaScript' | 'Python3.13';
 
 /**
  * legacy templates name still supported by the API but dropped in the CLI
  */
-export const LEGACY_TEMPLATE_NAMES = [];
+export const LEGACY_TEMPLATE_NAMES = ['Python'];
 
 export const TEMPLATES: Record<
   TemplateName,
@@ -53,7 +53,7 @@ export const TEMPLATES: Record<
     sourceFiles: ['src/app.js', 'package.json'],
     mainFile: 'src/app.js',
   },
-  Python: {
+  'Python3.13': {
     title: 'Python',
     sourceFiles: ['src/app.py', 'src/protected_data.py', 'requirements.txt'],
     mainFile: 'src/app.py',
