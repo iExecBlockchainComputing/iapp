@@ -1,7 +1,8 @@
 import {
-  SCONIFY_IMAGE_VERSION,
+  SCONIFY_IMAGE_VERSIONS,
   TEMPLATE_CONFIG,
   type TemplateName,
+  type SconeVersion,
 } from '../constants/constants.js';
 import { checkPushToken } from '../singleFunction/checkPushToken.js';
 import { getSconifiedImageFingerprint } from '../singleFunction/getSconifiedImageFingerprint.js';
@@ -20,6 +21,7 @@ export async function sconify({
   dockerImageToSconify,
   userWalletPublicAddress,
   pushToken,
+  sconeVersion,
   templateLanguage,
 }: {
   /**
@@ -36,18 +38,24 @@ export async function sconify({
    */
   pushToken: string;
   templateLanguage: TemplateName;
+  sconeVersion: SconeVersion;
 }): Promise<{
   dockerImage: string;
   dockerImageDigest: string;
   fingerprint: string;
   entrypoint: string;
+  sconeVersion: SconeVersion;
 }> {
+  const sconifyVersion = SCONIFY_IMAGE_VERSIONS[sconeVersion];
+
   let currentPushToken = pushToken;
   const wsEnabled = isWsEnabled();
 
   logger.info(
     {
       dockerImageToSconify,
+      sconeVersion,
+      templateLanguage,
       userWalletPublicAddress,
       wsEnabled,
     },
@@ -120,15 +128,18 @@ export async function sconify({
     }
     logger.info({ appEntrypoint }, 'Entrypoint read from image.');
 
-    // Pull the SCONE image
-    logger.info('---------- 4 ---------- Pulling Scone image');
-    if (configTemplate.sconeImage) {
-      await pullSconeImage(configTemplate.sconeImage);
+    // TODO we may want to ensure the dockerImageToSconify uses a supported version of glibc (GLIBC 2.31 for ubuntu:20.04) or musl (musl libc 1.2.5 for alpine:3.21)
+
+    logger.info('---------- 4 ---------- Ensure Scone curated image');
+    // curated images are not needed with scone v5.9
+    if (sconeVersion === 'v5' && configTemplate.sconeCuratedImage) {
+      await pullSconeImage(configTemplate.sconeCuratedImage);
     }
 
     logger.info('---------- 5 ---------- Start sconification...');
     sconifiedImageId = await sconifyImage({
       fromImage: dockerImageToSconify,
+      sconifyVersion,
       entrypoint: appEntrypoint,
       binary: configTemplate.binary,
     });
@@ -157,7 +168,7 @@ export async function sconify({
 
   const imageRepo = `${dockerUserName}/${imageName}`;
   const sconifiedImageShortId = sconifiedImageId.substring(7, 7 + 12); // extract 12 first chars after the leading "sha256:"
-  const sconifiedImageTag = `${imageTag}-tee-scone-${SCONIFY_IMAGE_VERSION}-debug-${sconifiedImageShortId}`; // add digest in tag to avoid replacing previous build
+  const sconifiedImageTag = `${imageTag}-tee-scone-${sconifyVersion}-debug-${sconifiedImageShortId}`; // add digest in tag to avoid replacing previous build
   const sconifiedImage = `${imageRepo}:${sconifiedImageTag}`;
 
   let pushed;
@@ -221,21 +232,12 @@ export async function sconify({
       });
   }
   const pushedImageDigest = pushed.Digest.split(':')[1]; // remove leading 'sha256:
-  // logger.info('---------- 8 ---------- Deploying app contract...');
-  // const { appContractAddress } = await deployAppContractToBellecour({
-  //   userWalletPublicAddress,
-  //   appName: `${imageName}-${imageTag}`,
-  //   dockerImage: sconifiedImage,
-  //   dockerImageDigest: pushedImageDigest,
-  //   fingerprint,
-  //   entrypoint: appEntrypoint,
-  // });
-  // logger.info('Deployed successfully to bellecour');
 
   return {
     dockerImage: sconifiedImage,
     dockerImageDigest: pushedImageDigest,
     fingerprint,
     entrypoint: appEntrypoint,
+    sconeVersion,
   };
 }

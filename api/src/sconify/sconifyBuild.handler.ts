@@ -1,6 +1,10 @@
 import { z } from 'zod';
 import { createMessageBuilder, fromError } from 'zod-validation-error';
-import { TEMPLATE_CONFIG, type TemplateName } from '../constants/constants.js';
+import {
+  SconeVersion,
+  TEMPLATE_CONFIG,
+  type TemplateName,
+} from '../constants/constants.js';
 import { ethereumAddressZodSchema } from '../utils/ethereumAddressZodSchema.js';
 import { sconify } from './sconifyBuild.service.js';
 import type { Request, Response } from 'express';
@@ -27,18 +31,21 @@ const bodySchema = z.object({
       ]
     )
     .default(TEMPLATE_CONFIG.JavaScript.template),
+  sconeVersion: z.enum(['v5', 'v5.9']).default('v5'),
 });
 
 async function handleSconifyRequest(requestObj: object) {
-  let yourWalletPublicAddress;
-  let dockerhubImageToSconify;
-  let dockerhubPushToken;
+  let yourWalletPublicAddress: string;
+  let dockerhubImageToSconify: string;
+  let dockerhubPushToken: string;
+  let sconeVersion: SconeVersion;
   let template: TemplateName;
   try {
     ({
       yourWalletPublicAddress,
       dockerhubImageToSconify,
       dockerhubPushToken,
+      sconeVersion,
       template,
     } = bodySchema.parse(requestObj));
   } catch (error) {
@@ -53,25 +60,49 @@ async function handleSconifyRequest(requestObj: object) {
       dockerImageToSconify: dockerhubImageToSconify,
       pushToken: dockerhubPushToken,
       userWalletPublicAddress: yourWalletPublicAddress,
+      sconeVersion,
       templateLanguage: template,
     });
-  return { dockerImage, dockerImageDigest, fingerprint, entrypoint };
+  return {
+    dockerImage,
+    dockerImageDigest,
+    fingerprint,
+    entrypoint,
+    sconeVersion,
+  };
 }
 
 export async function sconifyBuildWsHandler(message: object) {
-  const { dockerImage, dockerImageDigest, fingerprint, entrypoint } =
-    await handleSconifyRequest(message);
-  return { dockerImage, dockerImageDigest, fingerprint, entrypoint };
+  const {
+    dockerImage,
+    dockerImageDigest,
+    fingerprint,
+    entrypoint,
+    sconeVersion,
+  } = await handleSconifyRequest(message);
+  return {
+    dockerImage,
+    dockerImageDigest,
+    fingerprint,
+    entrypoint,
+    sconeVersion,
+  };
 }
 
 export async function sconifyBuildHttpHandler(req: Request, res: Response) {
-  const { dockerImage, dockerImageDigest, fingerprint, entrypoint } =
-    await handleSconifyRequest(req.body || {});
+  const {
+    dockerImage,
+    dockerImageDigest,
+    fingerprint,
+    entrypoint,
+    sconeVersion,
+  } = await handleSconifyRequest(req.body || {});
   res.status(200).json({
     success: true,
     dockerImage,
     dockerImageDigest,
     fingerprint,
     entrypoint,
+    sconeVersion,
   });
 }
