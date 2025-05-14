@@ -1,4 +1,8 @@
-import { SCONIFY_API_HTTP_URL, SCONIFY_API_WS_URL } from '../config/config.js';
+import {
+  DEFAULT_SCONE_VERSION,
+  SCONIFY_API_HTTP_URL,
+  SCONIFY_API_WS_URL,
+} from '../config/config.js';
 import { getAuthToken } from './dockerhub.js';
 import { sleep } from './sleep.js';
 import {
@@ -29,11 +33,13 @@ export async function sconify({
 }): Promise<{
   dockerImage: string;
   dockerImageDigest: string;
+  sconeVersion: string;
   fingerprint: string;
   entrypoint: string;
 }> {
   let dockerImage;
   let dockerImageDigest;
+  let sconeVersion;
   let entrypoint;
   let fingerprint;
   try {
@@ -52,8 +58,9 @@ export async function sconify({
     let sconifyResult: {
       dockerImage?: string;
       dockerImageDigest?: string;
-      fingerprint?: string;
       entrypoint?: string;
+      fingerprint?: string;
+      sconeVersion?: string;
     };
 
     if (process.env.EXPERIMENTAL_WS_API) {
@@ -125,6 +132,7 @@ export async function sconify({
                 dockerhubImageToSconify: iAppNameToSconify,
                 dockerhubPushToken: pushToken,
                 yourWalletPublicAddress: walletAddress,
+                sconeVersion: DEFAULT_SCONE_VERSION,
               })
             );
           },
@@ -144,6 +152,7 @@ export async function sconify({
           dockerhubImageToSconify: iAppNameToSconify,
           dockerhubPushToken: pushToken, // used for pushing sconified image on user repo
           yourWalletPublicAddress: walletAddress,
+          sconeVersion: DEFAULT_SCONE_VERSION,
         }),
       })
         .catch(() => {
@@ -181,14 +190,19 @@ export async function sconify({
     if (!sconifyResult.dockerImageDigest) {
       throw Error('Unexpected server response: missing dockerImageDigest');
     }
+    if (!sconifyResult.sconeVersion) {
+      throw Error('Unexpected server response: missing sconeVersion');
+    }
     if (!sconifyResult.entrypoint) {
       throw Error('Unexpected server response: missing entrypoint');
     }
     if (!sconifyResult.fingerprint) {
       throw Error('Unexpected server response: missing fingerprint');
     }
+
     dockerImage = sconifyResult.dockerImage;
     dockerImageDigest = sconifyResult.dockerImageDigest;
+    sconeVersion = sconifyResult.sconeVersion;
     entrypoint = sconifyResult.entrypoint;
     fingerprint = sconifyResult.fingerprint;
   } catch (err) {
@@ -217,6 +231,7 @@ export async function sconify({
   return {
     dockerImage,
     dockerImageDigest,
+    sconeVersion,
     entrypoint,
     fingerprint,
   };

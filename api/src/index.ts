@@ -2,9 +2,9 @@ import { readFile } from 'node:fs/promises';
 import express from 'express';
 import { pino } from 'pino';
 import {
-  sconifyHttpHandler,
-  sconifyWsHandler,
-} from './sconify/sconify.handler.js';
+  deprecated_sconifyHttpHandler,
+  deprecated_sconifyWsHandler,
+} from './sconify/deprecated_sconify.handler.js';
 import { loggerMiddleware } from './utils/logger.js';
 import { requestIdMiddleware } from './utils/requestId.js';
 import { errorHandlerMiddleware } from './utils/errors.js';
@@ -31,7 +31,9 @@ app.use(express.json());
 app.use(requestIdMiddleware);
 app.use(loggerMiddleware);
 
-app.post('/sconify', sconifyHttpHandler);
+// deprecated endpoint, clients should use /sconify/build
+app.post('/sconify', deprecated_sconifyHttpHandler);
+
 app.post('/sconify/build', sconifyBuildHttpHandler);
 
 // Health endpoint
@@ -56,8 +58,9 @@ const server = app.listen(port, hostname, () => {
 attachWebSocketServer({
   server,
   requestRouter: (requestTarget) => {
+    // deprecated requestTarget, clients should use SCONIFY_BUILD
     if (requestTarget === 'SCONIFY') {
-      return sconifyWsHandler;
+      return deprecated_sconifyWsHandler;
     }
     if (requestTarget === 'SCONIFY_BUILD') {
       return sconifyBuildWsHandler;

@@ -1,5 +1,5 @@
 import Docker from 'dockerode';
-import { SCONIFY_IMAGE } from '../constants/constants.js';
+import { SCONIFY_IMAGE_NAME } from '../constants/constants.js';
 import { logger } from '../utils/logger.js';
 import { inspectImage } from './inspectImage.js';
 import { pruneBuilderCache } from './pruneBuilderCache.js';
@@ -13,6 +13,7 @@ const docker = new Docker();
  */
 export async function sconifyImage({
   fromImage,
+  sconifyVersion,
   entrypoint,
   binary,
 }: {
@@ -20,6 +21,10 @@ export async function sconifyImage({
    * image to sconify
    */
   fromImage: string;
+  /**
+   * sconifier version
+   */
+  sconifyVersion: string;
   /**
    * command to run the app (whitelisted)
    */
@@ -30,14 +35,15 @@ export async function sconifyImage({
   binary: string;
 }): Promise<string> {
   logger.info({ fromImage, entrypoint }, 'Running sconify command...');
+  const sconifierImage = `${SCONIFY_IMAGE_NAME}:${sconifyVersion}`;
 
-  logger.info({ sconeImage: SCONIFY_IMAGE }, 'Pulling scone image...');
-  await pullSconeImage(SCONIFY_IMAGE);
+  logger.info({ sconifierImage }, 'Pulling sconifier image...');
+  await pullSconeImage(sconifierImage);
 
   const toImage = `${fromImage}-tmp-sconified-${Date.now()}`; // create an unique temporary identifier for the target image
   logger.info({ fromImage, toImage }, 'Sconifying...');
   const sconifyContainer = await docker.createContainer({
-    Image: SCONIFY_IMAGE,
+    Image: sconifierImage,
     Cmd: [
       'sconify_iexec',
       `--from=${fromImage}`,
