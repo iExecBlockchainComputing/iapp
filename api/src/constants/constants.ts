@@ -26,19 +26,16 @@ export type TemplateName = 'JavaScript' | 'Python';
 export const TEMPLATE_CONFIG: Record<
   TemplateName,
   {
-    template: TemplateName;
     binary: string;
     sconeCuratedImage?: string;
   }
 > = {
   JavaScript: {
-    template: 'JavaScript',
     binary: '/usr/local/bin/node',
     sconeCuratedImage:
       'registry.scontain.com:5050/sconecuratedimages/node:14.4.0-alpine3.11',
   },
   Python: {
-    template: 'Python',
     binary: '/usr/local/bin/python3.8',
   },
 };
