@@ -22,7 +22,8 @@ import { goToProjectRoot } from '../cli-helpers/goToProjectRoot.js';
 import * as color from '../cli-helpers/color.js';
 import { hintBox } from '../cli-helpers/box.js';
 import { addDeploymentData } from '../utils/cacheExecutions.js';
-import { deployTdxApp, getIExecTdx, useTdx } from '../utils/tdx-poc.js';
+import { deployTdxApp, getIExecTdx } from '../utils/tdx-poc.js';
+import { useTdx } from '../utils/featureFlags.js';
 
 export async function deploy({ chain }: { chain?: string }) {
   const spinner = getSpinner();
