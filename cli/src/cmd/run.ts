@@ -17,7 +17,8 @@ import { goToProjectRoot } from '../cli-helpers/goToProjectRoot.js';
 import * as color from '../cli-helpers/color.js';
 import { IExec } from 'iexec';
 import { getChainConfig, readIAppConfig } from '../utils/iAppConfigFile.js';
-import { getIExecTdx, useTdx, WORKERPOOL_TDX } from '../utils/tdx-poc.js';
+import { getIExecTdx, WORKERPOOL_TDX } from '../utils/tdx-poc.js';
+import { useTdx } from '../utils/featureFlags.js';
 
 export async function run({
   iAppAddress,

@@ -4,9 +4,6 @@ import Docker from 'dockerode';
 import { IExec, utils } from 'iexec';
 import { pushDockerImage } from '../execDocker/docker.js';
 
-// TDX feature flag, set env EXPERIMENTAL_TDX_APP=1 to enable
-export const useTdx = !!process.env.EXPERIMENTAL_TDX_APP;
-
 // TODO move this constant
 export const WORKERPOOL_TDX = 'tdx-labs.pools.iexec.eth';
 
