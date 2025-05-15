@@ -7,6 +7,7 @@ import {
   serializeData,
 } from './websocket.js';
 import { debug } from './debug.js';
+import { useWsApi } from './featureFlags.js';
 
 const INITIAL_RETRY_PERIOD = 20 * 1000; // 20s
 
@@ -56,7 +57,7 @@ export async function sconify({
       entrypoint?: string;
     };
 
-    if (process.env.EXPERIMENTAL_WS_API) {
+    if (useWsApi) {
       // experimental ws connection
       sconifyResult = await new Promise((resolve, reject) => {
         createReconnectingWs(SCONIFY_API_WS_URL, {
