@@ -3,9 +3,19 @@ export const SCONE_NODE_IMAGE =
   'registry.scontain.com:5050/sconecuratedimages/node:14.4.0-alpine3.11';
 
 // https://gitlab.scontain.com/scone-production/iexec-sconify-image/container_registry/99?after=NTA
-export const SCONIFY_IMAGE_VERSION = '5.7.6-v15';
+export const SCONIFY_IMAGE_NAME = `registry.scontain.com/scone-production/iexec-sconify-image`;
 
-export const SCONIFY_IMAGE = `registry.scontain.com/scone-production/iexec-sconify-image:${SCONIFY_IMAGE_VERSION}`;
+/**
+ * Scone version as defined in apps contracts (mrenclave.version)
+ *
+ * NB: "v5" is the legacy scone version v5.7 (name constrained by version parsing in workerpool)
+ */
+export type SconeVersion = 'v5' | 'v5.9';
+
+export const SCONIFY_IMAGE_VERSIONS: Record<SconeVersion, string> = {
+  v5: '5.7.6-v15',
+  'v5.9': '5.9.0-v15',
+};
 
 // This SCONIFY_IMAGE depends on Linux alpine:3.15
 // It will be pulled if it's not yet in the local docker
@@ -16,21 +26,17 @@ export type TemplateName = 'JavaScript' | 'Python';
 export const TEMPLATE_CONFIG: Record<
   TemplateName,
   {
-    template: TemplateName;
     binary: string;
-    sconeImage: string;
+    sconeCuratedImage?: string;
   }
 > = {
   JavaScript: {
-    template: 'JavaScript',
     binary: '/usr/local/bin/node',
-    sconeImage:
+    sconeCuratedImage:
       'registry.scontain.com:5050/sconecuratedimages/node:14.4.0-alpine3.11',
   },
   Python: {
-    template: 'Python',
     binary: '/usr/local/bin/python3.8',
-    sconeImage: '',
   },
 };
 

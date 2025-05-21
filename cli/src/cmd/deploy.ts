@@ -92,14 +92,19 @@ export async function deploy({ chain }: { chain?: string }) {
     spinner.start(
       'Transforming your image into a TEE image, this may take a few minutes...'
     );
-    const { dockerImage, dockerImageDigest, fingerprint, entrypoint } =
-      await sconify({
-        iAppNameToSconify: imageTag,
-        template,
-        walletAddress,
-        dockerhubAccessToken,
-        dockerhubUsername,
-      });
+    const {
+      dockerImage,
+      dockerImageDigest,
+      sconeVersion,
+      fingerprint,
+      entrypoint,
+    } = await sconify({
+      iAppNameToSconify: imageTag,
+      template,
+      walletAddress,
+      dockerhubAccessToken,
+      dockerhubUsername,
+    });
     spinner.succeed(`Pushed TEE image ${dockerImage} on dockerhub`);
 
     spinner.start('Deploying your TEE image on iExec...');
@@ -113,7 +118,7 @@ export async function deploy({ chain }: { chain?: string }) {
       // Some code sample here: https://github.com/iExecBlockchainComputing/dataprotector-sdk/blob/v2/packages/protected-data-delivery-dapp/deployment/src/singleFunction/deployApp.ts
       mrenclave: {
         framework: 'SCONE',
-        version: 'v5',
+        version: sconeVersion,
         entrypoint: entrypoint,
         heapSize: 1073741824,
         fingerprint,
