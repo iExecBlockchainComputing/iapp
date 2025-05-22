@@ -25,6 +25,8 @@ import { copy, fileExists } from '../utils/fs.utils.js';
 import { goToProjectRoot } from '../cli-helpers/goToProjectRoot.js';
 import * as color from '../cli-helpers/color.js';
 import { hintBox } from '../cli-helpers/box.js';
+import { useTdx } from '../utils/featureFlags.js';
+import { IEXEC_TDX_WORKER_HEAP_SIZE } from '../utils/tdx-poc.js';
 
 export async function test({
   args,
@@ -167,6 +169,9 @@ export async function testApp({
     spinner.warn('Task is taking longer than expected...');
     spinner.start(spinnerText); // restart spinning
   }, TASK_OBSERVATION_TIMEOUT);
+  const memoryLimit = useTdx
+    ? IEXEC_TDX_WORKER_HEAP_SIZE
+    : IEXEC_WORKER_HEAP_SIZE;
   const appLogs: string[] = [];
   const { exitCode, outOfMemory } = await runDockerContainer({
     image: imageId,
@@ -203,7 +208,7 @@ export async function testApp({
         ? [`IEXEC_APP_DEVELOPER_SECRET=${appSecret}`]
         : []),
     ],
-    memory: IEXEC_WORKER_HEAP_SIZE,
+    memory: memoryLimit,
     logsCallback: (msg) => {
       appLogs.push(msg); // collect logs for future use
       spinner.text = spinner.text + color.comment(msg); // and display realtime while app is running
@@ -214,7 +219,7 @@ export async function testApp({
   if (outOfMemory) {
     spinner.fail(
       `App docker image container ran out of memory.
-  iExec worker's ${Math.floor(IEXEC_WORKER_HEAP_SIZE / (1024 * 1024))}MiB memory limit exceeded.
+  iExec worker's ${Math.floor(memoryLimit / (1024 * 1024))}MiB memory limit exceeded.
   You must refactor your app to run within the memory limit.`
     );
   } else if (exitCode === 0) {
