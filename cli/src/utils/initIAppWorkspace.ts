@@ -13,8 +13,6 @@ import {
 import { debug } from './debug.js';
 import { copy } from './fs.utils.js';
 
-// list all files to adapt depending on used features on a given template, first file is the entrypoint
-
 export async function initIAppWorkspace({
   projectName,
   template = 'JavaScript',
