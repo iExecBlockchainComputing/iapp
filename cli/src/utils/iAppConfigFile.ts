@@ -101,5 +101,5 @@ export function getChainConfig(name: string) {
   if (!conf) {
     throw Error(`Unsupported chain ${name}`);
   }
-  return conf;
+  return { name, ...conf };
 }
