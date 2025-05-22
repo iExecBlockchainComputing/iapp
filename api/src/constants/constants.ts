@@ -21,7 +21,7 @@ export const SCONIFY_IMAGE_VERSIONS: Record<SconeVersion, string> = {
 // It will be pulled if it's not yet in the local docker
 // https://hub.docker.com/layers/library/alpine/3.15/images/sha256-6a0657acfef760bd9e293361c9b558e98e7d740ed0dffca823d17098a4ffddf5?context=explore
 
-export type TemplateName = 'JavaScript' | 'Python';
+export type TemplateName = 'JavaScript' | 'Python' | 'Python3.13';
 
 export const TEMPLATE_CONFIG: Record<
   TemplateName,
@@ -31,10 +31,16 @@ export const TEMPLATE_CONFIG: Record<
   }
 > = {
   JavaScript: {
+    // node binary name does not change from one version to another
     binary: '/usr/local/bin/node',
+    // for scone 5.7 this was necessary
     sconeCuratedImage:
       'registry.scontain.com:5050/sconecuratedimages/node:14.4.0-alpine3.11',
   },
+  'Python3.13': {
+    binary: '/usr/local/bin/python3.13',
+  },
+  // legacy template name Python used Python 3.8
   Python: {
     binary: '/usr/local/bin/python3.8',
   },

@@ -19,9 +19,45 @@ export const IEXEC_RESULT_UPLOAD_MAX_SIZE = 50 * 1024 * 1024; // Maximum allowed
 
 export const TASK_OBSERVATION_TIMEOUT = 180000; // 3 minutes
 
-export const TEMPLATE_LANGUAGES = {
-  JS: 'JavaScript',
-  PYTHON: 'Python',
+export type TemplateName = 'JavaScript' | 'Python3.13';
+
+/**
+ * legacy templates name still supported by the API but dropped in the CLI
+ */
+export const LEGACY_TEMPLATE_NAMES = ['Python'];
+
+export const TEMPLATES: Record<
+  TemplateName,
+  {
+    /**
+     * template title (as displayed in the CLI)
+     */
+    title: string;
+    /**
+     * list all files to adapt depending on used features on a given template
+     */
+    sourceFiles: string[];
+    /**
+     * main file where builder should start hacking
+     */
+    mainFile: string;
+    /**
+     * template proposed by default
+     */
+    default?: boolean;
+  }
+> = {
+  JavaScript: {
+    title: 'JavaScript',
+    default: true,
+    sourceFiles: ['src/app.js', 'package.json'],
+    mainFile: 'src/app.js',
+  },
+  'Python3.13': {
+    title: 'Python',
+    sourceFiles: ['src/app.py', 'src/protected_data.py', 'requirements.txt'],
+    mainFile: 'src/app.py',
+  },
 };
 
 const WS_SERVER_SESSION_TIMEOUT = 60_000; // session retention after websocket close proposed by the API
