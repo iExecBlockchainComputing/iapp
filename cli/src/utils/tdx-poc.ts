@@ -7,6 +7,9 @@ import { pushDockerImage } from '../execDocker/docker.js';
 // TODO move this constant
 export const WORKERPOOL_TDX = 'tdx-labs.pools.iexec.eth';
 
+// TODO move this constant
+export const IEXEC_TDX_WORKER_HEAP_SIZE = 6 * 1024 * 1024 * 1024; // iExec TDX worker memory limit (6 GiB)
+
 // TODO move this logic
 export function getIExecTdx({
   privateKey,
