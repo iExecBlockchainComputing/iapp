@@ -9,6 +9,9 @@ import { test } from './cmd/test.js';
 import { mockProtectedData } from './cmd/mock-protected-data.js';
 import { debug } from './cmd/debug.js';
 import { SUPPORTED_CHAINS } from './config/config.js';
+import { checkPackageUpdate } from './cli-helpers/checkPackageUpdate.js';
+
+await checkPackageUpdate();
 
 const coerceRequesterSecret = (
   values: string[]
