@@ -94,14 +94,14 @@ export const deployTdxApp = async ({
   });
   const { address } = await iexec.app.deployApp({
     owner: await iexec.wallet.getAddress(),
-    name: `TDX POC ${imageName}-${imageTag}`,
+    name: `EXPERIMENTAL TDX ${imageName}-${imageTag}`,
     type: 'DOCKER',
     multiaddr: taggedImage,
     checksum: `0x${inspectResult.RepoDigests[0].split('@sha256:')[1]}`,
     mrenclave: {
-      // TODO TDX does not exists for now in iexec SDK, using SCONE shaped mrenclave for the PoC
+      // TODO: TDX mrenclave is not yet defined, using quick and dirty SCONE v5 shaped mrenclave workaround for the PoC
       framework: 'SCONE', // TODO TBD should be TDX
-      version: 'TDX-POC', // TODO TBD
+      version: 'v5', // TODO TBD
       entrypoint: appEntrypoint,
       heapSize: 1073741824, // TODO not needed for TDX, set to pass scone mrenclave validation
       fingerprint:
