@@ -17,6 +17,8 @@ import { goToProjectRoot } from '../cli-helpers/goToProjectRoot.js';
 import * as color from '../cli-helpers/color.js';
 import { IExec } from 'iexec';
 import { getChainConfig, readIAppConfig } from '../utils/iAppConfigFile.js';
+import { getIExecTdx, WORKERPOOL_TDX } from '../utils/tdx-poc.js';
+import { useTdx } from '../utils/featureFlags.js';
 
 export async function run({
   iAppAddress,
@@ -93,10 +95,15 @@ export async function runInDebug({
   const walletPrivateKey = await askForWalletPrivateKey({ spinner });
   const wallet = new ethers.Wallet(walletPrivateKey);
 
-  const iexec = getIExecDebug({
-    ...chainConfig,
-    privateKey: walletPrivateKey,
-  });
+  let iexec: IExec;
+  if (useTdx) {
+    iexec = getIExecTdx({ ...chainConfig, privateKey: walletPrivateKey });
+  } else {
+    iexec = getIExecDebug({
+      ...chainConfig,
+      privateKey: walletPrivateKey,
+    });
+  }
 
   // Make some ProtectedData preflight check
   if (protectedData) {
@@ -138,7 +145,7 @@ export async function runInDebug({
   // Workerpool Order
   spinner.start('Fetching workerpool order...');
   const workerpoolOrderbook = await iexec.orderbook.fetchWorkerpoolOrderbook({
-    workerpool: chainConfig.workerpoolDebug,
+    workerpool: useTdx ? WORKERPOOL_TDX : chainConfig.workerpoolDebug,
     app: iAppAddress,
     dataset: protectedData || ethers.ZeroAddress,
     minTag: SCONE_TAG,
