@@ -93,8 +93,7 @@ steps:
         from_secret: npm_username
       token:
         from_secret: npm_token
-      # TODO: change to nightly
-      tag: latest
+      tag: nightly
       access: public
       folder: cli
     when:
