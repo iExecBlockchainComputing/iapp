@@ -134,6 +134,7 @@ export async function sconify({
                 dockerhubPushToken: pushToken,
                 yourWalletPublicAddress: walletAddress,
                 sconeVersion: DEFAULT_SCONE_VERSION,
+                sconeProd: true,
               })
             );
           },
@@ -154,6 +155,7 @@ export async function sconify({
           dockerhubPushToken: pushToken, // used for pushing sconified image on user repo
           yourWalletPublicAddress: walletAddress,
           sconeVersion: DEFAULT_SCONE_VERSION,
+          sconeProd: true,
         }),
       })
         .catch(() => {

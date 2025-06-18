@@ -3,21 +3,18 @@ import { AbstractSigner } from 'ethers';
 import { IExec } from 'iexec';
 import { useExperimentalNetworks } from './featureFlags.js';
 
-export function getIExecDebug({
+export function getIExec({
   signer,
   rpcHostUrl,
-  smsDebugUrl,
 }: {
   signer: AbstractSigner;
   rpcHostUrl: string;
-  smsDebugUrl: string;
 }): IExec {
   return new IExec(
     {
       ethProvider: signer.connect(new JsonRpcProvider(rpcHostUrl)),
     },
     {
-      smsURL: smsDebugUrl,
       allowExperimentalNetworks: useExperimentalNetworks,
     }
   );

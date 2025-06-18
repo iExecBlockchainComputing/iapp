@@ -28,6 +28,7 @@ const bodySchema = z.object({
     .enum(Object.keys(TEMPLATE_CONFIG) as [TemplateName])
     .default('JavaScript'),
   sconeVersion: z.enum(['v5', 'v5.9']).default('v5'),
+  sconeProd: z.boolean().default(false),
 });
 
 async function handleSconifyRequest(requestObj: object) {
@@ -36,6 +37,7 @@ async function handleSconifyRequest(requestObj: object) {
   let dockerhubPushToken: string;
   let sconeVersion: SconeVersion;
   let template: TemplateName;
+  let sconeProd: boolean;
   try {
     ({
       yourWalletPublicAddress,
@@ -43,6 +45,7 @@ async function handleSconifyRequest(requestObj: object) {
       dockerhubPushToken,
       sconeVersion,
       template,
+      sconeProd,
     } = bodySchema.parse(requestObj));
   } catch (error) {
     throw fromError(error, {
@@ -58,6 +61,7 @@ async function handleSconifyRequest(requestObj: object) {
       userWalletPublicAddress: yourWalletPublicAddress,
       sconeVersion,
       templateLanguage: template,
+      sconeProd,
     });
   return {
     dockerImage,

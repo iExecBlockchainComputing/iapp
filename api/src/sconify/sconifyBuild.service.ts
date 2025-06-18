@@ -23,6 +23,7 @@ export async function sconify({
   pushToken,
   sconeVersion,
   templateLanguage,
+  sconeProd = false,
 }: {
   /**
    * Examples of valid dockerImageToSconify:
@@ -39,6 +40,7 @@ export async function sconify({
   pushToken: string;
   templateLanguage: TemplateName;
   sconeVersion: SconeVersion;
+  sconeProd?: boolean;
 }): Promise<{
   dockerImage: string;
   dockerImageDigest: string;
@@ -58,6 +60,7 @@ export async function sconify({
       templateLanguage,
       userWalletPublicAddress,
       wsEnabled,
+      sconeProd,
     },
     'New sconify request'
   );
@@ -142,6 +145,7 @@ export async function sconify({
       sconifyVersion,
       entrypoint: appEntrypoint,
       binary: configTemplate.binary,
+      prod: sconeProd,
     });
     logger.info({ sconifiedImageId }, 'Sconified successfully');
   } finally {
@@ -168,7 +172,7 @@ export async function sconify({
 
   const imageRepo = `${dockerUserName}/${imageName}`;
   const sconifiedImageShortId = sconifiedImageId.substring(7, 7 + 12); // extract 12 first chars after the leading "sha256:"
-  const sconifiedImageTag = `${imageTag}-tee-scone-${sconifyVersion}-debug-${sconifiedImageShortId}`; // add digest in tag to avoid replacing previous build
+  const sconifiedImageTag = `${imageTag}-tee-scone-${sconifyVersion}-${sconeProd ? 'prod' : 'debug'}-${sconifiedImageShortId}`; // add digest in tag to avoid replacing previous build
   const sconifiedImage = `${imageRepo}:${sconifiedImageTag}`;
 
   let pushed;

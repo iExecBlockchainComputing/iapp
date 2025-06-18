@@ -2,6 +2,7 @@
 
 node_modules
 api/.env
+api/sig
 .tags
 
 cli/dist

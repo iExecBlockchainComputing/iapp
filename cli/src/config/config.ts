@@ -3,8 +3,12 @@ import { useExperimentalNetworks } from '../utils/featureFlags.js';
 export const SCONE_TAG = ['tee', 'scone'];
 export const DEFAULT_SCONE_VERSION = 'v5.9';
 
-export const SCONIFY_API_HTTP_URL = 'https://iapp-api.iex.ec';
-export const SCONIFY_API_WS_URL = 'wss://iapp-api.iex.ec';
+// export const SCONIFY_API_HTTP_URL = 'https://iapp-api.iex.ec';
+// export const SCONIFY_API_WS_URL = 'wss://iapp-api.iex.ec';
+
+// TODO use local server for the POC
+export const SCONIFY_API_HTTP_URL = 'http://127.0.0.1:3000';
+export const SCONIFY_API_WS_URL = 'ws://127.0.0.1:3000';
 
 export const CONFIG_FILE = 'iapp.config.json';
 export const TEST_INPUT_DIR = 'input';
@@ -71,10 +75,9 @@ export const WS_RECONNECTION_MAX_ATTEMPTS = Math.floor(
 
 type ChainConfig = {
   rpcHostUrl: string;
-  smsDebugUrl: string;
   ipfsGatewayUrl: string;
   iexecExplorerUrl: string;
-  workerpoolDebug: string;
+  workerpool: string;
 };
 
 export const DEFAULT_CHAIN = 'bellecour';
@@ -82,25 +85,22 @@ export const DEFAULT_CHAIN = 'bellecour';
 export const CHAINS_CONFIGURATIONS: Record<string, ChainConfig> = {
   bellecour: {
     rpcHostUrl: 'https://bellecour.iex.ec',
-    smsDebugUrl: 'https://sms.scone-debug.v8-bellecour.iex.ec',
     ipfsGatewayUrl: 'https://ipfs-gateway.v8-bellecour.iex.ec',
     iexecExplorerUrl: 'https://explorer.iex.ec/bellecour',
-    workerpoolDebug: 'debug-v8-learn.main.pools.iexec.eth',
+    workerpool: 'prod-v8-learn.main.pools.iexec.eth',
   },
   'arbitrum-mainnet': {
     rpcHostUrl: 'https://arb1.arbitrum.io/rpc',
-    smsDebugUrl: 'https://sms-debug.arbitrum-mainnet.iex.ec',
     ipfsGatewayUrl: 'https://ipfs-gateway.arbitrum-mainnet.iex.ec',
     iexecExplorerUrl: 'https://explorer.iex.ec/arbitrum-mainnet',
-    workerpoolDebug: '0xAaA90d37034fD1ea27D5eF2879f217fB6fD7F7Ca',
+    workerpool: '0x2c06263943180cc024daffeee15612db6e5fd248',
   },
   ...(useExperimentalNetworks && {
     'arbitrum-sepolia-testnet': {
       rpcHostUrl: 'https://sepolia-rollup.arbitrum.io/rpc',
-      smsDebugUrl: 'https://sms.arbitrum-sepolia-testnet.iex.ec',
       ipfsGatewayUrl: 'https://ipfs-gateway.arbitrum-sepolia-testnet.iex.ec',
       iexecExplorerUrl: 'https://explorer.iex.ec/arbitrum-sepolia-testnet',
-      workerpoolDebug: '0xB967057a21dc6A66A29721d96b8Aa7454B7c383F',
+      workerpool: '0xB967057a21dc6A66A29721d96b8Aa7454B7c383F',
     },
   }),
 };
