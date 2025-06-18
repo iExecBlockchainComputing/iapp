@@ -1,8 +1,12 @@
 export const SCONE_TAG = ['tee', 'scone'];
 export const DEFAULT_SCONE_VERSION = 'v5.9';
 
-export const SCONIFY_API_HTTP_URL = 'https://iapp-api.iex.ec';
-export const SCONIFY_API_WS_URL = 'wss://iapp-api.iex.ec';
+// export const SCONIFY_API_HTTP_URL = 'https://iapp-api.iex.ec';
+// export const SCONIFY_API_WS_URL = 'wss://iapp-api.iex.ec';
+
+// TODO use local server for the POC
+export const SCONIFY_API_HTTP_URL = 'http://127.0.0.1:3000';
+export const SCONIFY_API_WS_URL = 'ws://127.0.0.1:3000';
 
 export const CONFIG_FILE = 'iapp.config.json';
 export const TEST_INPUT_DIR = 'input';
@@ -69,11 +73,9 @@ export const WS_RECONNECTION_MAX_ATTEMPTS = Math.floor(
 
 type ChainConfig = {
   rpcHostUrl: string;
-  smsDebugUrl: string;
   ipfsGatewayUrl: string;
   iexecExplorerUrl: string;
   workerpoolProd: string;
-  workerpoolDebug: string;
 };
 
 export const DEFAULT_CHAIN = 'bellecour';
@@ -81,10 +83,8 @@ export const DEFAULT_CHAIN = 'bellecour';
 export const CHAINS_CONFIGURATIONS: Record<string, ChainConfig> = {
   bellecour: {
     rpcHostUrl: 'https://bellecour.iex.ec',
-    smsDebugUrl: 'https://sms.scone-debug.v8-bellecour.iex.ec',
     ipfsGatewayUrl: 'https://ipfs-gateway.v8-bellecour.iex.ec',
     iexecExplorerUrl: 'https://explorer.iex.ec/bellecour',
-    workerpoolDebug: 'debug-v8-learn.main.pools.iexec.eth',
     workerpoolProd: 'prod-v8-learn.main.pools.iexec.eth',
   },
 };

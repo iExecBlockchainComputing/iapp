@@ -17,7 +17,7 @@ import { getSpinner } from '../cli-helpers/spinner.js';
 import { askForAppSecret } from '../cli-helpers/askForAppSecret.js';
 import { askForWalletPrivateKey } from '../cli-helpers/askForWalletPrivateKey.js';
 import { Wallet } from 'ethers';
-import { getIExecDebug } from '../utils/iexec.js';
+import { getIExec } from '../utils/iexec.js';
 import { goToProjectRoot } from '../cli-helpers/goToProjectRoot.js';
 import * as color from '../cli-helpers/color.js';
 import { hintBox } from '../cli-helpers/box.js';
@@ -68,7 +68,7 @@ export async function deploy({ chain }: { chain?: string }) {
     if (useTdx) {
       iexec = getIExecTdx({ ...chainConfig, privateKey });
     } else {
-      iexec = getIExecDebug({ ...chainConfig, privateKey });
+      iexec = getIExec({ ...chainConfig, privateKey });
     }
 
     // just start the spinner, no need to persist success in terminal
