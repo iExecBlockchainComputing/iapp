@@ -1,3 +1,4 @@
+import { join } from 'node:path';
 import Docker from 'dockerode';
 import { SCONIFY_IMAGE_NAME } from '../constants/constants.js';
 import { logger } from '../utils/logger.js';
@@ -16,6 +17,7 @@ export async function sconifyImage({
   sconifyVersion,
   entrypoint,
   binary,
+  prod = false,
 }: {
   /**
    * image to sconify
@@ -33,8 +35,15 @@ export async function sconifyImage({
    * whitelisted binary
    */
   binary: string;
+  /**
+   * sconify production flag
+   */
+  prod?: boolean;
 }): Promise<string> {
-  logger.info({ fromImage, entrypoint }, 'Running sconify command...');
+  logger.info(
+    { fromImage, entrypoint },
+    `Running sconify command in ${prod ? 'prod' : 'debug'} mode...`
+  );
   const sconifierImage = `${SCONIFY_IMAGE_NAME}:${sconifyVersion}`;
 
   logger.info({ sconifierImage }, 'Pulling sconifier image...');
@@ -42,25 +51,36 @@ export async function sconifyImage({
 
   const toImage = `${fromImage}-tmp-sconified-${Date.now()}`; // create an unique temporary identifier for the target image
   logger.info({ fromImage, toImage }, 'Sconifying...');
+
+  const sconifyBaseCmd = [
+    'sconify_iexec',
+    `--from=${fromImage}`,
+    `--to=${toImage}`,
+    '--binary-fs',
+    '--fs-dir=/app',
+    '--host-path=/etc/hosts',
+    '--host-path=/etc/resolv.conf',
+    `--binary=${binary}`,
+    '--heap=1G',
+    '--dlopen=1',
+    '--no-color',
+    '--verbose',
+    `--command=${entrypoint}`,
+  ];
+
+  const baseBinds = ['/var/run/docker.sock:/var/run/docker.sock'];
+
   const sconifyContainer = await docker.createContainer({
     Image: sconifierImage,
-    Cmd: [
-      'sconify_iexec',
-      `--from=${fromImage}`,
-      `--to=${toImage}`,
-      '--binary-fs',
-      '--fs-dir=/app',
-      '--host-path=/etc/hosts',
-      '--host-path=/etc/resolv.conf',
-      `--binary=${binary}`,
-      '--heap=1G',
-      '--dlopen=1',
-      '--no-color',
-      '--verbose',
-      `--command=${entrypoint}`,
-    ],
+    Cmd: prod
+      ? sconifyBaseCmd.concat('--scone-signer=/sig/enclave-key.pem')
+      : sconifyBaseCmd,
     HostConfig: {
-      Binds: ['/var/run/docker.sock:/var/run/docker.sock'],
+      Binds: prod
+        ? baseBinds.concat(
+            `${join(process.cwd(), 'sig/enclave-key.pem')}:/sig/enclave-key.pem`
+          ) // mount signing key
+        : baseBinds,
     },
   });
 

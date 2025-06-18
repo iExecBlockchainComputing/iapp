@@ -1,6 +1,6 @@
 import { ethers } from 'ethers';
 import { askForWallet } from '../cli-helpers/askForWallet.js';
-import { getIExecDebug } from '../utils/iexec.js';
+import { getIExec } from '../utils/iexec.js';
 import { getSpinner } from '../cli-helpers/spinner.js';
 import * as color from '../cli-helpers/color.js';
 import { handleCliError } from '../cli-helpers/handleCliError.js';
@@ -26,7 +26,7 @@ export async function debug({
     const chainConfig = getChainConfig(chainName);
     spinner.info(`Using chain ${chainName}`);
     const signer = await askForWallet({ spinner });
-    const iexec = getIExecDebug({
+    const iexec = getIExec({
       ...chainConfig,
       signer,
     });
