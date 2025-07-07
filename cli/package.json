@@ -40,7 +40,7 @@
     "dockerode": "^4.0.5",
     "ethers": "^6.13.5",
     "figlet": "^1.8.1",
-    "iexec": "^8.15.0",
+    "iexec": "^8.16.1",
     "jszip": "^3.10.1",
     "magic-bytes.js": "^1.10.0",
     "msgpackr": "^1.11.2",
