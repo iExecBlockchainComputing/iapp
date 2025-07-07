@@ -5,6 +5,7 @@ import { IExec } from 'iexec';
 import { pushDockerImage } from '../execDocker/docker.js';
 import { AbstractSigner } from 'ethers';
 import { JsonRpcProvider } from 'ethers';
+import { useExperimentalNetworks } from './featureFlags.js';
 
 // TODO move this constant
 export const WORKERPOOL_TDX = 'tdx-labs.pools.iexec.eth';
@@ -31,6 +32,7 @@ export function getIExecTdx({
     },
     {
       smsURL: 'https://sms.labs.iex.ec',
+      allowExperimentalNetworks: useExperimentalNetworks,
     }
   );
 }

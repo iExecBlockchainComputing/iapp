@@ -1,6 +1,7 @@
 import { JsonRpcProvider } from 'ethers';
 import { AbstractSigner } from 'ethers';
 import { IExec } from 'iexec';
+import { useExperimentalNetworks } from './featureFlags.js';
 
 export function getIExecDebug({
   signer,
@@ -17,6 +18,7 @@ export function getIExecDebug({
     },
     {
       smsURL: smsDebugUrl,
+      allowExperimentalNetworks: useExperimentalNetworks,
     }
   );
 }
