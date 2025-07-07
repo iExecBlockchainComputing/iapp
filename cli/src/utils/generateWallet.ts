@@ -6,7 +6,6 @@ export async function generateWallet() {
   const config = await readIAppConfig();
   await writeIAppConfig({
     ...config,
-    walletAddress: address,
     walletPrivateKey: privateKey,
   });
   return address;
