@@ -1,17 +1,19 @@
-import { IExec, utils } from 'iexec';
+import { JsonRpcProvider } from 'ethers';
+import { AbstractSigner } from 'ethers';
+import { IExec } from 'iexec';
 
 export function getIExecDebug({
-  privateKey,
+  signer,
   rpcHostUrl,
   smsDebugUrl,
 }: {
-  privateKey: string;
+  signer: AbstractSigner;
   rpcHostUrl: string;
   smsDebugUrl: string;
 }): IExec {
   return new IExec(
     {
-      ethProvider: utils.getSignerFromPrivateKey(rpcHostUrl, privateKey),
+      ethProvider: signer.connect(new JsonRpcProvider(rpcHostUrl)),
     },
     {
       smsURL: smsDebugUrl,

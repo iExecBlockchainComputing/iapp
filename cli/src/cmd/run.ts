@@ -1,7 +1,7 @@
 import { v4 as uuidV4 } from 'uuid';
 import { ethers } from 'ethers';
 import { mkdir, rm } from 'node:fs/promises';
-import { askForWalletPrivateKey } from '../cli-helpers/askForWalletPrivateKey.js';
+import { askForWallet } from '../cli-helpers/askForWallet.js';
 import {
   SCONE_TAG,
   RUN_OUTPUT_DIR,
@@ -92,16 +92,16 @@ export async function runInDebug({
   }
 
   // Get wallet from privateKey
-  const walletPrivateKey = await askForWalletPrivateKey({ spinner });
-  const wallet = new ethers.Wallet(walletPrivateKey);
+  const signer = await askForWallet({ spinner });
+  const userAddress = await signer.getAddress();
 
   let iexec: IExec;
   if (useTdx) {
-    iexec = getIExecTdx({ ...chainConfig, privateKey: walletPrivateKey });
+    iexec = getIExecTdx({ ...chainConfig, signer });
   } else {
     iexec = getIExecDebug({
       ...chainConfig,
-      privateKey: walletPrivateKey,
+      signer,
     });
   }
 
@@ -163,7 +163,7 @@ export async function runInDebug({
   spinner.start('Creating and publishing app order...');
   const apporderTemplate = await iexec.order.createApporder({
     app: iAppAddress,
-    requesterrestrict: wallet.address,
+    requesterrestrict: userAddress,
     tag: SCONE_TAG,
   });
   const apporder = await iexec.order.signApporder(apporderTemplate);
@@ -178,7 +178,7 @@ export async function runInDebug({
       {
         app: iAppAddress,
         workerpool: workerpoolorder.workerpool,
-        requester: wallet.address,
+        requester: userAddress,
         minTag: SCONE_TAG,
         maxTag: SCONE_TAG,
       }

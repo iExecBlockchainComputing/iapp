@@ -1,14 +1,14 @@
-import { Wallet } from 'ethers';
+import { AbstractSigner, Wallet } from 'ethers';
 import { readIAppConfig, writeIAppConfig } from '../utils/iAppConfigFile.js';
 import { CONFIG_FILE } from '../config/config.js';
 import * as color from './color.js';
 import type { Spinner } from './spinner.js';
 
-export async function askForWalletPrivateKey({
+export async function askForWallet({
   spinner,
 }: {
   spinner: Spinner;
-}): Promise<string> {
+}): Promise<AbstractSigner> {
   const config = await readIAppConfig();
 
   const walletPrivateKey = config.walletPrivateKey || '';
@@ -16,7 +16,9 @@ export async function askForWalletPrivateKey({
     spinner.log(
       `Using saved walletPrivateKey ${color.comment(`(from ${color.file(CONFIG_FILE)})`)}`
     );
-    return walletPrivateKey;
+    const wallet = new Wallet(walletPrivateKey);
+
+    return wallet;
   }
 
   const { walletPrivateKeyAnswer } = await spinner.prompt({
@@ -26,11 +28,13 @@ export async function askForWalletPrivateKey({
     mask: '*',
   });
 
+  let wallet;
+
   try {
-    new Wallet(walletPrivateKeyAnswer);
+    wallet = new Wallet(walletPrivateKeyAnswer);
   } catch {
     spinner.log(color.error('Invalid wallet private key'));
-    return askForWalletPrivateKey({ spinner });
+    return askForWallet({ spinner });
   }
 
   const { savePrivateKeyAnswer } = await spinner.prompt([
@@ -43,12 +47,12 @@ export async function askForWalletPrivateKey({
   ]);
 
   if (!savePrivateKeyAnswer) {
-    return walletPrivateKeyAnswer;
+    return wallet;
   }
 
   config.walletPrivateKey = walletPrivateKeyAnswer;
   await writeIAppConfig(config);
   spinner.log(`walletPrivateKey saved to ${color.file(CONFIG_FILE)}`);
 
-  return walletPrivateKeyAnswer;
+  return wallet;
 }

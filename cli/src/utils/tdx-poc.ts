@@ -1,8 +1,10 @@
 // PoC to demonstrate use of TDX iApps with the TDX testbed
 // most of the logic is gathered in this module to limit impacts on the project
 import Docker from 'dockerode';
-import { IExec, utils } from 'iexec';
+import { IExec } from 'iexec';
 import { pushDockerImage } from '../execDocker/docker.js';
+import { AbstractSigner } from 'ethers';
+import { JsonRpcProvider } from 'ethers';
 
 // TODO move this constant
 export const WORKERPOOL_TDX = 'tdx-labs.pools.iexec.eth';
@@ -12,11 +14,11 @@ export const IEXEC_TDX_WORKER_HEAP_SIZE = 6 * 1024 * 1024 * 1024; // iExec TDX w
 
 // TODO move this logic
 export function getIExecTdx({
-  privateKey,
+  signer,
   name,
   rpcHostUrl,
 }: {
-  privateKey: string;
+  signer: AbstractSigner;
   name: string;
   rpcHostUrl: string;
 }): IExec {
@@ -25,7 +27,7 @@ export function getIExecTdx({
   }
   return new IExec(
     {
-      ethProvider: utils.getSignerFromPrivateKey(rpcHostUrl, privateKey),
+      ethProvider: signer.connect(new JsonRpcProvider(rpcHostUrl)),
     },
     {
       smsURL: 'https://sms.labs.iex.ec',

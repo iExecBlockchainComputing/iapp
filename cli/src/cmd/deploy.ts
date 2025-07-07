@@ -5,7 +5,6 @@ import {
 } from '../execDocker/docker.js';
 import { sconify } from '../utils/sconify.js';
 import { askForDockerhubUsername } from '../cli-helpers/askForDockerhubUsername.js';
-import { askForWalletAddress } from '../cli-helpers/askForWalletAddress.js';
 import {
   getChainConfig,
   projectNameToImageName,
@@ -15,8 +14,7 @@ import { askForDockerhubAccessToken } from '../cli-helpers/askForDockerhubAccess
 import { handleCliError } from '../cli-helpers/handleCliError.js';
 import { getSpinner } from '../cli-helpers/spinner.js';
 import { askForAppSecret } from '../cli-helpers/askForAppSecret.js';
-import { askForWalletPrivateKey } from '../cli-helpers/askForWalletPrivateKey.js';
-import { Wallet } from 'ethers';
+import { askForWallet } from '../cli-helpers/askForWallet.js';
 import { getIExecDebug } from '../utils/iexec.js';
 import { goToProjectRoot } from '../cli-helpers/goToProjectRoot.js';
 import * as color from '../cli-helpers/color.js';
@@ -54,21 +52,15 @@ export async function deploy({ chain }: { chain?: string }) {
 
     const appSecret = await askForAppSecret({ spinner });
 
-    const walletAddress = await askForWalletAddress({ spinner });
+    const signer = await askForWallet({ spinner });
+    const userAddress = await signer.getAddress();
 
     // initialize iExec
-    const privateKey = await askForWalletPrivateKey({ spinner });
-    const wallet = new Wallet(privateKey);
-    const address = await wallet.getAddress();
-    if (address.toLowerCase() !== walletAddress.toLowerCase()) {
-      throw Error('Provided address and private key mismatch');
-    }
-
     let iexec;
     if (useTdx) {
-      iexec = getIExecTdx({ ...chainConfig, privateKey });
+      iexec = getIExecTdx({ ...chainConfig, signer });
     } else {
-      iexec = getIExecDebug({ ...chainConfig, privateKey });
+      iexec = getIExecDebug({ ...chainConfig, signer });
     }
 
     // just start the spinner, no need to persist success in terminal
@@ -121,7 +113,7 @@ export async function deploy({ chain }: { chain?: string }) {
       } = await sconify({
         iAppNameToSconify: imageTag,
         template,
-        walletAddress,
+        walletAddress: userAddress,
         dockerhubAccessToken,
         dockerhubUsername,
       });
@@ -130,7 +122,7 @@ export async function deploy({ chain }: { chain?: string }) {
 
       spinner.start('Deploying your TEE app on iExec...');
       ({ address: appContractAddress } = await iexec.app.deployApp({
-        owner: address,
+        owner: userAddress,
         name: `${projectNameToImageName(projectName)}-${iAppVersion}`,
         type: 'DOCKER',
         multiaddr: dockerImage,
@@ -150,7 +142,7 @@ export async function deploy({ chain }: { chain?: string }) {
     await addDeploymentData({
       sconifiedImage: appDockerImage,
       appContractAddress: appContractAddress,
-      owner: walletAddress,
+      owner: userAddress,
       chainName,
     });
 
