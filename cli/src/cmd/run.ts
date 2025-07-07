@@ -19,6 +19,7 @@ import { IExec } from 'iexec';
 import { getChainConfig, readIAppConfig } from '../utils/iAppConfigFile.js';
 import { getIExecTdx, WORKERPOOL_TDX } from '../utils/tdx-poc.js';
 import { useTdx } from '../utils/featureFlags.js';
+import { ensureBalances } from '../cli-helpers/ensureBalances.js';
 
 export async function run({
   iAppAddress,
@@ -104,6 +105,8 @@ export async function runInDebug({
       signer,
     });
   }
+
+  await ensureBalances({ spinner, iexec });
 
   // Make some ProtectedData preflight check
   if (protectedData) {

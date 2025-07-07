@@ -22,6 +22,7 @@ import { hintBox } from '../cli-helpers/box.js';
 import { addDeploymentData } from '../utils/cacheExecutions.js';
 import { deployTdxApp, getIExecTdx } from '../utils/tdx-poc.js';
 import { useTdx } from '../utils/featureFlags.js';
+import { ensureBalances } from '../cli-helpers/ensureBalances.js';
 
 export async function deploy({ chain }: { chain?: string }) {
   const spinner = getSpinner();
@@ -31,6 +32,19 @@ export async function deploy({ chain }: { chain?: string }) {
     const chainName = chain || defaultChain;
     const chainConfig = getChainConfig(chainName);
     spinner.info(`Using chain ${chainName}`);
+
+    const signer = await askForWallet({ spinner });
+    const userAddress = await signer.getAddress();
+
+    // initialize iExec
+    let iexec;
+    if (useTdx) {
+      iexec = getIExecTdx({ ...chainConfig, signer });
+    } else {
+      iexec = getIExecDebug({ ...chainConfig, signer });
+    }
+
+    await ensureBalances({ spinner, iexec });
 
     const dockerhubUsername = await askForDockerhubUsername({ spinner });
     const dockerhubAccessToken = await askForDockerhubAccessToken({ spinner });
@@ -51,17 +65,6 @@ export async function deploy({ chain }: { chain?: string }) {
     const imageTag = `${dockerhubUsername}/${projectNameToImageName(projectName)}:${iAppVersion}`;
 
     const appSecret = await askForAppSecret({ spinner });
-
-    const signer = await askForWallet({ spinner });
-    const userAddress = await signer.getAddress();
-
-    // initialize iExec
-    let iexec;
-    if (useTdx) {
-      iexec = getIExecTdx({ ...chainConfig, signer });
-    } else {
-      iexec = getIExecDebug({ ...chainConfig, signer });
-    }
 
     // just start the spinner, no need to persist success in terminal
     spinner.start('Checking docker daemon is running...');
