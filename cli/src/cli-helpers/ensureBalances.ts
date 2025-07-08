@@ -1,5 +1,5 @@
 import { warnBox } from './box.js';
-import { emphasis } from './color.js';
+import { emphasis, command } from './color.js';
 import type { Spinner } from './spinner.js';
 import { IExec } from 'iexec';
 
@@ -37,7 +37,9 @@ export async function ensureBalances({
 Your wallet balance is insufficient:
 ${helpers.join('\n')}
         
-Please fill your wallet ${emphasis(address)} or use another one`)
+You can either:
+ - Fill your wallet ${emphasis(address)}
+ - Import another wallet (run ${command('iapp wallet import')})`)
   );
   throw Error(`Balance is insufficient`);
 }

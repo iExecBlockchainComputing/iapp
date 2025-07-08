@@ -10,6 +10,7 @@ import { mockProtectedData } from './cmd/mock-protected-data.js';
 import { debug } from './cmd/debug.js';
 import { SUPPORTED_CHAINS } from './config/config.js';
 import { checkPackageUpdate } from './cli-helpers/checkPackageUpdate.js';
+import { walletImport } from './cmd/wallet.js';
 
 await checkPackageUpdate();
 
@@ -174,6 +175,21 @@ yargsInstance
     handler: (y) => {
       if (y.inputType === 'protectedData') {
         return mockProtectedData();
+      }
+    },
+  })
+
+  .command({
+    command: 'wallet <action>',
+    describe: 'Manage wallet',
+    builder: (y) =>
+      y.positional('action', {
+        describe: 'Import a new wallet',
+        choices: ['import'],
+      }),
+    handler: (y) => {
+      if (y.action === 'import') {
+        return walletImport();
       }
     },
   })
