@@ -7,7 +7,7 @@ export async function walletImport() {
   const spinner = getSpinner();
   try {
     spinner.text = 'Importing wallet';
-    const signer = await askForWallet({ spinner, replace: true });
+    const signer = await askForWallet({ spinner, importWallet: true });
     const address = await signer.getAddress();
     spinner.succeed(`Imported wallet ${color.emphasis(address)}`);
   } catch (error) {
