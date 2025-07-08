@@ -10,7 +10,8 @@ import { mockProtectedData } from './cmd/mock-protected-data.js';
 import { debug } from './cmd/debug.js';
 import { SUPPORTED_CHAINS } from './config/config.js';
 import { checkPackageUpdate } from './cli-helpers/checkPackageUpdate.js';
-import { walletImport } from './cmd/wallet.js';
+import { walletImport } from './cmd/wallet-import.js';
+import { walletSelect } from './cmd/wallet-select.js';
 
 await checkPackageUpdate();
 
@@ -184,12 +185,15 @@ yargsInstance
     describe: 'Manage wallet',
     builder: (y) =>
       y.positional('action', {
-        describe: 'Import a new wallet',
-        choices: ['import'],
+        describe: 'Import a new wallet or select existing one',
+        choices: ['import', 'select'],
       }),
     handler: (y) => {
       if (y.action === 'import') {
         return walletImport();
+      }
+      if (y.action === 'select') {
+        return walletSelect();
       }
     },
   })
