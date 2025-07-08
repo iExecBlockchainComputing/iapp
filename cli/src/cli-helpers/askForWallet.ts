@@ -3,7 +3,6 @@ import { readIAppConfig, writeIAppConfig } from '../utils/iAppConfigFile.js';
 import { CONFIG_FILE } from '../config/config.js';
 import * as color from './color.js';
 import type { Spinner } from './spinner.js';
-import { warnBox } from './box.js';
 import {
   KEYSTORE_PATH,
   loadWalletFromKeystore,
@@ -153,20 +152,6 @@ export async function askForWallet({
           `Invalid walletFileName ${color.comment(`(in ${color.file(CONFIG_FILE)})`)}`
         );
       }
-    }
-  }
-
-  if (importWallet && walletPrivateKey) {
-    try {
-      const currentWallet = new Wallet(walletPrivateKey);
-      spinner.log(
-        warnBox(`Wallet ${color.emphasis(currentWallet.address)} private key is saved in your config
-
-Importing a new wallet will replace the saved wallet.
-Make sure to save the private key ${color.emphasis('walletPrivateKey')} from ${color.file(CONFIG_FILE)} before proceeding!`)
-      );
-    } catch {
-      // noop
     }
   }
 
