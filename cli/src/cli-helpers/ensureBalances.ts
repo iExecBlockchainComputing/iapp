@@ -37,8 +37,9 @@ Your wallet balance is insufficient:
 ${helpers.join('\n')}
         
 You can either:
- - Fill your wallet ${emphasis(address)}
- - Import another wallet (run ${command('iapp wallet import')})`)
+ - Fund your wallet ${emphasis(address)}
+ - Import another wallet (run ${command('iapp wallet import')})
+ - Select an imported wallet (run ${command('iapp wallet select')})`)
   );
   throw Error(`Balance is insufficient`);
 }
