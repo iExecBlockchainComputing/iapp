@@ -10,7 +10,6 @@ export async function ensureBalances({
   spinner: Spinner;
   iexec: IExec;
 }): Promise<void> {
-  spinner.text = 'Checking wallet...';
   const chainId = await iexec.config.resolveChainId();
   if (chainId === 134) {
     return;

@@ -10,6 +10,7 @@ import {
   saveWalletToKeystore,
   walletFileExistsInKeystore,
 } from '../utils/keystore.js';
+import { AbortError } from '../utils/errors.js';
 
 async function walletFromPrivateKey(spinner: Spinner) {
   const { answer } = await spinner.prompt({
@@ -80,13 +81,13 @@ async function walletFromKeystore({
   spinner: Spinner;
   walletFileName: string;
 }) {
+  const { password } = await spinner.prompt({
+    type: 'password',
+    name: 'password',
+    message: `Enter the password to unlock your wallet ${color.file(walletFileName)}`,
+    mask: '*',
+  });
   try {
-    const { password } = await spinner.prompt({
-      type: 'password',
-      name: 'password',
-      message: `Enter the password to unlock your wallet ${color.file(walletFileName)}`,
-      mask: '*',
-    });
     const wallet = await loadWalletFromKeystore({ walletFileName, password });
     return wallet;
   } catch {
@@ -147,7 +148,8 @@ export async function askForWallet({
           const wallet = await walletFromKeystore({ spinner, walletFileName });
           return wallet;
         }
-      } catch {
+      } catch (e) {
+        if (e instanceof AbortError) throw e;
         spinner.warn(
           `Invalid walletFileName ${color.comment(`(in ${color.file(CONFIG_FILE)})`)}`
         );
