@@ -1,3 +1,4 @@
+import { AbortError } from '../utils/errors.js';
 import { Spinner } from './spinner.js';
 
 export async function askForAcknowledgment({
@@ -15,7 +16,6 @@ export async function askForAcknowledgment({
   });
 
   if (!ack) {
-    spinner.fail('Operation cancelled');
-    process.exit(0);
+    throw new AbortError('Operation cancelled');
   }
 }

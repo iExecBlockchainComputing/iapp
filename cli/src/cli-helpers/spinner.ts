@@ -1,5 +1,6 @@
 import ora, { type Ora } from 'ora';
 import prompts from 'prompts';
+import { AbortError } from '../utils/errors.js';
 
 export type Spinner = Ora & {
   log: (msg: string) => void;
@@ -35,8 +36,7 @@ export const getSpinner = (): Spinner => {
     }
     const res = await prompts(questions, {
       onCancel: () => {
-        spinner?.fail('Operation cancelled');
-        process.exit(0);
+        throw new AbortError('Operation cancelled');
       },
     });
     if (isSpinning) {
