@@ -23,6 +23,7 @@ import { addDeploymentData } from '../utils/cacheExecutions.js';
 import { deployTdxApp, getIExecTdx } from '../utils/tdx-poc.js';
 import { useTdx } from '../utils/featureFlags.js';
 import { ensureBalances } from '../cli-helpers/ensureBalances.js';
+import { warnBeforeTxFees } from '../cli-helpers/warnBeforeTxFees.js';
 
 export async function deploy({ chain }: { chain?: string }) {
   const spinner = getSpinner();
@@ -32,6 +33,7 @@ export async function deploy({ chain }: { chain?: string }) {
     const chainName = chain || defaultChain;
     const chainConfig = getChainConfig(chainName);
     spinner.info(`Using chain ${chainName}`);
+    await warnBeforeTxFees({ spinner, chain: chainConfig.name });
 
     const signer = await askForWallet({ spinner });
     const userAddress = await signer.getAddress();
