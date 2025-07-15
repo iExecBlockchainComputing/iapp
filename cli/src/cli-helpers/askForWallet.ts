@@ -45,7 +45,7 @@ async function walletToKeyStore({
     if (exists) {
       // TODO ask confirmation?
       spinner.warn(
-        'A wallet file with this address already exists in the keystore, it will de replaced'
+        'A wallet file with this address already exists in the keystore, it will be replaced'
       );
     }
   }
