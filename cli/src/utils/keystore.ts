@@ -58,7 +58,7 @@ export async function loadWalletInfoFromKeystore({
     const encryptedWallet = await readFile(filePath, 'utf8');
     const { address, Crypto } = JSON.parse(encryptedWallet);
     return {
-      address: getAddress(address).toLowerCase(),
+      address: getAddress(address),
       isEncrypted: !!Crypto,
     };
   } catch (e) {
