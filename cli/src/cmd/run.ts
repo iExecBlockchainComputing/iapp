@@ -245,7 +245,7 @@ export async function runInDebug({
     const toDeposit = priceToPay.sub(balances.stake);
     await askForAcknowledgment({
       spinner,
-      message: `Current current account stake is ${utils.formatRLC(balances.stake)} RLC, you need to deposit an additional ${utils.formatRLC(toDeposit)} RLC from your wallet. Would you like to continue?`,
+      message: `Current account stake is ${utils.formatRLC(balances.stake)} RLC, you need to deposit an additional ${utils.formatRLC(toDeposit)} RLC from your wallet. Would you like to continue?`,
     });
     await iexec.account.deposit(toDeposit);
   }
