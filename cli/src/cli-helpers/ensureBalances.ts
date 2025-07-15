@@ -63,7 +63,7 @@ export async function ensureBalances({
   }
 
   spinner.log(
-    warnBox(`Current chain requires ${chainId !== 134 ? 'native asset to pay transactions fees and ' : ''}RLC to pay iApp runs!
+    warnBox(`Current chain requires ${chainId !== 134 ? 'native asset to pay transaction fees and ' : ''}RLC to pay iApp runs!
  
 Your wallet balance is insufficient:
 ${helpers.join('\n')}
