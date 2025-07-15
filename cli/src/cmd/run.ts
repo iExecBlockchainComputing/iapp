@@ -22,6 +22,7 @@ import { getIExecTdx, WORKERPOOL_TDX } from '../utils/tdx-poc.js';
 import { useTdx } from '../utils/featureFlags.js';
 import { ensureBalances } from '../cli-helpers/ensureBalances.js';
 import { askForAcknowledgment } from '../cli-helpers/askForAcknowledgment.js';
+import { warnBeforeTxFees } from '../cli-helpers/warnBeforeTxFees.js';
 
 export async function run({
   iAppAddress,
@@ -77,6 +78,7 @@ export async function runInDebug({
   const chainName = chain || defaultChain;
   const chainConfig = getChainConfig(chainName);
   spinner.info(`Using chain ${chainName}`);
+  await warnBeforeTxFees({ spinner, chain: chainConfig.name });
 
   // Is valid iApp address
   if (!ethers.isAddress(iAppAddress)) {
