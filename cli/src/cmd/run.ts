@@ -333,6 +333,5 @@ async function cleanRunOutput({
   spinner.start('Cleaning output directory...');
   await rm(outputFolder, { recursive: true, force: true });
   await mkdir(outputFolder);
-  spinner.text = '';
-  spinner.stop();
+  spinner.reset();
 }
