@@ -1,6 +1,6 @@
 # iExec iApp Generator CLI
 
-trigger cli release
+trigger cli release breaking
 
 This CLI provides an interface to guide you through different steps:
 
