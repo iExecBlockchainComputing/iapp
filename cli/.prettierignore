@@ -1,3 +1,6 @@
 # contains feature tag comments illegal in plain JSON
 templates/JavaScript/package.json
+
+# generated files
 dist
+CHANGELOG.md
