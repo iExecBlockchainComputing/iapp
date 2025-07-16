@@ -1,5 +1,7 @@
 # iExec iApp Generator CLI
 
+trigger cli release
+
 This CLI provides an interface to guide you through different steps:
 
 - Create a simple app with the necessary structure to run on a decentralized
