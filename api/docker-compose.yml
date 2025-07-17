@@ -1,6 +1,6 @@
 services:
   iapp:
-    image: ${IMAGE_NAME}:${TAG}
+    image: ${IMAGE_NAME}:${IMAGE_TAG}
     container_name: iapp
     restart: unless-stopped
     ports:
