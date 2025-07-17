@@ -1,0 +1,85 @@
+name: deploy API
+description: reusable docker compose deployment workflow for this project
+
+on:
+  workflow_call:
+    inputs:
+      tag:
+        description: 'Tag of Docker Image to deploy'
+        required: true
+        type: string
+      host:
+        description: 'Remote host to deploy to'
+        required: true
+        type: string
+
+env:
+  IMAGE_NAME: 'iexechub/iexec-iapp-api'
+
+jobs:
+  deploy:
+    runs-on:
+      group: Azure_runners
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify SSH key exists on runner
+        run: |
+          if [ ! -f ~/.ssh/ghrunnerci ]; then
+            echo "SSH key not found at ~/.ssh/ghrunnerci on the runner"
+            exit 1
+          fi
+          chmod 600 ~/.ssh/ghrunnerci
+        shell: bash
+
+      - name: Add remote host to known_hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan ${{ inputs.host }} >> ~/.ssh/known_hosts
+          chmod 644 ~/.ssh/known_hosts
+        shell: bash
+
+      - name: Check for docker-compose.yml in workspace
+        run: |
+          if [ ! -f ./api/docker-compose.yml ]; then
+            echo "docker-compose.yml not found in the repository"
+            exit 1
+          fi
+        shell: bash
+
+      - name: Check image exists on Docker registry
+        run: |
+          if ! docker manifest inspect "${{ env.IMAGE_NAME }}:${{ inputs.tag }}"; then
+            echo "Docker image ${{ env.IMAGE_NAME }}:${{ inputs.tag }} not found on Docker registry"
+            exit 1
+          fi
+        shell: bash
+
+      - name: Prepare .env for Compose
+        run: |
+          printf "IMAGE_NAME=%s\nIMAGE_TAG=%s\n" "${{ env.IMAGE_NAME }}" "${{ inputs.tag }}"> .env
+        shell: bash
+
+      - name: Copy files to remote server
+        run: |
+          scp -o StrictHostKeyChecking=no \
+              -i ~/.ssh/ghrunnerci \
+              ./api/docker-compose.yml ./.env \
+              ${{ inputs.host }}:/opt/iapp-api/
+        shell: bash
+
+      - name: Run Docker Compose on remote server
+        run: |
+          ssh -o StrictHostKeyChecking=no \
+              -i ~/.ssh/ghrunnerci \
+              ${{ inputs.host }} << 'EOF'
+            cd /opt/iapp-api
+            docker compose pull
+            docker compose down --remove-orphans
+            sleep 5
+            docker compose up -d
+          EOF
+        shell: bash

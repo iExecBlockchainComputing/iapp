@@ -27,8 +27,8 @@ jobs:
   docker-publish:
     uses: iExecBlockchainComputing/github-actions-workflows/.github/workflows/docker-build.yml@docker-build-v2.3.1
     with:
-      image-name: 'iexec-iapp-api'
-      registry: 'docker-regis.iex.ec'
+      image-name: 'iexechub/iexec-iapp-api'
+      registry: 'docker.io'
       dockerfile: 'api/Dockerfile'
       context: 'api'
       security-scan: true
