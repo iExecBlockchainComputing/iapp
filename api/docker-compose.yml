@@ -1,12 +1,30 @@
 services:
-  iapp-api:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    image: iapp-api
-    container_name: iapp-api
+  iapp:
+    image: ${IMAGE_NAME}:${TAG}
+    container_name: iapp
+    restart: unless-stopped
     ports:
       - '3000:3000'
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - ./.env:/app/.env
+      # .env.app already on the server
+      - ./.env.app:/app/.env
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:3000/health']
+      interval: 30s
+      timeout: 1m
+      retries: 3
+      start_period: 20s
+    labels:
+      - autoheal=true
+
+  autoheal:
+    image: willfarrell/autoheal:1.2.0
+    container_name: autoheal
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    restart: unless-stopped
+    environment:
+      - AUTOHEAL_START_PERIOD=20
+      - AUTOHEAL_INTERVAL=30
+      - AUTOHEAL_ONLY_MONITOR_RUNNING=true

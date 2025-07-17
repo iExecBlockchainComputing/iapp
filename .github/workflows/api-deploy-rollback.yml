@@ -1,0 +1,19 @@
+name: API deploy rollback
+description: Rollback the API deployment to a previous version
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version Tag to rollback to'
+        required: true
+        type: string
+
+jobs:
+  deploy:
+    if: ${{ github.ref_name == 'main' }}
+    uses: ./.github/workflows/reusable-api-deploy.yml
+    with:
+      tag: ${{ inputs.version }}
+    secrets:
+      host: ${{ secrets.API_HOST }}

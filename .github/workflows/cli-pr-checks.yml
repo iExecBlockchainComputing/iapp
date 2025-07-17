@@ -1,0 +1,51 @@
+name: CLI PR checks
+description: check the CLI PR
+
+on:
+  pull_request:
+    paths: ['cli/**']
+
+concurrency:
+  group: ${{ github.ref }}-cli-pr-checks
+  cancel-in-progress: true
+
+jobs:
+  check-code:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: 'cli/package-lock.json'
+
+      - name: Install dependencies
+        working-directory: cli
+        run: npm ci
+
+      - name: Build
+        working-directory: cli
+        run: npm run build
+
+      - name: Check format
+        working-directory: cli
+        run: npm run check-format
+
+      - name: Lint
+        working-directory: cli
+        run: npm run lint
+
+      - name: Test no crash
+        working-directory: cli
+        run: |
+          npm i -g .
+          iapp -h
+
+  npm-dry-run:
+    uses: ./.github/workflows/reusable-cli-npm.yml
+    with:
+      dry-run: true
