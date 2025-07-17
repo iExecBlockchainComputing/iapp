@@ -8,10 +8,10 @@ on:
         description: 'Tag of Docker Image to deploy'
         required: true
         type: string
+    secrets:
       host:
         description: 'Remote host to deploy to'
         required: true
-        type: string
 
 env:
   IMAGE_NAME: 'iexechub/iexec-iapp-api'
