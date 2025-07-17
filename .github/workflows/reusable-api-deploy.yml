@@ -38,7 +38,7 @@ jobs:
       - name: Add remote host to known_hosts
         run: |
           mkdir -p ~/.ssh
-          ssh-keyscan ${{ inputs.host }} >> ~/.ssh/known_hosts
+          ssh-keyscan ${{ secrets.host }} >> ~/.ssh/known_hosts
           chmod 644 ~/.ssh/known_hosts
         shell: bash
 
@@ -68,14 +68,14 @@ jobs:
           scp -o StrictHostKeyChecking=no \
               -i ~/.ssh/ghrunnerci \
               ./api/docker-compose.yml ./.env \
-              ${{ inputs.host }}:/opt/iapp-api/
+              ${{ secrets.host }}:/opt/iapp-api/
         shell: bash
 
       - name: Run Docker Compose on remote server
         run: |
           ssh -o StrictHostKeyChecking=no \
               -i ~/.ssh/ghrunnerci \
-              ${{ inputs.host }} << 'EOF'
+              ${{ secrets.host }} << 'EOF'
             cd /opt/iapp-api
             docker compose pull
             docker compose down --remove-orphans
