@@ -16,8 +16,8 @@ type IAppConfig = {
   template?: string;
   dockerhubUsername?: string;
   dockerhubAccessToken?: string;
-  walletAddress?: string;
   walletPrivateKey?: string;
+  walletFileName?: string;
   appSecret?: string | null;
 };
 
@@ -55,8 +55,8 @@ const jsonConfigFileSchema = z.object({
     .default('JavaScript'),
   dockerhubUsername: z.string().optional(),
   dockerhubAccessToken: z.string().optional(),
-  walletAddress: z.string().optional(),
   walletPrivateKey: z.string().optional(),
+  walletFileName: z.string().optional(),
   appSecret: z.string().optional().nullable(), // can be null or string (null means do no use secret)
 });
 

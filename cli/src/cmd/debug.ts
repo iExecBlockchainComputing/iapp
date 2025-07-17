@@ -1,5 +1,5 @@
 import { ethers } from 'ethers';
-import { askForWalletPrivateKey } from '../cli-helpers/askForWalletPrivateKey.js';
+import { askForWallet } from '../cli-helpers/askForWallet.js';
 import { getIExecDebug } from '../utils/iexec.js';
 import { getSpinner } from '../cli-helpers/spinner.js';
 import * as color from '../cli-helpers/color.js';
@@ -25,10 +25,10 @@ export async function debug({
     const chainName = chain || defaultChain;
     const chainConfig = getChainConfig(chainName);
     spinner.info(`Using chain ${chainName}`);
-    const walletPrivateKey = await askForWalletPrivateKey({ spinner });
+    const signer = await askForWallet({ spinner });
     const iexec = getIExecDebug({
       ...chainConfig,
-      privateKey: walletPrivateKey,
+      signer,
     });
 
     spinner.start('Fetching logs from worker...');

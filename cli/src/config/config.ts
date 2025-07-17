@@ -1,3 +1,5 @@
+import { useExperimentalNetworks } from '../utils/featureFlags.js';
+
 export const SCONE_TAG = ['tee', 'scone'];
 export const DEFAULT_SCONE_VERSION = 'v5.9';
 
@@ -72,7 +74,6 @@ type ChainConfig = {
   smsDebugUrl: string;
   ipfsGatewayUrl: string;
   iexecExplorerUrl: string;
-  workerpoolProd: string;
   workerpoolDebug: string;
 };
 
@@ -85,8 +86,16 @@ export const CHAINS_CONFIGURATIONS: Record<string, ChainConfig> = {
     ipfsGatewayUrl: 'https://ipfs-gateway.v8-bellecour.iex.ec',
     iexecExplorerUrl: 'https://explorer.iex.ec/bellecour',
     workerpoolDebug: 'debug-v8-learn.main.pools.iexec.eth',
-    workerpoolProd: 'prod-v8-learn.main.pools.iexec.eth',
   },
+  ...(useExperimentalNetworks && {
+    'arbitrum-sepolia-testnet': {
+      rpcHostUrl: 'https://sepolia-rollup.arbitrum.io/rpc',
+      smsDebugUrl: 'https://sms.arbitrum-sepolia-testnet.iex.ec',
+      ipfsGatewayUrl: 'https://ipfs-gateway.arbitrum-sepolia-testnet.iex.ec',
+      iexecExplorerUrl: 'https://explorer.iex.ec/arbitrum-sepolia-testnet',
+      workerpoolDebug: '0x39C3CdD91A7F1c4Ed59108a9da4E79dE9A1C1b59',
+    },
+  }),
 };
 
 export const SUPPORTED_CHAINS = Object.keys(CHAINS_CONFIGURATIONS);
