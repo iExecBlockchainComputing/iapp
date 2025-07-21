@@ -12,7 +12,7 @@ import {
 } from '../utils/keystore.js';
 import { AbortError } from '../utils/errors.js';
 
-async function walletFromPrivateKey(spinner: Spinner) {
+async function createWalletFromPrivateKey(spinner: Spinner) {
   const { answer } = await spinner.prompt({
     type: 'password',
     name: 'answer',
@@ -24,7 +24,7 @@ async function walletFromPrivateKey(spinner: Spinner) {
     wallet = new Wallet(answer);
   } catch {
     spinner.log(color.error('Invalid wallet private key'));
-    return walletFromPrivateKey(spinner);
+    return createWalletFromPrivateKey(spinner);
   }
   return wallet;
 }
@@ -113,52 +113,15 @@ async function walletToPrivateKeyInConfig({
   spinner.log(`walletPrivateKey saved to ${color.file(CONFIG_FILE)}`);
 }
 
-export async function askForWallet({
+async function askSaveWallet({
   spinner,
-  importWallet = false,
+  wallet,
+  forceSave = false,
 }: {
   spinner: Spinner;
-  importWallet?: boolean;
-}): Promise<AbstractSigner> {
-  const config = await readIAppConfig();
-
-  const { walletPrivateKey, walletFileName } = config;
-  if (!importWallet) {
-    if (walletPrivateKey) {
-      try {
-        const wallet = new Wallet(walletPrivateKey);
-        spinner.log(
-          `Using saved walletPrivateKey ${color.comment(`(from ${color.file(CONFIG_FILE)})`)}`
-        );
-        return wallet;
-      } catch {
-        spinner.warn(
-          `Invalid walletPrivateKey ${color.comment(`(in ${color.file(CONFIG_FILE)})`)}`
-        );
-      }
-    } else if (walletFileName) {
-      try {
-        spinner.log(
-          `Using wallet ${color.file(walletFileName)} ${color.comment(`(from ${color.file(KEYSTORE_PATH)})`)}`
-        );
-        const { address, isEncrypted } = await loadWalletInfoFromKeystore({
-          walletFileName,
-        });
-        if (address && isEncrypted) {
-          const wallet = await walletFromKeystore({ spinner, walletFileName });
-          return wallet;
-        }
-      } catch (e) {
-        if (e instanceof AbortError) throw e;
-        spinner.warn(
-          `Invalid walletFileName ${color.comment(`(in ${color.file(CONFIG_FILE)})`)}`
-        );
-      }
-    }
-  }
-
-  const wallet = await walletFromPrivateKey(spinner);
-
+  wallet: Wallet;
+  forceSave?: boolean;
+}) {
   const { saveWalletAnswer } = await spinner.prompt([
     {
       type: 'select',
@@ -176,7 +139,7 @@ export async function askForWallet({
           value: 'config',
           description: `plain text private key in ${CONFIG_FILE}`,
         },
-        ...(!importWallet
+        ...(!forceSave
           ? [
               {
                 title: 'do not save',
@@ -192,5 +155,64 @@ export async function askForWallet({
   } else if (saveWalletAnswer === 'keystore') {
     await walletToKeyStore({ spinner, wallet });
   }
+}
+
+export async function askForWallet({
+  spinner,
+}: {
+  spinner: Spinner;
+}): Promise<AbstractSigner> {
+  const config = await readIAppConfig();
+
+  // try loading wallet from config
+  const { walletPrivateKey, walletFileName } = config;
+  if (walletPrivateKey) {
+    try {
+      const wallet = new Wallet(walletPrivateKey);
+      spinner.log(
+        `Using saved walletPrivateKey ${color.comment(`(from ${color.file(CONFIG_FILE)})`)}`
+      );
+      return wallet;
+    } catch {
+      spinner.warn(
+        `Invalid walletPrivateKey ${color.comment(`(in ${color.file(CONFIG_FILE)})`)}`
+      );
+    }
+  } else if (walletFileName) {
+    try {
+      spinner.log(
+        `Using wallet ${color.file(walletFileName)} ${color.comment(`(from ${color.file(KEYSTORE_PATH)})`)}`
+      );
+      const { address, isEncrypted } = await loadWalletInfoFromKeystore({
+        walletFileName,
+      });
+      if (address && isEncrypted) {
+        const wallet = await walletFromKeystore({ spinner, walletFileName });
+        return wallet;
+      }
+    } catch (e) {
+      if (e instanceof AbortError) throw e;
+      spinner.warn(
+        `Invalid walletFileName ${color.comment(`(in ${color.file(CONFIG_FILE)})`)}`
+      );
+    }
+  }
+
+  // if no wallet is found in config, ask for a new one
+  const wallet = await createWalletFromPrivateKey(spinner);
+  await askSaveWallet({
+    spinner,
+    wallet,
+  });
+  return wallet;
+}
+
+export async function askForImportWallet({
+  spinner,
+}: {
+  spinner: Spinner;
+}): Promise<AbstractSigner> {
+  const wallet = await createWalletFromPrivateKey(spinner);
+  await askSaveWallet({ spinner, wallet, forceSave: true }); // always save when importing
   return wallet;
 }

@@ -1,4 +1,4 @@
-import { askForWallet } from '../cli-helpers/askForWallet.js';
+import { askForImportWallet } from '../cli-helpers/askForWallet.js';
 import { handleCliError } from '../cli-helpers/handleCliError.js';
 import { getSpinner } from '../cli-helpers/spinner.js';
 import * as color from '../cli-helpers/color.js';
@@ -9,7 +9,7 @@ export async function walletImport() {
   try {
     spinner.text = 'Importing wallet';
     await warnBeforeDeletePrivateKey({ spinner });
-    const signer = await askForWallet({ spinner, importWallet: true });
+    const signer = await askForImportWallet({ spinner });
     const address = await signer.getAddress();
     spinner.succeed(`Imported wallet ${color.emphasis(address)}`);
   } catch (error) {
