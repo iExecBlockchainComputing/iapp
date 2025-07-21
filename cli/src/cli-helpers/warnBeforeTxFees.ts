@@ -12,7 +12,7 @@ export async function warnBeforeTxFees({
     await askForAcknowledgment({
       spinner,
       message:
-        'This method requires sending blockchain transactions, transaction fees may be applied. Would you like to continue?',
+        'This method requires sending blockchain transactions, transaction fees will be applied. Would you like to continue?',
     });
   }
 }
