@@ -185,7 +185,7 @@ yargsInstance
     describe: 'Manage wallet',
     builder: (y) =>
       y.positional('action', {
-        describe: 'Import a new wallet or select existing one',
+        describe: 'Import a new wallet or select one from the keystore',
         choices: ['import', 'select'],
       }),
     handler: (y) => {
