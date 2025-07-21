@@ -5,6 +5,7 @@ import { inspectImage } from './inspectImage.js';
 import { pruneBuilderCache } from './pruneBuilderCache.js';
 import { pullSconeImage } from './pullSconeImage.js';
 import { removeContainer } from './removeContainer.js';
+import { join } from 'node:path';
 
 const docker = new Docker();
 
@@ -58,9 +59,13 @@ export async function sconifyImage({
       '--no-color',
       '--verbose',
       `--command=${entrypoint}`,
+      `--scone-signer=/sig/enclave-key.pem`,
     ],
     HostConfig: {
-      Binds: ['/var/run/docker.sock:/var/run/docker.sock'],
+      Binds: [
+        '/var/run/docker.sock:/var/run/docker.sock',
+        `${join(process.cwd(), 'sig/enclave-key.pem')}:/sig/enclave-key.pem`, // mount signing key
+      ],
     },
   });
 

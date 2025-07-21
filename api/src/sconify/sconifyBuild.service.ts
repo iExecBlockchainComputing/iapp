@@ -168,7 +168,7 @@ export async function sconify({
 
   const imageRepo = `${dockerUserName}/${imageName}`;
   const sconifiedImageShortId = sconifiedImageId.substring(7, 7 + 12); // extract 12 first chars after the leading "sha256:"
-  const sconifiedImageTag = `${imageTag}-tee-scone-${sconifyVersion}-debug-${sconifiedImageShortId}`; // add digest in tag to avoid replacing previous build
+  const sconifiedImageTag = `${imageTag}-tee-scone-${sconifyVersion}-prod-${sconifiedImageShortId}`; // add digest in tag to avoid replacing previous build
   const sconifiedImage = `${imageRepo}:${sconifiedImageTag}`;
 
   let pushed;
