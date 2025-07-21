@@ -1,7 +1,8 @@
 import { v4 as uuidV4 } from 'uuid';
 import { ethers } from 'ethers';
+import { utils } from 'iexec';
 import { mkdir, rm } from 'node:fs/promises';
-import { askForWalletPrivateKey } from '../cli-helpers/askForWalletPrivateKey.js';
+import { askForWallet } from '../cli-helpers/askForWallet.js';
 import {
   SCONE_TAG,
   RUN_OUTPUT_DIR,
@@ -19,6 +20,9 @@ import { IExec } from 'iexec';
 import { getChainConfig, readIAppConfig } from '../utils/iAppConfigFile.js';
 import { getIExecTdx, WORKERPOOL_TDX } from '../utils/tdx-poc.js';
 import { useTdx } from '../utils/featureFlags.js';
+import { ensureBalances } from '../cli-helpers/ensureBalances.js';
+import { askForAcknowledgment } from '../cli-helpers/askForAcknowledgment.js';
+import { warnBeforeTxFees } from '../cli-helpers/warnBeforeTxFees.js';
 
 export async function run({
   iAppAddress,
@@ -74,6 +78,7 @@ export async function runInDebug({
   const chainName = chain || defaultChain;
   const chainConfig = getChainConfig(chainName);
   spinner.info(`Using chain ${chainName}`);
+  await warnBeforeTxFees({ spinner, chain: chainConfig.name });
 
   // Is valid iApp address
   if (!ethers.isAddress(iAppAddress)) {
@@ -92,16 +97,16 @@ export async function runInDebug({
   }
 
   // Get wallet from privateKey
-  const walletPrivateKey = await askForWalletPrivateKey({ spinner });
-  const wallet = new ethers.Wallet(walletPrivateKey);
+  const signer = await askForWallet({ spinner });
+  const userAddress = await signer.getAddress();
 
   let iexec: IExec;
   if (useTdx) {
-    iexec = getIExecTdx({ ...chainConfig, privateKey: walletPrivateKey });
+    iexec = getIExecTdx({ ...chainConfig, signer });
   } else {
     iexec = getIExecDebug({
       ...chainConfig,
-      privateKey: walletPrivateKey,
+      signer,
     });
   }
 
@@ -142,6 +147,7 @@ export async function runInDebug({
     );
     spinner.succeed('Requester secrets provisioned');
   }
+
   // Workerpool Order
   spinner.start('Fetching workerpool order...');
   const workerpoolOrderbook = await iexec.orderbook.fetchWorkerpoolOrderbook({
@@ -160,10 +166,10 @@ export async function runInDebug({
   spinner.succeed('Workerpool order fetched');
 
   // App Order
-  spinner.start('Creating and publishing app order...');
+  spinner.start('Creating app order...');
   const apporderTemplate = await iexec.order.createApporder({
     app: iAppAddress,
-    requesterrestrict: wallet.address,
+    requesterrestrict: userAddress,
     tag: SCONE_TAG,
   });
   const apporder = await iexec.order.signApporder(apporderTemplate);
@@ -178,7 +184,7 @@ export async function runInDebug({
       {
         app: iAppAddress,
         workerpool: workerpoolorder.workerpool,
-        requester: wallet.address,
+        requester: userAddress,
         minTag: SCONE_TAG,
         maxTag: SCONE_TAG,
       }
@@ -192,7 +198,7 @@ export async function runInDebug({
     spinner.succeed('ProtectedData access found');
   }
 
-  spinner.start('Creating and publishing request order...');
+  spinner.start('Creating request order...');
   const requestorderToSign = await iexec.order.createRequestorder({
     app: iAppAddress,
     category: workerpoolorder.category,
@@ -209,15 +215,43 @@ export async function runInDebug({
     },
   });
   const requestorder = await iexec.order.signRequestorder(requestorderToSign);
-  spinner.succeed('RequestOrder created and published');
+  spinner.succeed('RequestOrder created');
 
-  spinner.start('Matching orders...');
-  const { dealid, txHash } = await iexec.order.matchOrders({
+  const matchOrderParams = {
     apporder,
     datasetorder: protectedData ? datasetorder : undefined,
     workerpoolorder,
     requestorder,
+  };
+
+  spinner.start('Checking balances...');
+  const { total, sponsored } =
+    await iexec.order.estimateMatchOrders(matchOrderParams);
+  const priceToPay = total.sub(sponsored);
+  const balances = await ensureBalances({
+    spinner,
+    iexec,
+    nRlcMin: priceToPay,
   });
+
+  if (!priceToPay.isZero()) {
+    await askForAcknowledgment({
+      spinner,
+      message: `You will spend ${utils.formatRLC(priceToPay)} RLC to run your iApp. Would you like to continue?`,
+    });
+  }
+
+  if (balances.stake.lt(priceToPay)) {
+    const toDeposit = priceToPay.sub(balances.stake);
+    await askForAcknowledgment({
+      spinner,
+      message: `Current account stake is ${utils.formatRLC(balances.stake)} RLC, you need to deposit an additional ${utils.formatRLC(toDeposit)} RLC from your wallet. Would you like to continue?`,
+    });
+    await iexec.account.deposit(toDeposit);
+  }
+
+  spinner.start('Matching orders...');
+  const { dealid, txHash } = await iexec.order.matchOrders(matchOrderParams);
   const taskid = await iexec.deal.computeTaskId(dealid, 0);
   await addRunData({ iAppAddress, dealid, taskid, txHash, chainName });
   spinner.succeed(
@@ -299,4 +333,5 @@ async function cleanRunOutput({
   spinner.start('Cleaning output directory...');
   await rm(outputFolder, { recursive: true, force: true });
   await mkdir(outputFolder);
+  spinner.reset();
 }

@@ -72,6 +72,7 @@ async function cleanTestInput({ spinner }: { spinner: Spinner }) {
   spinner.start('Cleaning input directory...');
   await rm(TEST_INPUT_DIR, { recursive: true, force: true });
   await mkdir(TEST_INPUT_DIR);
+  spinner.reset();
 }
 
 async function cleanTestOutput({ spinner }: { spinner: Spinner }) {
@@ -79,6 +80,7 @@ async function cleanTestOutput({ spinner }: { spinner: Spinner }) {
   spinner.start('Cleaning output directory...');
   await rm(TEST_OUTPUT_DIR, { recursive: true, force: true });
   await mkdir(TEST_OUTPUT_DIR);
+  spinner.reset();
 }
 
 function parseArgsString(args = '') {
