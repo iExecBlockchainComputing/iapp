@@ -1,6 +1,6 @@
 {
   "name": "@iexec/iapp",
-  "version": "1.0.0-beta.2",
+  "version": "1.0.0-beta.3",
   "description": "A CLI to guide you through the process of building an iExec iApp",
   "main": "dist/index.js",
   "type": "module",
