@@ -93,7 +93,7 @@ export const CHAINS_CONFIGURATIONS: Record<string, ChainConfig> = {
       smsDebugUrl: 'https://sms.arbitrum-sepolia-testnet.iex.ec',
       ipfsGatewayUrl: 'https://ipfs-gateway.arbitrum-sepolia-testnet.iex.ec',
       iexecExplorerUrl: 'https://explorer.iex.ec/arbitrum-sepolia-testnet',
-      workerpoolDebug: '0x39C3CdD91A7F1c4Ed59108a9da4E79dE9A1C1b59',
+      workerpoolDebug: '0xB967057a21dc6A66A29721d96b8Aa7454B7c383F',
     },
   }),
 };
