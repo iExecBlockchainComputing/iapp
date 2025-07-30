@@ -87,6 +87,13 @@ export const CHAINS_CONFIGURATIONS: Record<string, ChainConfig> = {
     iexecExplorerUrl: 'https://explorer.iex.ec/bellecour',
     workerpoolDebug: 'debug-v8-learn.main.pools.iexec.eth',
   },
+  'arbitrum-mainnet': {
+    rpcHostUrl: 'https://arb1.arbitrum.io/rpc',
+    smsDebugUrl: 'https://sms-debug.arbitrum-mainnet.iex.ec',
+    ipfsGatewayUrl: 'https://ipfs-gateway.arbitrum-mainnet.iex.ec',
+    iexecExplorerUrl: 'https://explorer.iex.ec/arbitrum-mainnet',
+    workerpoolDebug: 'TODO', // TODO: Update with actual debug workerpool address
+  },
   ...(useExperimentalNetworks && {
     'arbitrum-sepolia-testnet': {
       rpcHostUrl: 'https://sepolia-rollup.arbitrum.io/rpc',
