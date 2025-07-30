@@ -14,7 +14,7 @@ export type SconeVersion = 'v5' | 'v5.9';
 
 export const SCONIFY_IMAGE_VERSIONS: Record<SconeVersion, string> = {
   v5: '5.7.6-v15',
-  'v5.9': '5.9.0-v15',
+  'v5.9': '5.9.1-v16',
 };
 
 // This SCONIFY_IMAGE depends on Linux alpine:3.15
