@@ -102,10 +102,17 @@ Options:
 Command:
 
 ```sh
-iapp deploy
+iapp deploy [--chain <input>]
 ```
 
 Description: Deploy your iApp on the iExec protocol in debug mode.
+
+Options:
+
+- use `--chain` Specify the blockchain on which the iApp will be deployed (overrides defaultChain configuration which is `bellecour`). Possible values are `bellecour|arbitrum-sepolia-testnet|arbitrum-mainnet`
+
+> [!IMPORTANT]
+> To use a chain other than `bellecour`, you must pass (or set in your system) `EXPERIMENTAL_NETWORKS=true` before the `iApp` command.
 
 ---
 
@@ -114,7 +121,7 @@ Description: Deploy your iApp on the iExec protocol in debug mode.
 Command:
 
 ```sh
-iapp run <iApp-address> [--args <input>] [--protectedData <protectedData-address>] [--inputFile <url...>]
+iapp run <iApp-address> [--args <input>] [--protectedData <protectedData-address>] [--inputFile <url...>] [--chain <input>]
 ```
 
 Description: Run your deployed iApp. Provide the address of your iApp
@@ -135,3 +142,48 @@ Options:
   [protected data](https://protocol.docs.iex.ec/for-developers/technical-references/application-io#protected-data),
   include the `--protectedData` option followed by the address of the protected
   data.
+- use `--chain` Specify the blockchain on which the iApp will be deployed (overrides defaultChain configuration which is `bellecour`). Possible values are `bellecour|arbitrum-sepolia-testnet|arbitrum-mainnet`
+
+> [!IMPORTANT]
+> To use a chain other than `bellecour`, you must pass (or set in your system) `EXPERIMENTAL_NETWORKS=true` before the `iApp` command.
+
+---
+
+### `debug`
+
+Command:
+
+```sh
+iapp debug <taskId>
+```
+
+Description: Retrieve detailed execution logs from worker nodes for a specific task.
+
+---
+
+### `mock`
+
+Command:
+
+```sh
+iapp mock <inputType>
+```
+
+Description: Create a mocked input for test.
+
+---
+
+### `wallet`
+
+Command:
+
+```sh
+iapp wallet <action>
+```
+
+Description: Manage wallet.
+
+Options for  `<action>` :
+
+- `import` import a new wallet by providing a private key.
+- `select` select a wallet from your personnal keystore.
