@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.0.0-beta.4](https://github.com/iExecBlockchainComputing/iapp/compare/iapp-v1.0.0-beta.3...iapp-v1.0.0-beta.4) (2025-08-08)
+
+
+### Added
+
+* add support for arbitrum-mainnet ([#221](https://github.com/iExecBlockchainComputing/iapp/issues/221)) ([60b339c](https://github.com/iExecBlockchainComputing/iapp/commit/60b339cb29df8f13922ccb9f48fd9bc5356bd252))
+* add support for arbitrum-mainnet (WIP) ([bdb5685](https://github.com/iExecBlockchainComputing/iapp/commit/bdb5685f8efe768036e2cd224587396f93e9b5e8))
+
 ## [1.0.0-beta.3](https://github.com/iExecBlockchainComputing/iapp/compare/iapp-v1.0.0-beta.2...iapp-v1.0.0-beta.3) (2025-07-29)
 
 
