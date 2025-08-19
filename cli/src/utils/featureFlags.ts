@@ -1,6 +1,5 @@
 import chalk from 'chalk';
 
-export const useWsApi = checkFlag('EXPERIMENTAL_WS_API');
 export const useTdx = checkFlag('EXPERIMENTAL_TDX_APP');
 export const useExperimentalNetworks = checkFlag('EXPERIMENTAL_NETWORKS');
 
