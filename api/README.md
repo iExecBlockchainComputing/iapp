@@ -2,18 +2,27 @@
 
 This API is a Node.js server that will be running on a Linux VM.
 
-It is composed of one endpoint:
+It is composed of:
 
-- `/sconify`:
+- HTTP endpoints:
 
-  - Takes a public dockerhub image as input and a user auth token with push
-    access to the image's repo in order to push the sconified image,
-  - builds a sconified image out of it,
-  - publishes it to dockerhub with tag suffix,
-  - deploys an app contract on Bellecour.
+  - 🟢 `GET /`: will return a simple text (mostly to check if the server is
+    running)
+  - 🟢 `GET /health`: will return a JSON object with the health status of the
+    server and the version of the API.
+  - 🟠 `POST /sconify`: deprecated, use Websocket API request `SCONIFY_BUILD`
+    instead.
+  - 🟠 `POST /sconify/build`: deprecated, use Websocket API request
+    `SCONIFY_BUILD` instead.
 
-- `/` or any other endpoint: will return a simple text (mostly to check if the
-  server is running)
+- Websocket API requests:
+  - 🟢 `SCONIFY_BUILD`: will take a dockerhub image and return a
+    `sconifiedImage` and `appContractAddress` in the response.
+    - Takes a public dockerhub image as input and a user auth token with push
+      access to the image's repo in order to push the sconified image
+    - builds a sconified image out of it
+    - publishes it to dockerhub with tag suffix
+  - 🟠 `SCONIFY`: deprecated, use `SCONIFY_BUILD` instead.
 
 ## Prerequisites
 
