@@ -8,6 +8,7 @@ import {
 import { ethereumAddressZodSchema } from '../utils/ethereumAddressZodSchema.js';
 import { sconify } from './sconifyBuild.service.js';
 import type { Request, Response } from 'express';
+import { logger } from '../utils/logger.js';
 
 const bodySchema = z.object({
   yourWalletPublicAddress: ethereumAddressZodSchema,
@@ -51,6 +52,13 @@ async function handleSconifyRequest(requestObj: object) {
       }),
     });
   }
+  if (template === 'Python') {
+    logger.warn('Deprecated feature hit: template === "Python"');
+  }
+  if (sconeVersion === 'v5') {
+    logger.warn('Deprecated feature hit: sconeVersion === "v5"');
+  }
+
   const { dockerImage, dockerImageDigest, fingerprint, entrypoint } =
     await sconify({
       dockerImageToSconify: dockerhubImageToSconify,
@@ -85,7 +93,11 @@ export async function sconifyBuildWsHandler(message: object) {
   };
 }
 
-export async function sconifyBuildHttpHandler(req: Request, res: Response) {
+export async function deprecated_sconifyBuildHttpHandler(
+  req: Request,
+  res: Response
+) {
+  logger.warn('Deprecated feature hit: POST /sconify/build');
   const {
     dockerImage,
     dockerImageDigest,

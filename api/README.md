@@ -41,3 +41,14 @@ npm run start
 ```sh
 npm run dev:pretty
 ```
+
+## deprecations
+
+- `POST /sconify` is deprecated, websocket API request `SCONIFY_BUILD` should be
+  used instead.
+- `POST /sconify/build` is deprecated, websocket API request `SCONIFY_BUILD`
+  should be used instead.
+- websocket API request `SCONIFY` is deprecated, websocket API request
+  `SCONIFY_BUILD` should be used instead.
+- template `Python` is deprecated, template `Python3.13` should be used instead.
+- sconeVersion `v5` is deprecated, sconeVersion `v5.9` should be used instead.
