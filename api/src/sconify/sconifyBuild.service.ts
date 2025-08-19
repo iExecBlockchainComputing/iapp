@@ -143,7 +143,6 @@ export async function sconify({
     sconifiedImageId = await sconifyImage({
       fromImage: dockerImageToSconify,
       sconifyVersion,
-      entrypoint: appEntrypoint,
       binary: configTemplate.binary,
       prod: sconeProd,
     });

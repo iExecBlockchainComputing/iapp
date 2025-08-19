@@ -131,7 +131,6 @@ export async function deprecated_sconify({
     sconifiedImageId = await sconifyImage({
       fromImage: dockerImageToSconify,
       sconifyVersion,
-      entrypoint: appEntrypoint,
       binary: configTemplate.binary,
     });
     logger.info({ sconifiedImageId }, 'Sconified successfully');

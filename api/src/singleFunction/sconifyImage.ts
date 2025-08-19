@@ -15,7 +15,6 @@ const docker = new Docker();
 export async function sconifyImage({
   fromImage,
   sconifyVersion,
-  entrypoint,
   binary,
   prod = false,
 }: {
@@ -28,10 +27,6 @@ export async function sconifyImage({
    */
   sconifyVersion: string;
   /**
-   * command to run the app (whitelisted)
-   */
-  entrypoint: string;
-  /**
    * whitelisted binary
    */
   binary: string;
@@ -41,7 +36,7 @@ export async function sconifyImage({
   prod?: boolean;
 }): Promise<string> {
   logger.info(
-    { fromImage, entrypoint },
+    { fromImage },
     `Running sconify command in ${prod ? 'prod' : 'debug'} mode...`
   );
   const sconifierImage = `${SCONIFY_IMAGE_NAME}:${sconifyVersion}`;
@@ -65,7 +60,6 @@ export async function sconifyImage({
     '--dlopen=1',
     '--no-color',
     '--verbose',
-    `--command=${entrypoint}`,
   ];
 
   const baseBinds = ['/var/run/docker.sock:/var/run/docker.sock'];
