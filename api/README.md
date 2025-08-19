@@ -29,14 +29,27 @@ The API is composed of:
 - Node 20
 - docker installed locally with support for linux/amd64 architecture (either
   native or emulated)
-- Scontain account whit pull access to docker repository
+- Scontain account with pull access to docker repository
   `registry.scontain.com/scone-production/iexec-sconify-image`
+- An enclave signing key to sign Scone production images
 
 Create a `.env` file see [`.env.template`](.env.template)
 
 ```sh
 cp .env.template .env
 # fill in the .env file
+```
+
+Create or provide your own enclave signing key in `sig/enclave-key.pem` to sign
+Scone production images
+
+> The enclave signing key should be a PEM formatted RSA key 3072 bits
+>
+> A valid signing key can be generated with openssl by running
+> `openssl genrsa -3 3072`
+
+```sh
+npm run ensure-signing-key
 ```
 
 ## run locally
