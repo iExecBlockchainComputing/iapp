@@ -9,10 +9,10 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       # .env.app already on the server
       - ./.env.app:/app/.env:ro
-      # enclave key already on the server in sig/enclave-key.pem
-      - ./sig/:/app/sig/:ro
     environment:
       - LOG_LEVEL=${LOG_LEVEL:-info}
+      # enclave key already on the server in sig/enclave-key.pem
+      - ENCLAVE_KEY_PATH=${ENCLAVE_KEY_PATH}
     healthcheck:
       test: ['CMD', 'curl', '-f', 'http://localhost:3000/health']
       interval: 30s

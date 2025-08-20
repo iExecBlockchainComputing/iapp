@@ -1,5 +1,5 @@
 import { join } from 'node:path';
-import { access, constants } from 'node:fs/promises';
+
 import Docker from 'dockerode';
 import { SCONIFY_IMAGE_NAME } from '../constants/constants.js';
 import { logger } from '../utils/logger.js';
@@ -10,7 +10,8 @@ import { removeContainer } from './removeContainer.js';
 
 const docker = new Docker();
 
-const ENCLAVE_KEY_PATH = join(process.cwd(), 'sig/enclave-key.pem');
+const ENCLAVE_KEY_PATH =
+  process.env.ENCLAVE_KEY_PATH || join(process.cwd(), 'sig/enclave-key.pem');
 
 /**
  * Sconifies an iapp docker image
@@ -47,19 +48,6 @@ export async function sconifyImage({
   logger.info({ sconifierImage }, 'Pulling sconifier image...');
   await pullSconeImage(sconifierImage);
 
-  if (prod) {
-    // check signing key can be read on host
-    try {
-      await access(ENCLAVE_KEY_PATH, constants.R_OK);
-    } catch (error) {
-      logger.error(
-        { error, path: ENCLAVE_KEY_PATH },
-        'Cannot read enclave key from host'
-      );
-      throw new Error('Cannot read enclave key from host');
-    }
-  }
-
   const toImage = `${fromImage}-tmp-sconified-${Date.now()}`; // create an unique temporary identifier for the target image
   logger.info({ fromImage, toImage }, 'Sconifying...');
 
@@ -87,7 +75,7 @@ export async function sconifyImage({
       : sconifyBaseCmd,
     HostConfig: {
       Binds: prod
-        ? baseBinds.concat(`${ENCLAVE_KEY_PATH}:/sig/enclave-key.pem:ro`) // mount signing key
+        ? baseBinds.concat(`${ENCLAVE_KEY_PATH}:/sig/enclave-key.pem:ro`) // mount signing key from host
         : baseBinds,
     },
   });
