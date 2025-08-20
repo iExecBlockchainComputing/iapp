@@ -1,3 +1,5 @@
+import { join } from 'node:path';
+import { access, constants } from 'node:fs/promises';
 import Docker from 'dockerode';
 import { SCONIFY_IMAGE_NAME } from '../constants/constants.js';
 import { logger } from '../utils/logger.js';
@@ -8,14 +10,16 @@ import { removeContainer } from './removeContainer.js';
 
 const docker = new Docker();
 
+const ENCLAVE_KEY_PATH = join(process.cwd(), 'sig/enclave-key.pem');
+
 /**
  * Sconifies an iapp docker image
  */
 export async function sconifyImage({
   fromImage,
   sconifyVersion,
-  entrypoint,
   binary,
+  prod = false,
 }: {
   /**
    * image to sconify
@@ -26,41 +30,65 @@ export async function sconifyImage({
    */
   sconifyVersion: string;
   /**
-   * command to run the app (whitelisted)
-   */
-  entrypoint: string;
-  /**
    * whitelisted binary
    */
   binary: string;
+  /**
+   * sconify production flag
+   */
+  prod?: boolean;
 }): Promise<string> {
-  logger.info({ fromImage, entrypoint }, 'Running sconify command...');
+  logger.info(
+    { fromImage },
+    `Running sconify command in ${prod ? 'prod' : 'debug'} mode...`
+  );
   const sconifierImage = `${SCONIFY_IMAGE_NAME}:${sconifyVersion}`;
 
   logger.info({ sconifierImage }, 'Pulling sconifier image...');
   await pullSconeImage(sconifierImage);
 
+  if (prod) {
+    // check signing key can be read on host
+    try {
+      await access(ENCLAVE_KEY_PATH, constants.R_OK);
+    } catch (error) {
+      logger.error(
+        { error, path: ENCLAVE_KEY_PATH },
+        'Cannot read enclave key from host'
+      );
+      throw new Error('Cannot read enclave key from host');
+    }
+  }
+
   const toImage = `${fromImage}-tmp-sconified-${Date.now()}`; // create an unique temporary identifier for the target image
   logger.info({ fromImage, toImage }, 'Sconifying...');
+
+  const sconifyBaseCmd = [
+    'sconify_iexec',
+    `--from=${fromImage}`,
+    `--to=${toImage}`,
+    '--binary-fs',
+    '--fs-dir=/app',
+    '--host-path=/etc/hosts',
+    '--host-path=/etc/resolv.conf',
+    `--binary=${binary}`,
+    '--heap=1G',
+    '--dlopen=1',
+    '--no-color',
+    '--verbose',
+  ];
+
+  const baseBinds = ['/var/run/docker.sock:/var/run/docker.sock'];
+
   const sconifyContainer = await docker.createContainer({
     Image: sconifierImage,
-    Cmd: [
-      'sconify_iexec',
-      `--from=${fromImage}`,
-      `--to=${toImage}`,
-      '--binary-fs',
-      '--fs-dir=/app',
-      '--host-path=/etc/hosts',
-      '--host-path=/etc/resolv.conf',
-      `--binary=${binary}`,
-      '--heap=1G',
-      '--dlopen=1',
-      '--no-color',
-      '--verbose',
-      `--command=${entrypoint}`,
-    ],
+    Cmd: prod
+      ? sconifyBaseCmd.concat('--scone-signer=/sig/enclave-key.pem')
+      : sconifyBaseCmd,
     HostConfig: {
-      Binds: ['/var/run/docker.sock:/var/run/docker.sock'],
+      Binds: prod
+        ? baseBinds.concat(`${ENCLAVE_KEY_PATH}:/sig/enclave-key.pem:ro`) // mount signing key
+        : baseBinds,
     },
   });
 

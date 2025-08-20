@@ -11,7 +11,7 @@ import {
 import { addRunData } from '../utils/cacheExecutions.js';
 import { getSpinner, type Spinner } from '../cli-helpers/spinner.js';
 import { handleCliError } from '../cli-helpers/handleCliError.js';
-import { getIExecDebug } from '../utils/iexec.js';
+import { getIExec } from '../utils/iexec.js';
 import { extractZipToFolder } from '../utils/extractZipToFolder.js';
 import { askShowResult } from '../cli-helpers/askShowResult.js';
 import { goToProjectRoot } from '../cli-helpers/goToProjectRoot.js';
@@ -104,7 +104,7 @@ export async function runInDebug({
   if (useTdx) {
     iexec = getIExecTdx({ ...chainConfig, signer });
   } else {
-    iexec = getIExecDebug({
+    iexec = getIExec({
       ...chainConfig,
       signer,
     });
@@ -151,7 +151,7 @@ export async function runInDebug({
   // Workerpool Order
   spinner.start('Fetching workerpool order...');
   const workerpoolOrderbook = await iexec.orderbook.fetchWorkerpoolOrderbook({
-    workerpool: useTdx ? WORKERPOOL_TDX : chainConfig.workerpoolDebug,
+    workerpool: useTdx ? WORKERPOOL_TDX : chainConfig.workerpool,
     app: iAppAddress,
     dataset: protectedData || ethers.ZeroAddress,
     minTag: SCONE_TAG,

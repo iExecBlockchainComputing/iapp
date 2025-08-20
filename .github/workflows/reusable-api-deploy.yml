@@ -58,6 +58,27 @@ jobs:
           fi
         shell: bash
 
+      - name: Check configuration files on server
+        run: |
+          ssh -o StrictHostKeyChecking=no \
+              -i ~/.ssh/ghrunnerci \
+              ${{ secrets.host }} << 'EOF'
+            cd /opt/iapp-api
+            missing=0
+            if [ ! -f .env.app ]; then
+              echo ".env.app file not found on remote server"
+              missing=1
+            fi
+            if [ ! -f sig/enclave-key.pem ]; then
+              echo "sig/enclave-key.pem not found on remote server"
+              missing=1
+            fi
+            if [ "$missing" -ne 0 ]; then
+              exit 1
+            fi
+          EOF
+        shell: bash
+
       - name: Prepare .env for Compose
         run: |
           printf "IMAGE_NAME=%s\nIMAGE_TAG=%s\n" "${{ env.IMAGE_NAME }}" "${{ inputs.tag }}"> .env

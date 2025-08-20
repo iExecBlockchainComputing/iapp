@@ -8,7 +8,9 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       # .env.app already on the server
-      - ./.env.app:/app/.env
+      - ./.env.app:/app/.env:ro
+      # enclave key already on the server in sig/enclave-key.pem
+      - ./sig/:/app/sig/:ro
     healthcheck:
       test: ['CMD', 'curl', '-f', 'http://localhost:3000/health']
       interval: 30s
