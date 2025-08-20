@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.0](https://github.com/iExecBlockchainComputing/iapp/compare/iapp-api-v0.2.0...iapp-api-v0.3.0) (2025-08-20)
+
+
+### Added
+
+* migrate to Scone prod ([#224](https://github.com/iExecBlockchainComputing/iapp/issues/224)) ([e4b6277](https://github.com/iExecBlockchainComputing/iapp/commit/e4b62770ffd0df60364bdde17fbb883ced1fa7ef))
+
 ## [0.2.0](https://github.com/iExecBlockchainComputing/iapp/compare/iapp-api-v0.1.0...iapp-api-v0.2.0) (2025-08-20)
 
 
