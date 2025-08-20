@@ -22,6 +22,7 @@ import { hintBox } from '../cli-helpers/box.js';
 import { addDeploymentData } from '../utils/cacheExecutions.js';
 import { deployTdxApp, getIExecTdx } from '../utils/tdx-poc.js';
 import { useTdx } from '../utils/featureFlags.js';
+import { ensureBalances } from '../cli-helpers/ensureBalances.js';
 import { warnBeforeTxFees } from '../cli-helpers/warnBeforeTxFees.js';
 
 export async function deploy({ chain }: { chain?: string }) {
@@ -45,21 +46,8 @@ export async function deploy({ chain }: { chain?: string }) {
       iexec = getIExec({ ...chainConfig, signer });
     }
 
-    // Check balance and show warning if no RLC
-    const chainId = await iexec.config.resolveChainId();
-    const address = await iexec.wallet.getAddress();
-    const [{ nRLC }, { stake }] = await Promise.all([
-      iexec.wallet.checkBalances(address),
-      iexec.account.checkBalance(address),
-    ]);
-
-    const totalRlc = stake.add(nRLC);
-
-    if (totalRlc.isZero() && chainId !== 134) {
-      spinner.warn(
-        `⚠️  Warning: Your wallet has no RLC balance. You'll need RLC to run your iApp later. Consider funding your wallet ${address} or importing another wallet.`
-      );
-    }
+    // Check balances: always verify native assets for transaction fees, but only warn for RLC
+    await ensureBalances({ spinner, iexec, warnOnlyRlc: true });
 
     const dockerhubUsername = await askForDockerhubUsername({ spinner });
     const dockerhubAccessToken = await askForDockerhubAccessToken({ spinner });
