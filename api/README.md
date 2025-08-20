@@ -2,7 +2,7 @@
 
 This API is a Node.js server that will be running on a Linux VM.
 
-It is composed of:
+The API is composed of:
 
 - HTTP endpoints:
 
