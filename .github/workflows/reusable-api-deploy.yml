@@ -8,6 +8,10 @@ on:
         description: 'Tag of Docker Image to deploy'
         required: true
         type: string
+      logLevel:
+        description: 'Log level for the deployment'
+        default: info
+        type: string
     secrets:
       host:
         description: 'Remote host to deploy to'
@@ -81,7 +85,7 @@ jobs:
 
       - name: Prepare .env for Compose
         run: |
-          printf "IMAGE_NAME=%s\nIMAGE_TAG=%s\n" "${{ env.IMAGE_NAME }}" "${{ inputs.tag }}"> .env
+          printf "IMAGE_NAME=%s\nIMAGE_TAG=%s\nLOG_LEVEL=%s\n" "${{ env.IMAGE_NAME }}" "${{ inputs.tag }}" "${{ inputs.logLevel }}" > .env
         shell: bash
 
       - name: Copy files to remote server

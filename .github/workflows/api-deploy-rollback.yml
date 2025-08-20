@@ -8,6 +8,16 @@ on:
         description: 'Version Tag to rollback to'
         required: true
         type: string
+      logLevel:
+        description: 'Log level for the deployment'
+        default: info
+        type: choice
+        options:
+          - trace
+          - debug
+          - info
+          - warn
+          - error
 
 jobs:
   deploy:
@@ -15,5 +25,6 @@ jobs:
     uses: ./.github/workflows/reusable-api-deploy.yml
     with:
       tag: ${{ inputs.version }}
+      logLevel: ${{ inputs.logLevel }}
     secrets:
       host: ${{ secrets.API_HOST }}
