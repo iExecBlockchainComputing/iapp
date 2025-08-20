@@ -61,6 +61,9 @@ async function handleSconifyRequest(requestObj: object) {
   if (sconeVersion === 'v5') {
     logger.warn('Deprecated feature hit: sconeVersion === "v5"');
   }
+  if (sconeProd === false) {
+    logger.warn('Deprecated feature hit: sconeProd === false');
+  }
 
   const { dockerImage, dockerImageDigest, fingerprint, entrypoint } =
     await sconify({
