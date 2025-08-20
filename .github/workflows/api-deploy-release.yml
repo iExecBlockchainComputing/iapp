@@ -38,7 +38,7 @@ jobs:
 
   deploy:
     if: startsWith(github.ref_name,'iapp-api-v')
-    needs: get-version
+    needs: [get-version, docker-publish]
     uses: ./.github/workflows/reusable-api-deploy.yml
     with:
       tag: ${{ needs.get-version.outputs.version }}
