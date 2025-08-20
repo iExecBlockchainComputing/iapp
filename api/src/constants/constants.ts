@@ -33,14 +33,14 @@ export const TEMPLATE_CONFIG: Record<
   JavaScript: {
     // node binary name does not change from one version to another
     binary: '/usr/local/bin/node',
-    // for scone 5.7 this was necessary
+    // deprecated for scone 5.7 this was necessary
     sconeCuratedImage:
       'registry.scontain.com:5050/sconecuratedimages/node:14.4.0-alpine3.11',
   },
   'Python3.13': {
     binary: '/usr/local/bin/python3.13',
   },
-  // legacy template name Python used Python 3.8
+  // deprecated legacy template name Python used Python 3.8
   Python: {
     binary: '/usr/local/bin/python3.8',
   },

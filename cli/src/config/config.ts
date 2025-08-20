@@ -3,7 +3,6 @@ import { useExperimentalNetworks } from '../utils/featureFlags.js';
 export const SCONE_TAG = ['tee', 'scone'];
 export const DEFAULT_SCONE_VERSION = 'v5.9';
 
-export const SCONIFY_API_HTTP_URL = 'https://iapp-api.iex.ec';
 export const SCONIFY_API_WS_URL = 'wss://iapp-api.iex.ec';
 
 export const CONFIG_FILE = 'iapp.config.json';

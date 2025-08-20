@@ -4,6 +4,7 @@ import { TEMPLATE_CONFIG, type TemplateName } from '../constants/constants.js';
 import { ethereumAddressZodSchema } from '../utils/ethereumAddressZodSchema.js';
 import { deprecated_sconify } from './deprecated_sconify.service.js';
 import type { Request, Response } from 'express';
+import { logger } from '../utils/logger.js';
 
 const bodySchema = z.object({
   yourWalletPublicAddress: ethereumAddressZodSchema,
@@ -25,7 +26,7 @@ const bodySchema = z.object({
     .default('JavaScript'),
 });
 
-async function handleSconifyRequest(requestObj: object) {
+async function deprecated_handleSconifyRequest(requestObj: object) {
   let yourWalletPublicAddress;
   let dockerhubImageToSconify;
   let dockerhubPushToken;
@@ -54,8 +55,9 @@ async function handleSconifyRequest(requestObj: object) {
 }
 
 export async function deprecated_sconifyWsHandler(message: object) {
+  logger.warn('deprecated feature hit: ws request SCONIFY');
   const { sconifiedImage, appContractAddress } =
-    await handleSconifyRequest(message);
+    await deprecated_handleSconifyRequest(message);
   return { sconifiedImage, appContractAddress };
 }
 
@@ -63,9 +65,9 @@ export async function deprecated_sconifyHttpHandler(
   req: Request,
   res: Response
 ) {
-  const { sconifiedImage, appContractAddress } = await handleSconifyRequest(
-    req.body || {}
-  );
+  logger.warn('deprecated feature hit: POST /sconify');
+  const { sconifiedImage, appContractAddress } =
+    await deprecated_handleSconifyRequest(req.body || {});
   res.status(200).json({
     success: true,
     sconifiedImage,

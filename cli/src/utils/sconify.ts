@@ -1,8 +1,4 @@
-import {
-  DEFAULT_SCONE_VERSION,
-  SCONIFY_API_HTTP_URL,
-  SCONIFY_API_WS_URL,
-} from '../config/config.js';
+import { DEFAULT_SCONE_VERSION, SCONIFY_API_WS_URL } from '../config/config.js';
 import { getAuthToken } from './dockerhub.js';
 import { sleep } from './sleep.js';
 import {
@@ -11,7 +7,6 @@ import {
   serializeData,
 } from './websocket.js';
 import { debug } from './debug.js';
-import { useWsApi } from './featureFlags.js';
 
 const INITIAL_RETRY_PERIOD = 20 * 1000; // 20s
 
@@ -56,133 +51,86 @@ export async function sconify({
 
     const pushToken = await getPushToken();
 
-    let sconifyResult: {
+    const sconifyResult: {
       dockerImage?: string;
       dockerImageDigest?: string;
       entrypoint?: string;
       fingerprint?: string;
       sconeVersion?: string;
-    };
-
-    if (useWsApi) {
-      // experimental ws connection
-      sconifyResult = await new Promise((resolve, reject) => {
-        createReconnectingWs(SCONIFY_API_WS_URL, {
-          headers: {
-            'x-wallet': walletAddress,
-          },
-          connectCallback: (ws) => {
-            const handleError = (e: unknown) => {
-              ws.close(1000); // normal ws close
-              reject(e);
-            };
-
-            ws.on('message', (data) => {
-              let message;
-              // handle communication errors
-              try {
-                message = deserializeData(data);
-                debug(`ws message: ${JSON.stringify(message, undefined, 2)}`);
-              } catch (e) {
-                handleError(e);
-              }
-
-              // handle server responses
-              if (message?.type === 'RESPONSE') {
-                if (message?.target === 'SCONIFY_BUILD') {
-                  ws.close(1000); // normal ws close
-                  if (message?.success === true && message.result) {
-                    resolve(message.result);
-                  } else {
-                    reject(Error(message.error || 'Server unknown error'));
-                  }
-                }
-              }
-
-              // handle server requests
-              if (message?.type === 'REQUEST') {
-                if (message?.target === 'RENEW_PUSH_TOKEN') {
-                  getPushToken()
-                    .then((renewedPushToken) => {
-                      ws.send(
-                        serializeData({
-                          type: 'RESPONSE',
-                          target: 'RENEW_PUSH_TOKEN',
-                          result: {
-                            dockerhubPushToken: renewedPushToken,
-                          },
-                        })
-                      );
-                    })
-                    .catch(handleError);
-                }
-              }
-
-              // handle server info
-              if (message?.type === 'INFO') {
-                // TODO server feedback
-              }
-            });
-          },
-          initCallback: (ws) => {
-            ws.send(
-              serializeData({
-                type: 'REQUEST',
-                target: 'SCONIFY_BUILD', // call sconify handler
-                template,
-                dockerhubImageToSconify: iAppNameToSconify,
-                dockerhubPushToken: pushToken,
-                yourWalletPublicAddress: walletAddress,
-                sconeVersion: DEFAULT_SCONE_VERSION,
-              })
-            );
-          },
-          errorCallback: reject,
-        });
-      });
-    } else {
-      // standard http call
-      sconifyResult = await fetch(`${SCONIFY_API_HTTP_URL}/sconify/build`, {
-        method: 'POST',
+    } = await new Promise((resolve, reject) => {
+      createReconnectingWs(SCONIFY_API_WS_URL, {
         headers: {
-          'Content-Type': 'application/json',
           'x-wallet': walletAddress,
         },
-        body: JSON.stringify({
-          template,
-          dockerhubImageToSconify: iAppNameToSconify,
-          dockerhubPushToken: pushToken, // used for pushing sconified image on user repo
-          yourWalletPublicAddress: walletAddress,
-          sconeVersion: DEFAULT_SCONE_VERSION,
-        }),
-      })
-        .catch(() => {
-          throw Error("Can't reach TEE transformation server!");
-        })
-        .then((res) => {
-          if (res.ok) {
-            return res.json().catch(() => {
-              // failed to parse body
-              throw Error('Unexpected server response');
-            });
-          }
-          if (res.status === 429) {
-            throw new TooManyRequestsError(
-              'TEE transformation server is busy, retry later'
-            );
-          }
-          // try getting error message from json body
-          return res
-            .json()
-            .catch(() => {
-              // failed to parse body
-              throw Error('Unknown server error');
+        connectCallback: (ws) => {
+          const handleError = (e: unknown) => {
+            ws.close(1000); // normal ws close
+            reject(e);
+          };
+
+          ws.on('message', (data) => {
+            let message;
+            // handle communication errors
+            try {
+              message = deserializeData(data);
+              debug(`ws message: ${JSON.stringify(message, undefined, 2)}`);
+            } catch (e) {
+              handleError(e);
+            }
+
+            // handle server responses
+            if (message?.type === 'RESPONSE') {
+              if (message?.target === 'SCONIFY_BUILD') {
+                ws.close(1000); // normal ws close
+                if (message?.success === true && message.result) {
+                  resolve(message.result);
+                } else {
+                  reject(Error(message.error || 'Server unknown error'));
+                }
+              }
+            }
+
+            // handle server requests
+            if (message?.type === 'REQUEST') {
+              if (message?.target === 'RENEW_PUSH_TOKEN') {
+                getPushToken()
+                  .then((renewedPushToken) => {
+                    ws.send(
+                      serializeData({
+                        type: 'RESPONSE',
+                        target: 'RENEW_PUSH_TOKEN',
+                        result: {
+                          dockerhubPushToken: renewedPushToken,
+                        },
+                      })
+                    );
+                  })
+                  .catch(handleError);
+              }
+            }
+
+            // handle server info
+            if (message?.type === 'INFO') {
+              // TODO server feedback
+            }
+          });
+        },
+        initCallback: (ws) => {
+          ws.send(
+            serializeData({
+              type: 'REQUEST',
+              target: 'SCONIFY_BUILD', // call sconify handler
+              template,
+              dockerhubImageToSconify: iAppNameToSconify,
+              dockerhubPushToken: pushToken,
+              yourWalletPublicAddress: walletAddress,
+              sconeVersion: DEFAULT_SCONE_VERSION,
             })
-            .then(({ error }) => {
-              throw Error(error || 'Unknown server error');
-            });
-        });
-    }
+          );
+        },
+        errorCallback: reject,
+      });
+    });
 
     // Extract necessary information
     if (!sconifyResult.dockerImage) {

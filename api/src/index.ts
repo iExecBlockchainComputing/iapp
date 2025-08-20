@@ -10,7 +10,7 @@ import { requestIdMiddleware } from './utils/requestId.js';
 import { errorHandlerMiddleware } from './utils/errors.js';
 import { attachWebSocketServer } from './utils/websocket.js';
 import {
-  sconifyBuildHttpHandler,
+  deprecated_sconifyBuildHttpHandler,
   sconifyBuildWsHandler,
 } from './sconify/sconifyBuild.handler.js';
 
@@ -34,7 +34,7 @@ app.use(loggerMiddleware);
 // deprecated endpoint, clients should use /sconify/build
 app.post('/sconify', deprecated_sconifyHttpHandler);
 
-app.post('/sconify/build', sconifyBuildHttpHandler);
+app.post('/sconify/build', deprecated_sconifyBuildHttpHandler);
 
 // Health endpoint
 app.get('/health', (req, res) => {
