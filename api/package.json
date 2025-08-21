@@ -5,9 +5,9 @@
   "type": "module",
   "scripts": {
     "ensure-signing-key": "[ -e 'sig/enclave-key.pem' ] && echo 'using existing signing key' || (mkdir -p sig && openssl genrsa -3 -out sig/enclave-key.pem 3072 && echo 'generated new signing key')",
-    "start": "npm run ensure-signing-key && tsx --env-file=.env ./src/index.js",
-    "dev": "npm run ensure-signing-key && tsx --env-file=.env --watch ./src/index.js",
-    "dev:pretty": "npm run ensure-signing-key && tsx --env-file=.env --watch ./src/index.js | pino-pretty -tc",
+    "start": "tsx --env-file=.env ./src/index.js",
+    "dev": "tsx --env-file=.env --watch ./src/index.js",
+    "dev:pretty": "tsx --env-file=.env --watch ./src/index.js | pino-pretty -tc",
     "check-format": "prettier --check .",
     "check-types": "tsc --project tsconfig.json",
     "format": "prettier --write .",
