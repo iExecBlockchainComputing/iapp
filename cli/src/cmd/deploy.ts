@@ -46,7 +46,7 @@ export async function deploy({ chain }: { chain?: string }) {
       iexec = getIExec({ ...chainConfig, signer });
     }
 
-    await ensureBalances({ spinner, iexec });
+    await ensureBalances({ spinner, iexec, warnOnlyRlc: true });
 
     const dockerhubUsername = await askForDockerhubUsername({ spinner });
     const dockerhubAccessToken = await askForDockerhubAccessToken({ spinner });
