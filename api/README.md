@@ -73,4 +73,7 @@ npm run dev:pretty
 - websocket API request `SCONIFY` is deprecated, websocket API request
   `SCONIFY_BUILD` should be used instead.
 - template `Python` is deprecated, template `Python3.13` should be used instead.
-- sconeVersion `v5` is deprecated, sconeVersion `v5.9` should be used instead.
+- sconeVersion `v5` or `undefined` is deprecated, sconeVersion `v5.9` should be
+  used instead.
+- sconeProd `false` or `undefined` is deprecated, sconeProd `true` should be
+  used instead.
