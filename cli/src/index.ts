@@ -92,7 +92,7 @@ yargsInstance
     builder: (y) => {
       return y.option('chain', {
         describe:
-          'Specify the blockchain on which the iApp will be deployed (overrides defaultChain configuration in iapp.config.json)',
+          'Specify the blockchain on which the iApp will be deployed (overrides defaultChain configuration from iapp.config.json)',
         type: 'string',
         choices: SUPPORTED_CHAINS,
       });
@@ -136,7 +136,7 @@ yargsInstance
         })
         .option('chain', {
           describe:
-            'Specify the blockchain on which the iApp is deployed (overrides defaultChain configuration)',
+            'Specify the blockchain on which the iApp is deployed (overrides defaultChain configuration from iapp.config.json)',
           type: 'string',
           choices: SUPPORTED_CHAINS,
         });
@@ -157,7 +157,7 @@ yargsInstance
         })
         .option('chain', {
           describe:
-            'Specify the blockchain on which the task is registered (overrides defaultChain configuration)',
+            'Specify the blockchain on which the task is registered (overrides defaultChain configuration from iapp.config.json)',
           type: 'string',
           choices: SUPPORTED_CHAINS,
         });
