@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.1](https://github.com/iExecBlockchainComputing/iapp/compare/iapp-api-v0.3.0...iapp-api-v0.3.1) (2025-08-21)
+
+
+### Changed
+
+* fix enclave key volume binding from host ([2736bfc](https://github.com/iExecBlockchainComputing/iapp/commit/2736bfca822cce4d295b52eb17cb3752cc1cb9d9))
+
 ## [0.3.0](https://github.com/iExecBlockchainComputing/iapp/compare/iapp-api-v0.2.0...iapp-api-v0.3.0) (2025-08-20)
 
 
