@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.0.0-beta.5](https://github.com/iExecBlockchainComputing/iapp/compare/iapp-v1.0.0-beta.4...iapp-v1.0.0-beta.5) (2025-08-21)
+
+
+### Added
+
+* migrate to Scone prod ([#224](https://github.com/iExecBlockchainComputing/iapp/issues/224)) ([e4b6277](https://github.com/iExecBlockchainComputing/iapp/commit/e4b62770ffd0df60364bdde17fbb883ced1fa7ef))
+* use websocket for client server communication (previously enabled by `EXPERIMENTAL_WS_API`) ([#225](https://github.com/iExecBlockchainComputing/iapp/issues/225)) ([1a3bb23](https://github.com/iExecBlockchainComputing/iapp/commit/1a3bb235d2b13a467d46a48b97e0d6eddf8280ba))
+
 ## [1.0.0-beta.4](https://github.com/iExecBlockchainComputing/iapp/compare/iapp-v1.0.0-beta.3...iapp-v1.0.0-beta.4) (2025-08-08)
 
 
