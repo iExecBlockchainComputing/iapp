@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.2](https://github.com/iExecBlockchainComputing/iapp/compare/iapp-api-v0.3.1...iapp-api-v0.3.2) (2025-08-21)
+
+
+### Changed
+
+* stop running `ensure-signing-key` in start script ([9631373](https://github.com/iExecBlockchainComputing/iapp/commit/9631373a2c3232885727b3478abf66d0f1db459a))
+
 ## [0.3.1](https://github.com/iExecBlockchainComputing/iapp/compare/iapp-api-v0.3.0...iapp-api-v0.3.1) (2025-08-21)
 
 
