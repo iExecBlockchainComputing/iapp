@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.0.0-beta.6](https://github.com/iExecBlockchainComputing/iapp/compare/iapp-v1.0.0-beta.5...iapp-v1.0.0-beta.6) (2025-08-21)
+
+
+### Added
+
+* improve --chain option help message to include config file name and default chain ([#231](https://github.com/iExecBlockchainComputing/iapp/issues/231)) ([d671467](https://github.com/iExecBlockchainComputing/iapp/commit/d671467739dc60f4f09ef044d608dc4b64b56c1f))
+
+
+### Changed
+
+* stop blocking iapp deploy when RLC balance is empty ([#236](https://github.com/iExecBlockchainComputing/iapp/issues/236)) ([9c37c11](https://github.com/iExecBlockchainComputing/iapp/commit/9c37c11690367e887512113e93404d918b2f9943))
+
 ## [1.0.0-beta.5](https://github.com/iExecBlockchainComputing/iapp/compare/iapp-v1.0.0-beta.4...iapp-v1.0.0-beta.5) (2025-08-21)
 
 
