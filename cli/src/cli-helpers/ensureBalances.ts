@@ -43,7 +43,7 @@ export async function ensureBalances({
     const helpers = [];
     if (missingNative) {
       const msg =
-        ' - Native asset balance required for blockchain transactions is ' +
+        ' - Native asset balance needed for transaction fees is ' +
         (wei.isZero() ? 'empty' : 'insufficient');
       const requirement = weiMin
         ? ` (requires ${utils.formatEth(weiMin as BN)} ether)`
@@ -52,7 +52,7 @@ export async function ensureBalances({
     }
     if (missingRlc) {
       const msg =
-        ' - RLC token balance required for iapp runs is ' +
+        ' - RLC token balance needed for iapp runs is ' +
         (totalRlc.isZero() ? 'empty' : 'insufficient') +
         (warnOnlyRlc ? promptHelper(' (warning only)') : '');
       const requirement = nRlcMin
@@ -62,7 +62,7 @@ export async function ensureBalances({
     }
 
     spinner.log(
-      warnBox(`Current chain requires ${chainId !== 134 ? 'native asset to pay transaction fees and ' : ''}RLC to pay iApp runs!
+      warnBox(`Operations on this chain require ${chainId !== 134 ? 'native assets for transaction fees and ' : ''}RLC for iApp runs!
  
 Your wallet balance is insufficient:
 ${helpers.join('\n')}
