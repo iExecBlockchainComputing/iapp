@@ -1,6 +1,6 @@
 // https://gitlab.scontain.com/sconecuratedimages/node/container_registry/20
 export const SCONE_NODE_IMAGE =
-  'registry.scontain.com:5050/sconecuratedimages/node:14.4.0-alpine3.11';
+  'registry.scontain.com:5050/sconecuratedimages/node:20.19-alpine3.22';
 
 // https://gitlab.scontain.com/scone-production/iexec-sconify-image/container_registry/99?after=NTA
 export const SCONIFY_IMAGE_NAME = `registry.scontain.com/scone-production/iexec-sconify-image`;
@@ -35,7 +35,7 @@ export const TEMPLATE_CONFIG: Record<
     binary: '/usr/local/bin/node',
     // deprecated for scone 5.7 this was necessary
     sconeCuratedImage:
-      'registry.scontain.com:5050/sconecuratedimages/node:14.4.0-alpine3.11',
+      'registry.scontain.com:5050/sconecuratedimages/node:20.19-alpine3.22',
   },
   'Python3.13': {
     binary: '/usr/local/bin/python3.13',
