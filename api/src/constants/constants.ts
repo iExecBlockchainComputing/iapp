@@ -1,7 +1,3 @@
-// https://gitlab.scontain.com/sconecuratedimages/node/container_registry/20
-export const SCONE_NODE_IMAGE =
-  'registry.scontain.com:5050/sconecuratedimages/node:14.4.0-alpine3.11';
-
 // https://gitlab.scontain.com/scone-production/iexec-sconify-image/container_registry/99?after=NTA
 export const SCONIFY_IMAGE_NAME = `registry.scontain.com/scone-production/iexec-sconify-image`;
 
