@@ -57,18 +57,18 @@ export async function addRunData({
 
 // Function to add deployment data to deployments.json
 export async function addDeploymentData({
-  sconifiedImage,
+  image,
   appContractAddress,
   owner,
   chainName,
 }: {
-  sconifiedImage: string;
+  image: string;
   appContractAddress: string;
   owner: string;
   chainName: string;
 }) {
   const deploymentData = {
-    sconifiedImage,
+    image,
     appContractAddress,
     owner,
   };
