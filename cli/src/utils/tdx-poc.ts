@@ -19,16 +19,17 @@ export function getIExecTdx({
   name,
   rpcHostUrl,
 }: {
-  signer: AbstractSigner;
+  signer?: AbstractSigner;
   name: string;
   rpcHostUrl: string;
 }): IExec {
   if (name !== 'bellecour') {
     throw Error(`TDX is not supported on chain ${name}`);
   }
+  const provider = new JsonRpcProvider(rpcHostUrl);
   return new IExec(
     {
-      ethProvider: signer.connect(new JsonRpcProvider(rpcHostUrl)),
+      ethProvider: signer ? signer.connect(provider) : provider,
     },
     {
       smsURL: 'https://sms.labs.iex.ec',
