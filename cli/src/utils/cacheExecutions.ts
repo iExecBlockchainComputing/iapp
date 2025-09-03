@@ -34,20 +34,20 @@ async function addDataToCache(
 
 // Function to add run data to runs.json
 export async function addRunData({
-  iAppAddress,
+  app,
   dealid,
   taskid,
   txHash,
   chainName,
 }: {
-  iAppAddress: string;
+  app: string;
   dealid: string;
   taskid: string;
   txHash: string;
   chainName: string;
 }) {
   const runData = {
-    iAppAddress,
+    app,
     dealid,
     taskid,
     txHash,
@@ -58,18 +58,18 @@ export async function addRunData({
 // Function to add deployment data to deployments.json
 export async function addDeploymentData({
   image,
-  appContractAddress,
+  app,
   owner,
   chainName,
 }: {
   image: string;
-  appContractAddress: string;
+  app: string;
   owner: string;
   chainName: string;
 }) {
   const deploymentData = {
     image,
-    appContractAddress,
+    app,
     owner,
   };
   await addDataToCache('deployments.json', chainName, deploymentData);

@@ -146,7 +146,7 @@ export async function deploy({ chain }: { chain?: string }) {
     // Add deployment data to deployments.json
     await addDeploymentData({
       image: appDockerImage,
-      appContractAddress: appContractAddress,
+      app: appContractAddress,
       owner: userAddress,
       chainName,
     });
