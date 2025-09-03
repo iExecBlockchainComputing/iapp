@@ -7,12 +7,13 @@ export function getIExec({
   signer,
   rpcHostUrl,
 }: {
-  signer: AbstractSigner;
+  signer?: AbstractSigner;
   rpcHostUrl: string;
 }): IExec {
+  const provider = new JsonRpcProvider(rpcHostUrl);
   return new IExec(
     {
-      ethProvider: signer.connect(new JsonRpcProvider(rpcHostUrl)),
+      ethProvider: signer ? signer.connect(provider) : provider,
     },
     {
       allowExperimentalNetworks: useExperimentalNetworks,

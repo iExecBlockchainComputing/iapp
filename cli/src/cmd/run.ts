@@ -42,268 +42,237 @@ export async function run({
   const spinner = getSpinner();
   try {
     await goToProjectRoot({ spinner });
-    cleanRunOutput({ spinner, outputFolder: RUN_OUTPUT_DIR });
-    await runInDebug({
-      iAppAddress,
-      args,
-      protectedData,
-      inputFiles,
-      requesterSecrets,
-      spinner,
-      chain,
-    });
-  } catch (error) {
-    handleCliError({ spinner, error });
-  }
-}
+    await cleanRunOutput({ spinner, outputFolder: RUN_OUTPUT_DIR });
 
-export async function runInDebug({
-  iAppAddress,
-  args,
-  protectedData,
-  inputFiles = [],
-  requesterSecrets = [],
-  spinner,
-  chain,
-}: {
-  iAppAddress: string;
-  args?: string;
-  protectedData?: string;
-  inputFiles?: string[];
-  requesterSecrets?: { key: number; value: string }[];
-  chain?: string;
-  spinner: Spinner;
-}) {
-  const { defaultChain } = await readIAppConfig();
-  const chainName = chain || defaultChain;
-  const chainConfig = getChainConfig(chainName);
-  spinner.info(`Using chain ${chainName}`);
-  await warnBeforeTxFees({ spinner, chain: chainConfig.name });
+    const { defaultChain } = await readIAppConfig();
+    const chainName = chain || defaultChain;
+    const chainConfig = getChainConfig(chainName);
+    spinner.info(`Using chain ${chainName}`);
+    await warnBeforeTxFees({ spinner, chain: chainConfig.name });
 
-  // Is valid iApp address
-  if (!ethers.isAddress(iAppAddress)) {
-    throw Error(
-      'The iApp address is invalid. Be careful ENS name is not implemented yet ...'
-    );
-  }
-
-  if (protectedData) {
-    // Is valid protectedData address
-    if (!ethers.isAddress(protectedData)) {
-      throw Error(
-        'The protectedData address is invalid. Be careful ENS name is not implemented yet ...'
-      );
+    spinner.start('checking inputs...');
+    let readOnlyIexec: IExec;
+    if (useTdx) {
+      readOnlyIexec = getIExecTdx(chainConfig);
+    } else {
+      readOnlyIexec = getIExec(chainConfig);
     }
-  }
 
-  // Get wallet from privateKey
-  const signer = await askForWallet({ spinner });
-  const userAddress = await signer.getAddress();
-
-  let iexec: IExec;
-  if (useTdx) {
-    iexec = getIExecTdx({ ...chainConfig, signer });
-  } else {
-    iexec = getIExec({
-      ...chainConfig,
-      signer,
-    });
-  }
-
-  // Make some ProtectedData preflight check
-  if (protectedData) {
-    try {
-      // Check the protectedData has its privateKey registered into the debug sms
-      const isSecretSet = await iexec.dataset.checkDatasetSecretExists(
+    // input checks
+    if ((await readOnlyIexec.app.checkDeployedApp(iAppAddress)) === false) {
+      throw Error('No iApp found at the specified address.');
+    }
+    if (protectedData) {
+      if (
+        (await readOnlyIexec.dataset.checkDeployedDataset(protectedData)) ===
+        false
+      ) {
+        throw Error('No protectedData found at the specified address.');
+      }
+      const isSecretSet = await readOnlyIexec.dataset.checkDatasetSecretExists(
         protectedData,
         {
           teeFramework: 'scone',
         }
       );
-
       if (!isSecretSet) {
         throw Error(
-          `Your protectedData secret key is not registered in the debug secret management service (SMS) of iexec protocol`
+          `The protectedData secret key is not registered in the Secret Management Service (SMS) of iExec protocol.`
         );
       }
-    } catch (err) {
+    }
+
+    // Get wallet from privateKey
+    const signer = await askForWallet({ spinner });
+    const userAddress = await signer.getAddress();
+
+    let iexec: IExec;
+    if (useTdx) {
+      iexec = getIExecTdx({ ...chainConfig, signer });
+    } else {
+      iexec = getIExec({
+        ...chainConfig,
+        signer,
+      });
+    }
+
+    // Workerpool Order
+    spinner.start('Fetching workerpool order...');
+    const workerpoolOrderbook = await iexec.orderbook.fetchWorkerpoolOrderbook({
+      workerpool: useTdx ? WORKERPOOL_TDX : chainConfig.workerpool,
+      app: iAppAddress,
+      dataset: protectedData || ethers.ZeroAddress,
+      minTag: SCONE_TAG,
+      maxTag: SCONE_TAG,
+    });
+    const workerpoolorder = workerpoolOrderbook.orders[0]?.order;
+    if (!workerpoolorder) {
       throw Error(
-        `Error while running your iApp with your protectedData: ${(err as Error)?.message}`
+        'No WorkerpoolOrder found, Wait until some workerpoolOrder come back'
       );
     }
-  }
+    spinner.succeed('Workerpool order fetched');
 
-  // Requester secrets
-  let iexec_secrets;
-  if (requesterSecrets.length > 0) {
-    spinner.start('Provisioning requester secrets...');
-    iexec_secrets = Object.fromEntries(
-      await Promise.all(
-        requesterSecrets.map(async ({ key, value }) => {
-          const name = await pushRequesterSecret({ iexec, value });
-          return [key, name];
-        })
-      )
-    );
-    spinner.succeed('Requester secrets provisioned');
-  }
+    // App Order
+    spinner.start('Creating app order...');
+    const apporderTemplate = await iexec.order.createApporder({
+      app: iAppAddress,
+      requesterrestrict: userAddress,
+      tag: SCONE_TAG,
+    });
+    const apporder = await iexec.order.signApporder(apporderTemplate);
+    spinner.succeed('AppOrder created');
 
-  // Workerpool Order
-  spinner.start('Fetching workerpool order...');
-  const workerpoolOrderbook = await iexec.orderbook.fetchWorkerpoolOrderbook({
-    workerpool: useTdx ? WORKERPOOL_TDX : chainConfig.workerpool,
-    app: iAppAddress,
-    dataset: protectedData || ethers.ZeroAddress,
-    minTag: SCONE_TAG,
-    maxTag: SCONE_TAG,
-  });
-  const workerpoolorder = workerpoolOrderbook.orders[0]?.order;
-  if (!workerpoolorder) {
-    throw Error(
-      'No WorkerpoolOrder found, Wait until some workerpoolOrder come back'
-    );
-  }
-  spinner.succeed('Workerpool order fetched');
-
-  // App Order
-  spinner.start('Creating app order...');
-  const apporderTemplate = await iexec.order.createApporder({
-    app: iAppAddress,
-    requesterrestrict: userAddress,
-    tag: SCONE_TAG,
-  });
-  const apporder = await iexec.order.signApporder(apporderTemplate);
-  spinner.succeed('AppOrder created');
-
-  // Dataset Order
-  let datasetorder;
-  if (protectedData) {
-    spinner.start('Fetching protectedData access...');
-    const datasetOrderbook = await iexec.orderbook.fetchDatasetOrderbook(
-      protectedData,
-      {
-        app: iAppAddress,
-        workerpool: workerpoolorder.workerpool,
-        requester: userAddress,
-        minTag: SCONE_TAG,
-        maxTag: SCONE_TAG,
+    // Dataset Order
+    let datasetorder;
+    if (protectedData) {
+      spinner.start('Fetching protectedData access...');
+      const datasetOrderbook = await iexec.orderbook.fetchDatasetOrderbook(
+        protectedData,
+        {
+          app: iAppAddress,
+          workerpool: workerpoolorder.workerpool,
+          requester: userAddress,
+          minTag: SCONE_TAG,
+          maxTag: SCONE_TAG,
+        }
+      );
+      datasetorder = datasetOrderbook.orders[0]?.order;
+      if (!datasetorder) {
+        throw Error(
+          'No matching ProtectedData access found, It seems your iApp is not allowed to access the protectedData, please grantAccess to it'
+        );
       }
-    );
-    datasetorder = datasetOrderbook.orders[0]?.order;
-    if (!datasetorder) {
-      throw Error(
-        'No matching ProtectedData access found, It seems your iApp is not allowed to access the protectedData, please grantAccess to it'
-      );
+      spinner.succeed('ProtectedData access found');
     }
-    spinner.succeed('ProtectedData access found');
-  }
 
-  spinner.start('Creating request order...');
-  const requestorderToSign = await iexec.order.createRequestorder({
-    app: iAppAddress,
-    category: workerpoolorder.category,
-    dataset: protectedData || ethers.ZeroAddress,
-    appmaxprice: apporder.appprice,
-    datasetmaxprice: datasetorder?.datasetprice || 0,
-    workerpoolmaxprice: workerpoolorder.workerpoolprice,
-    tag: SCONE_TAG,
-    workerpool: workerpoolorder.workerpool,
-    params: {
-      iexec_args: args,
-      iexec_input_files: inputFiles.length > 0 ? inputFiles : undefined,
-      iexec_secrets,
-    },
-  });
-  const requestorder = await iexec.order.signRequestorder(requestorderToSign);
-  spinner.succeed('RequestOrder created');
+    // Requester secrets
+    let iexec_secrets;
+    if (requesterSecrets.length > 0) {
+      spinner.start('Provisioning requester secrets...');
+      iexec_secrets = Object.fromEntries(
+        await Promise.all(
+          requesterSecrets.map(async ({ key, value }) => {
+            const name = await pushRequesterSecret({
+              iexec,
+              value,
+            });
+            return [key, name];
+          })
+        )
+      );
+      spinner.succeed('Requester secrets provisioned');
+    }
 
-  const matchOrderParams = {
-    apporder,
-    datasetorder: protectedData ? datasetorder : undefined,
-    workerpoolorder,
-    requestorder,
-  };
-
-  spinner.start('Checking balances...');
-  const { total, sponsored } =
-    await iexec.order.estimateMatchOrders(matchOrderParams);
-  const priceToPay = total.sub(sponsored);
-  const balances = await ensureBalances({
-    spinner,
-    iexec,
-    nRlcMin: priceToPay,
-  });
-
-  if (!priceToPay.isZero()) {
-    await askForAcknowledgment({
-      spinner,
-      message: `You will spend ${utils.formatRLC(priceToPay)} RLC to run your iApp. Would you like to continue?`,
+    spinner.start('Creating request order...');
+    const requestorderToSign = await iexec.order.createRequestorder({
+      app: iAppAddress,
+      category: workerpoolorder.category,
+      dataset: protectedData || ethers.ZeroAddress,
+      appmaxprice: apporder.appprice,
+      datasetmaxprice: datasetorder?.datasetprice || 0,
+      workerpoolmaxprice: workerpoolorder.workerpoolprice,
+      tag: SCONE_TAG,
+      workerpool: workerpoolorder.workerpool,
+      params: {
+        iexec_args: args,
+        iexec_input_files: inputFiles.length > 0 ? inputFiles : undefined,
+        iexec_secrets,
+      },
     });
-  }
+    const requestorder = await iexec.order.signRequestorder(requestorderToSign);
+    spinner.succeed('RequestOrder created');
 
-  if (balances.stake.lt(priceToPay)) {
-    const toDeposit = priceToPay.sub(balances.stake);
-    await askForAcknowledgment({
+    const matchOrderParams = {
+      apporder,
+      datasetorder: protectedData ? datasetorder : undefined,
+      workerpoolorder,
+      requestorder,
+    };
+
+    spinner.start('Checking balances...');
+    const { total, sponsored } =
+      await iexec.order.estimateMatchOrders(matchOrderParams);
+    const priceToPay = total.sub(sponsored);
+    const balances = await ensureBalances({
       spinner,
-      message: `Current account stake is ${utils.formatRLC(balances.stake)} RLC, you need to deposit an additional ${utils.formatRLC(toDeposit)} RLC from your wallet. Would you like to continue?`,
+      iexec,
+      nRlcMin: priceToPay,
     });
-    await iexec.account.deposit(toDeposit);
-  }
 
-  spinner.start('Matching orders...');
-  const { dealid, txHash } = await iexec.order.matchOrders(matchOrderParams);
-  const taskid = await iexec.deal.computeTaskId(dealid, 0);
-  await addRunData({ iAppAddress, dealid, taskid, txHash, chainName });
-  spinner.succeed(
-    `Deal created successfully
+    if (!priceToPay.isZero()) {
+      await askForAcknowledgment({
+        spinner,
+        message: `You will spend ${utils.formatRLC(priceToPay)} RLC to run your iApp. Would you like to continue?`,
+      });
+    }
+
+    if (balances.stake.lt(priceToPay)) {
+      const toDeposit = priceToPay.sub(balances.stake);
+      await askForAcknowledgment({
+        spinner,
+        message: `Current account stake is ${utils.formatRLC(balances.stake)} RLC, you need to deposit an additional ${utils.formatRLC(toDeposit)} RLC from your wallet. Would you like to continue?`,
+      });
+      await iexec.account.deposit(toDeposit);
+    }
+
+    spinner.start('Matching orders...');
+    const { dealid, txHash } = await iexec.order.matchOrders(matchOrderParams);
+    const taskid = await iexec.deal.computeTaskId(dealid, 0);
+    await addRunData({ iAppAddress, dealid, taskid, txHash, chainName });
+    spinner.succeed(
+      `Deal created successfully
   - deal: ${dealid} ${color.link(`${chainConfig.iexecExplorerUrl}/deal/${dealid}`)}
   - task: ${taskid}`
-  );
-
-  spinner.start('Observing task...');
-  const taskObservable = await iexec.task.obsTask(taskid, { dealid: dealid });
-  const taskTimeoutWarning = setTimeout(() => {
-    const spinnerText = spinner.text;
-    spinner.warn('Task is taking longer than expected...');
-    spinner.info(
-      `Tip: You can debug this task using ${color.command(`iapp debug ${taskid}`)}`
     );
-    spinner.start(spinnerText); // restart spinning
-  }, TASK_OBSERVATION_TIMEOUT);
-  await new Promise((resolve, reject) => {
-    taskObservable.subscribe({
-      next: () => {},
-      error: (e) => reject(e),
-      complete: () => resolve(undefined),
-    });
-  }).finally(() => {
-    clearTimeout(taskTimeoutWarning);
-  });
 
-  const task = await iexec.task.show(taskid);
-  const { location } = task.results as { storage: string; location?: string };
-  spinner.succeed(`Task finalized
+    spinner.start('Observing task...');
+    const taskObservable = await iexec.task.obsTask(taskid, { dealid: dealid });
+    const taskTimeoutWarning = setTimeout(() => {
+      const spinnerText = spinner.text;
+      spinner.warn('Task is taking longer than expected...');
+      spinner.info(
+        `Tip: You can debug this task using ${color.command(`iapp debug ${taskid}`)}`
+      );
+      spinner.start(spinnerText); // restart spinning
+    }, TASK_OBSERVATION_TIMEOUT);
+    await new Promise((resolve, reject) => {
+      taskObservable.subscribe({
+        next: () => {},
+        error: (e) => reject(e),
+        complete: () => resolve(undefined),
+      });
+    }).finally(() => {
+      clearTimeout(taskTimeoutWarning);
+    });
+
+    const task = await iexec.task.show(taskid);
+    const { location } = task.results as { storage: string; location?: string };
+    spinner.succeed(`Task finalized
 You can download the result of your task here: ${color.link(`${chainConfig.ipfsGatewayUrl}${location}`)}`);
 
-  const downloadAnswer = await spinner.prompt({
-    type: 'confirm',
-    name: 'continue',
-    message: 'Would you like to download the result?',
-    initial: true,
-  });
-  if (!downloadAnswer.continue) {
-    spinner.stop();
-    process.exit(1);
+    const downloadAnswer = await spinner.prompt({
+      type: 'confirm',
+      name: 'continue',
+      message: 'Would you like to download the result?',
+      initial: true,
+    });
+    if (!downloadAnswer.continue) {
+      spinner.stop();
+      process.exit(1);
+    }
+
+    spinner.start('Downloading result...');
+    const outputFolder = RUN_OUTPUT_DIR;
+    const taskResult = await iexec.task.fetchResults(taskid);
+    const resultBuffer = await taskResult.arrayBuffer();
+    await extractZipToFolder(resultBuffer, outputFolder);
+    spinner.succeed(`Result downloaded to ${color.file(outputFolder)}`);
+
+    await askShowResult({ spinner, outputPath: outputFolder });
+  } catch (error) {
+    handleCliError({ spinner, error });
   }
-
-  spinner.start('Downloading result...');
-  const outputFolder = RUN_OUTPUT_DIR;
-  const taskResult = await iexec.task.fetchResults(taskid);
-  const resultBuffer = await taskResult.arrayBuffer();
-  await extractZipToFolder(resultBuffer, outputFolder);
-  spinner.succeed(`Result downloaded to ${color.file(outputFolder)}`);
-
-  await askShowResult({ spinner, outputPath: outputFolder });
 }
 
 /**
