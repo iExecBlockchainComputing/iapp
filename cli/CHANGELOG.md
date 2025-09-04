@@ -1,5 +1,22 @@
 # Changelog
 
+## [1.0.0-beta.7](https://github.com/iExecBlockchainComputing/iapp/compare/iapp-v1.0.0-beta.6...iapp-v1.0.0-beta.7) (2025-09-04)
+
+
+### ⚠ BREAKING CHANGES
+
+* store tasks as taskids array instead of one taskid in run cache
+* rename iAppAddress and  appContractAddress to app in cache files for consistency
+* rename sconifiedImage to image in deployment cache
+
+### Changed
+
+* improve run command input checks and throw early ([0eaaa9a](https://github.com/iExecBlockchainComputing/iapp/commit/0eaaa9ad5fa062ed76fa44f5d72d693d264940ff))
+* rename iAppAddress and  appContractAddress to app in cache files for consistency ([1e8ee46](https://github.com/iExecBlockchainComputing/iapp/commit/1e8ee46f5496f4b6351a7ea3d925a7c02142b6b7))
+* rename sconifiedImage to image in deployment cache ([eabc0e0](https://github.com/iExecBlockchainComputing/iapp/commit/eabc0e04af08c372c87ef1bc26204b7e09f80e66))
+* resolve bad config file detection in wallet commands ([#237](https://github.com/iExecBlockchainComputing/iapp/issues/237)) ([da405aa](https://github.com/iExecBlockchainComputing/iapp/commit/da405aa3e53dc9eec73c25fced257faebb57c39f))
+* store tasks as taskids array instead of one taskid in run cache ([026fe1a](https://github.com/iExecBlockchainComputing/iapp/commit/026fe1a03ece3b98db89f4a9fb756d373bbe0903))
+
 ## [1.0.0-beta.6](https://github.com/iExecBlockchainComputing/iapp/compare/iapp-v1.0.0-beta.5...iapp-v1.0.0-beta.6) (2025-08-21)
 
 
