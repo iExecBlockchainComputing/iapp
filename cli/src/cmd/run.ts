@@ -219,7 +219,13 @@ export async function run({
     spinner.start('Matching orders...');
     const { dealid, txHash } = await iexec.order.matchOrders(matchOrderParams);
     const taskid = await iexec.deal.computeTaskId(dealid, 0);
-    await addRunData({ app: iAppAddress, dealid, taskid, txHash, chainName });
+    await addRunData({
+      app: iAppAddress,
+      dealid,
+      taskids: [taskid],
+      txHash,
+      chainName,
+    });
     spinner.succeed(
       `Deal created successfully
   - deal: ${dealid} ${color.link(`${chainConfig.iexecExplorerUrl}/deal/${dealid}`)}
