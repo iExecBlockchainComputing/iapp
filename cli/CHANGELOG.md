@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.0.0](https://github.com/iExecBlockchainComputing/iapp/compare/iapp-v1.0.0...iapp-v1.0.0) (2025-09-04)
+
+Initial stable release.
+
 ## [1.0.0-beta.7](https://github.com/iExecBlockchainComputing/iapp/compare/iapp-v1.0.0-beta.6...iapp-v1.0.0-beta.7) (2025-09-04)
 
 
@@ -56,3 +60,25 @@
 
 * **js-template:** fix memory exhaustion when using wasm ([#218](https://github.com/iExecBlockchainComputing/iapp/issues/218)) ([4b77554](https://github.com/iExecBlockchainComputing/iapp/commit/4b775543241055ab5d79c0091e0f4110db8a0c74))
 * move to latest arbitrum-sepolia-testnet deployment ([#220](https://github.com/iExecBlockchainComputing/iapp/issues/220)) ([18a53a9](https://github.com/iExecBlockchainComputing/iapp/commit/18a53a95d866a1f28c7e104b27bec0b29c366712))
+
+## [1.0.0-beta.2](https://github.com/iExecBlockchainComputing/iapp/compare/iapp-v1.0.0-beta.1...iapp-v1.0.0-beta.2) (2025-07-21)
+
+
+### Added
+
+* add arbitrum-sepolia-testnet under EXPERIMENTAL_NETWORKS flag ([c303529](https://github.com/iExecBlockchainComputing/iapp/commit/c30352938170800b917978e7e177e0fdae62cbe5))
+* add iapp wallet import ([c303529](https://github.com/iExecBlockchainComputing/iapp/commit/c30352938170800b917978e7e177e0fdae62cbe5))
+* add iapp wallet select ([c303529](https://github.com/iExecBlockchainComputing/iapp/commit/c30352938170800b917978e7e177e0fdae62cbe5))
+* check required RLC balance for iapp run ([c303529](https://github.com/iExecBlockchainComputing/iapp/commit/c30352938170800b917978e7e177e0fdae62cbe5))
+* derive address from private key ([c303529](https://github.com/iExecBlockchainComputing/iapp/commit/c30352938170800b917978e7e177e0fdae62cbe5))
+* ensure wallet balance before deploy and run ([c303529](https://github.com/iExecBlockchainComputing/iapp/commit/c30352938170800b917978e7e177e0fdae62cbe5))
+* multichain support with wallet management ([#212](https://github.com/iExecBlockchainComputing/iapp/issues/212)) ([c303529](https://github.com/iExecBlockchainComputing/iapp/commit/c30352938170800b917978e7e177e0fdae62cbe5))
+* save wallet in ethereum keystore ([c303529](https://github.com/iExecBlockchainComputing/iapp/commit/c30352938170800b917978e7e177e0fdae62cbe5))
+* warn before sending transactions with fees ([c303529](https://github.com/iExecBlockchainComputing/iapp/commit/c30352938170800b917978e7e177e0fdae62cbe5))
+
+
+### Changed
+
+* abort handling ([c303529](https://github.com/iExecBlockchainComputing/iapp/commit/c30352938170800b917978e7e177e0fdae62cbe5))
+* add spinner.reset() helper ([c303529](https://github.com/iExecBlockchainComputing/iapp/commit/c30352938170800b917978e7e177e0fdae62cbe5))
+* clear spinner after async operation completion ([c303529](https://github.com/iExecBlockchainComputing/iapp/commit/c30352938170800b917978e7e177e0fdae62cbe5))
