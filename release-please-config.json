@@ -27,10 +27,7 @@
     "cli": {
       "release-type": "node",
       "changelog-path": "CHANGELOG.md",
-      "include-v-in-tag": true,
-      "prerelease": true,
-      "versioning": "prerelease",
-      "prerelease-type": "beta"
+      "include-v-in-tag": true
     },
     "api": {
       "release-type": "node",
