@@ -230,3 +230,114 @@ export type TransferResponse = {
   to: AddressOrENS;
   txHash: string;
 };
+
+// ---------------------GetResultFromCompletedTask Types------------------------------------
+export type GetResultFromCompletedTaskStatuses =
+  | 'CONSUME_RESULT_DOWNLOAD'
+  | 'CONSUME_RESULT_DECRYPT';
+
+export type GetResultFromCompletedTaskParams = {
+  taskId: string;
+  path?: string;
+  pemPrivateKey?: string;
+  onStatusUpdate?: OnStatusUpdateFn<GetResultFromCompletedTaskStatuses>;
+};
+
+export type GetResultFromCompletedTaskResponse = {
+  result: ArrayBuffer;
+};
+
+// ---------------------RunIApp Types------------------------------------
+export type ProcessProtectedDataStatuses =
+  | 'FETCH_ORDERS'
+  | 'FETCH_PROTECTED_DATA_ORDERBOOK'
+  | 'FETCH_APP_ORDERBOOK'
+  | 'FETCH_WORKERPOOL_ORDERBOOK'
+  | 'PUSH_REQUESTER_SECRET'
+  | 'REQUEST_TO_PROCESS_PROTECTED_DATA'
+  | 'CONSUME_TASK'
+  | 'CONSUME_RESULT_DOWNLOAD'
+  | 'CONSUME_RESULT_DECRYPT';
+
+export type RunIAppParams = {
+  /**
+   * Address or ENS (Ethereum Name Service) of the protected data.
+   */
+  protectedData: AddressOrENS;
+
+  /**
+   * Address or ENS of the authorized application to process the protected data.
+   */
+  app: AddressOrENS;
+
+  /**
+   * Address of an ERC734 whitelist contract authorized to access the protectedData, including the current user address. This address will be used to search for granted accesses instead of the user address.
+   */
+  userWhitelist?: Address;
+
+  /**
+   * The maximum price of dataset per task for processing the protected data.
+  @default = 0
+  */
+  dataMaxPrice?: number;
+
+  /**
+   * The maximum price of application per task for processing the protected data.
+  @default = 0
+  */
+  appMaxPrice?: number;
+
+  /**
+   * The maximum price of workerpool per task for processing the protected data.
+  @default = 0
+  */
+  workerpoolMaxPrice?: number;
+
+  /**
+   * The file name of the desired file in the returned ZIP file.
+   */
+  path?: string;
+
+  /**
+   * Arguments to pass to the application during execution.
+   */
+  args?: string;
+
+  /**
+   * The input file required for the application's execution (direct download URL).
+   */
+  inputFiles?: string[];
+
+  /**
+   * Requester secrets necessary for the application's execution.
+   * It is represented as a mapping of numerical identifiers to corresponding secrets.
+   */
+  secrets?: Record<number, string>;
+
+  /**
+   * The workerpool to use for the application's execution. (default iExec production workerpool)
+   */
+  workerpool?: AddressOrENS;
+
+  /**
+   * A boolean that indicates whether to use a voucher or no.
+   */
+  useVoucher?: boolean;
+
+  /**
+   * Override the voucher contract to use, must be combined with useVoucher: true the user must be authorized by the voucher's owner to use it.
+   */
+  voucherOwner?: AddressOrENS;
+
+  /**
+   * Callback function that will get called at each step of the process
+   */
+  onStatusUpdate?: OnStatusUpdateFn<ProcessProtectedDataStatuses>;
+};
+
+export type RunIAppResponse = {
+  txHash: string;
+  dealId: string;
+  taskId: string;
+  result: ArrayBuffer;
+};

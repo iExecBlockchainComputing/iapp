@@ -13,6 +13,8 @@ import {
   RevokedAccess,
   GetIAppParams,
   IApp,
+  RunIAppParams,
+  RunIAppResponse,
 } from '../types/index.js';
 import { IExec } from 'iexec';
 import { getChainConfig } from '../config/config.js';
@@ -24,6 +26,7 @@ import { transferOwnership } from './transferOwnership.js';
 import { revokeOneAccess } from './revokeOneAccess.js';
 import { revokeAllAccess } from './revokeAllAccess.js';
 import { getIApp } from './getIApp.js';
+import { runIApp } from './runIApp.js';
 
 type EthersCompatibleProvider =
   | AbstractProvider
@@ -157,6 +160,16 @@ export class IExecIApp {
     await this.init();
     await isValidProvider(this.iexec);
     return transferOwnership({ ...args, iexec: this.iexec });
+  }
+
+  async runIApp(args: RunIAppParams): Promise<RunIAppResponse> {
+    await this.init();
+    await isValidProvider(this.iexec);
+    return runIApp({
+      ...args,
+      iexec: this.iexec,
+      defaultWorkerpool: this.defaultWorkerpool,
+    });
   }
 
   // ----- READ METHODS -----

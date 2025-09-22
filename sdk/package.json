@@ -38,6 +38,8 @@
     "url": "https://github.com/iExecBlockchainComputing/iapp/issues"
   },
   "dependencies": {
+    "@ethersproject/bytes": "^5.7.0",
+    "@ethersproject/random": "^5.7.0",
     "ethers": "^6.13.2",
     "graphql-request": "^6.0.0",
     "iexec": "^8.18.0",

@@ -2,7 +2,7 @@ import { ValidationError } from 'yup';
 import { ApiCallError } from 'iexec/errors';
 
 export const grantAccessErrorMessage = 'Failed to grant access';
-
+export const runIAppErrorMessage = 'Failed to run an iApp';
 export class WorkflowError extends Error {
   isProtocolError: boolean;
 

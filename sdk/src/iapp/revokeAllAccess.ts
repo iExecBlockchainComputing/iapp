@@ -85,6 +85,7 @@ export const revokeAllAccess = async ({
         },
       });
     } catch (e) {
+      console.error('[revokeAllAccess] ERROR', e);
       throw new WorkflowError({
         message: 'Failed to revoke an access',
         errorCause: e,
