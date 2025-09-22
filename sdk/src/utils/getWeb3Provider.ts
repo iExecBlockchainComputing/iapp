@@ -1,5 +1,5 @@
 import { getSignerFromPrivateKey } from 'iexec/utils';
-import { Web3SignerProvider } from '../iapp/types.js';
+import { Web3SignerProvider } from '../types/types.js';
 
 export const getWeb3Provider = (
   privateKey: string,

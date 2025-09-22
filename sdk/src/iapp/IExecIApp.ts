@@ -1,6 +1,6 @@
 import { AbstractProvider, AbstractSigner, Eip1193Provider } from 'ethers';
 import { GraphQLClient } from 'graphql-request';
-import { Web3SignerProvider, IAppConfigOptions } from './types.js';
+import { Web3SignerProvider, IAppConfigOptions } from '../types/types.js';
 import { IExec } from 'iexec';
 import { getChainConfig } from '../config/config.js';
 import { getChainIdFromProvider } from '../utils/getChainId.js';
