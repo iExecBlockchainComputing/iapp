@@ -166,6 +166,42 @@ export type GrantAccessParams = {
   onStatusUpdate?: OnStatusUpdateFn<GrantAccessStatuses>;
 };
 
+// ---------------------RevokeAccess Types------------------------------------
+export type RevokeAllAccessStatuses =
+  | 'RETRIEVE_ALL_GRANTED_ACCESS'
+  | 'REVOKE_ONE_ACCESS';
+
+export type RevokeAllAccessParams = {
+  /**
+   * iApp address or ENS
+   */
+  iapp: AddressOrENS;
+
+  /**
+   * Address or ENS of the protected data authorized to use the `iapp`
+   *
+   * Default revoke for any protectedData
+   */
+  authorizedProtectedData?: AddressOrENS;
+
+  /**
+   * Address or ENS of the user authorized to use the `protectedData`
+   *
+   * Default revoke for any user
+   */
+  authorizedUser?: AddressOrENS;
+
+  /**
+   * Callback function that will get called at each step of the process
+   */
+  onStatusUpdate?: OnStatusUpdateFn<RevokeAllAccessStatuses>;
+};
+
+export type RevokedAccess = {
+  access: GrantedAccess;
+  txHash: string;
+};
+
 // ---------------------TransferProtectedData Types------------------------------------
 export type TransferParams = {
   iapp: AddressOrENS;

@@ -9,6 +9,8 @@ import {
   GrantedAccessResponse,
   TransferParams,
   TransferResponse,
+  RevokeAllAccessParams,
+  RevokedAccess,
 } from '../types/index.js';
 import { IExec } from 'iexec';
 import { getChainConfig } from '../config/config.js';
@@ -17,6 +19,8 @@ import { isValidProvider } from '../utils/validators.js';
 import { grantAccess } from './grantAccess.js';
 import { getGrantedAccess } from './getGrantedAccess.js';
 import { transferOwnership } from './transferOwnership.js';
+import { revokeOneAccess } from './revokeOneAccess.js';
+import { revokeAllAccess } from './revokeAllAccess.js';
 
 type EthersCompatibleProvider =
   | AbstractProvider
@@ -132,6 +136,18 @@ export class IExecIApp {
     await this.init();
     await isValidProvider(this.iexec);
     return grantAccess({ ...args, iexec: this.iexec });
+  }
+
+  async revokeOneAccess(args: GrantedAccess): Promise<RevokedAccess> {
+    await this.init();
+    await isValidProvider(this.iexec);
+    return revokeOneAccess({ ...args, iexec: this.iexec });
+  }
+
+  async revokeAllAccess(args: RevokeAllAccessParams): Promise<RevokedAccess[]> {
+    await this.init();
+    await isValidProvider(this.iexec);
+    return revokeAllAccess({ ...args, iexec: this.iexec });
   }
 
   async transferOwnership(args: TransferParams): Promise<TransferResponse> {

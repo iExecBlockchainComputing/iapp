@@ -86,11 +86,11 @@ export const positiveStrictIntegerStringSchema = () =>
 
 export const grantedAccessSchema = () =>
   object({
-    dataset: addressSchema().required(),
-    datasetprice: positiveIntegerStringSchema().required(),
+    app: addressSchema().required(),
+    appprice: positiveIntegerStringSchema().required(),
     volume: positiveStrictIntegerStringSchema().required(),
     tag: stringSchema().required(),
-    apprestrict: addressSchema().required(),
+    datasetrestrict: addressSchema().required(),
     workerpoolrestrict: addressSchema().required(),
     requesterrestrict: addressSchema().required(),
     salt: stringSchema().required(),
