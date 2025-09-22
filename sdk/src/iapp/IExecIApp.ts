@@ -7,6 +7,8 @@ import {
   GrantedAccess,
   GetGrantedAccessParams,
   GrantedAccessResponse,
+  TransferParams,
+  TransferResponse,
 } from '../types/index.js';
 import { IExec } from 'iexec';
 import { getChainConfig } from '../config/config.js';
@@ -14,6 +16,7 @@ import { getChainIdFromProvider } from '../utils/getChainId.js';
 import { isValidProvider } from '../utils/validators.js';
 import { grantAccess } from './grantAccess.js';
 import { getGrantedAccess } from './getGrantedAccess.js';
+import { transferOwnership } from './transferOwnership.js';
 
 type EthersCompatibleProvider =
   | AbstractProvider
@@ -129,6 +132,12 @@ export class IExecIApp {
     await this.init();
     await isValidProvider(this.iexec);
     return grantAccess({ ...args, iexec: this.iexec });
+  }
+
+  async transferOwnership(args: TransferParams): Promise<TransferResponse> {
+    await this.init();
+    await isValidProvider(this.iexec);
+    return transferOwnership({ ...args, iexec: this.iexec });
   }
 
   // ----- READ METHODS -----

@@ -165,3 +165,15 @@ export type GrantAccessParams = {
    */
   onStatusUpdate?: OnStatusUpdateFn<GrantAccessStatuses>;
 };
+
+// ---------------------TransferProtectedData Types------------------------------------
+export type TransferParams = {
+  iapp: AddressOrENS;
+  newOwner: AddressOrENS;
+};
+
+export type TransferResponse = {
+  address: Address;
+  to: AddressOrENS;
+  txHash: string;
+};
