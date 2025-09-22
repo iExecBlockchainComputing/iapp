@@ -24,7 +24,6 @@ export type OnStatusUpdateFn<T> = (params: {
   payload?: Record<string, any>;
 }) => void;
 
-
 // ---------------------Constructor Types------------------------------------
 /**
  * Configuration options for DataProtector.
@@ -131,9 +130,7 @@ export type GrantedAccessResponse = {
 };
 
 // ---------------------GrantAccess Types------------------------------------
-export type GrantAccessStatuses =
-  | 'CREATE_IAPP_ORDER'
-  | 'CREATE_IAPP_ORDER';
+export type GrantAccessStatuses = 'CREATE_IAPP_ORDER' | 'CREATE_IAPP_ORDER';
 
 export type GrantAccessParams = {
   /**

@@ -5,4 +5,4 @@ api/.env
 api/sig
 .tags
 
-cli/dist
+dist

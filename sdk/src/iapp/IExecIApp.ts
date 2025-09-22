@@ -1,9 +1,19 @@
 import { AbstractProvider, AbstractSigner, Eip1193Provider } from 'ethers';
 import { GraphQLClient } from 'graphql-request';
-import { Web3SignerProvider, IAppConfigOptions } from '../types/index.js';
+import {
+  Web3SignerProvider,
+  IAppConfigOptions,
+  GrantAccessParams,
+  GrantedAccess,
+  GetGrantedAccessParams,
+  GrantedAccessResponse,
+} from '../types/index.js';
 import { IExec } from 'iexec';
 import { getChainConfig } from '../config/config.js';
 import { getChainIdFromProvider } from '../utils/getChainId.js';
+import { isValidProvider } from '../utils/validators.js';
+import { grantAccess } from './grantAccess.js';
+import { getGrantedAccess } from './getGrantedAccess.js';
 
 type EthersCompatibleProvider =
   | AbstractProvider
@@ -113,5 +123,19 @@ export class IExecIApp {
       ipfsGateway,
       iexec,
     };
+  }
+
+  async grantAccess(args: GrantAccessParams): Promise<GrantedAccess> {
+    await this.init();
+    await isValidProvider(this.iexec);
+    return grantAccess({ ...args, iexec: this.iexec });
+  }
+
+  // ----- READ METHODS -----
+  async getGrantedAccess(
+    args: GetGrantedAccessParams
+  ): Promise<GrantedAccessResponse> {
+    await this.init();
+    return getGrantedAccess({ ...args, iexec: this.iexec });
   }
 }

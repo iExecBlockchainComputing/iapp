@@ -22,9 +22,7 @@ export const getGrantedAccess = async ({
   page,
   pageSize,
 }: IExecConsumer & GetGrantedAccessParams): Promise<GrantedAccessResponse> => {
-  const vIApp = addressOrEnsSchema()
-    .label('iapp')
-    .validateSync(iapp);
+  const vIApp = addressOrEnsSchema().label('iapp').validateSync(iapp);
   const vAuthorizedProtectedData = addressOrEnsSchema()
     .label('authorizedProtectedData')
     .validateSync(authorizedProtectedData);

@@ -3,7 +3,7 @@ import { GrantedAccess } from '../types/index.js';
 export const formatGrantedAccess = (
   order: {
     app: string;
-    appprice: number | string; 
+    appprice: number | string;
     volume: number | string;
     tag: string;
     datasetrestrict: string;

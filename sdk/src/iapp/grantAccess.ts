@@ -129,9 +129,7 @@ export const grantAccess = async ({
       volume: vNumberOfAccess,
       tag,
     })
-    .then((apporderTemplate) =>
-      iexec.order.signApporder(apporderTemplate)
-    )
+    .then((apporderTemplate) => iexec.order.signApporder(apporderTemplate))
     .catch((e) => {
       throw new WorkflowError({
         message: 'Failed to sign iApp access',
