@@ -1,4 +1,4 @@
-import { ChainId } from '../types/types.js';
+import { ChainId } from '../types/index.js';
 
 export interface ChainConfig {
   name?: string;
@@ -52,3 +52,4 @@ export const getChainConfig = (
 };
 
 export const DEFAULT_CHAIN_ID = 134;
+export const KEY_PURPOSE_SELECTOR = 'keyHasPurpose(bytes32,uint256)';
