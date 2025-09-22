@@ -1,7 +1,5 @@
-import { ZeroAddress } from 'ethers';
 import { NULL_ADDRESS } from 'iexec/utils';
 import {
-  ValidationError,
   WorkflowError,
   grantAccessErrorMessage,
   handleIfProtocolError,
@@ -9,7 +7,6 @@ import {
 import { formatGrantedAccess } from '../utils/formatGrantedAccess.js';
 import {
   addressOrEnsSchema,
-  isEnsTest,
   positiveIntegerStringSchema,
   positiveStrictIntegerStringSchema,
   throwIfMissing,
@@ -24,6 +21,7 @@ import {
 } from '../types/index.js';
 import { IExecConsumer } from '../types/internalTypes.js';
 import { getGrantedAccess } from './getGrantedAccess.js';
+import { resolveENS } from '../utils/resolveENS.js';
 
 const inferTagFromAppMREnclave = (mrenclave: string) => {
   const tag = ['tee'];
@@ -55,6 +53,7 @@ export const grantAccess = async ({
     .required()
     .label('authorizedApp')
     .validateSync(iapp);
+  vIApp = await resolveENS(iexec, vIApp);
   const vAuthorizedProtectedData = addressOrEnsSchema()
     .label('protectedData')
     .validateSync(authorizedProtectedData);
@@ -71,14 +70,6 @@ export const grantAccess = async ({
     validateOnStatusUpdateCallback<OnStatusUpdateFn<GrantAccessStatuses>>(
       onStatusUpdate
     );
-
-  if (vIApp && isEnsTest(vIApp)) {
-    const resolved = await iexec.ens.resolveName(vIApp);
-    if (!resolved) {
-      throw new ValidationError('authorizedApp ENS name is not valid');
-    }
-    vIApp = resolved.toLowerCase();
-  }
 
   const { grantedAccess: publishedIAppOrders } = await getGrantedAccess({
     iexec,

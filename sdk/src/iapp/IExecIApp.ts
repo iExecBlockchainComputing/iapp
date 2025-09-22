@@ -11,6 +11,8 @@ import {
   TransferResponse,
   RevokeAllAccessParams,
   RevokedAccess,
+  GetIAppParams,
+  IApp,
 } from '../types/index.js';
 import { IExec } from 'iexec';
 import { getChainConfig } from '../config/config.js';
@@ -21,6 +23,7 @@ import { getGrantedAccess } from './getGrantedAccess.js';
 import { transferOwnership } from './transferOwnership.js';
 import { revokeOneAccess } from './revokeOneAccess.js';
 import { revokeAllAccess } from './revokeAllAccess.js';
+import { getIApp } from './getIApp.js';
 
 type EthersCompatibleProvider =
   | AbstractProvider
@@ -157,6 +160,15 @@ export class IExecIApp {
   }
 
   // ----- READ METHODS -----
+  async getIApp(args?: GetIAppParams): Promise<IApp[]> {
+    await this.init();
+    return getIApp({
+      ...args,
+      iexec: this.iexec,
+      graphQLClient: this.graphQLClient,
+    });
+  }
+
   async getGrantedAccess(
     args: GetGrantedAccessParams
   ): Promise<GrantedAccessResponse> {

@@ -69,6 +69,23 @@ interface IExecConfigOptionsExtended extends IExecConfigOptions {
   smsDebugURL?: string;
 }
 
+// ---------------------GetIApp Types------------------------------------
+export type IApp = {
+  name: string;
+  address: Address;
+  owner: Address;
+  creationTimestamp: number;
+  multiaddr?: string; // Ex: "/p2p/QmaiUykRQKPC2PDXvmiqdhDm553JybgLurUUiDYy78rMgY"
+};
+
+export type GetIAppParams = {
+  iapp?: AddressOrENS;
+  owner?: AddressOrENS;
+  createdAfterTimestamp?: number;
+  page?: number;
+  pageSize?: number;
+};
+
 // ---------------------GetGrantedAccess Types------------------------------------
 export type GetGrantedAccessParams = {
   /**

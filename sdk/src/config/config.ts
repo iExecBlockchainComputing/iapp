@@ -13,8 +13,7 @@ const CHAIN_CONFIG: Record<ChainId, ChainConfig> = {
   // Bellecour
   134: {
     name: 'bellecour',
-    subgraphUrl:
-      'https://thegraph.iex.ec/subgraphs/name/bellecour/dataprotector-v2',
+    subgraphUrl: 'https://thegraph.iex.ec/subgraphs/name/bellecour/poco-v5',
     ipfsGateway: 'https://ipfs-gateway.v8-bellecour.iex.ec',
     ipfsNode: 'https://ipfs-upload.v8-bellecour.iex.ec',
     workerpoolAddress: 'prod-v8-bellecour.main.pools.iexec.eth',
@@ -23,7 +22,7 @@ const CHAIN_CONFIG: Record<ChainId, ChainConfig> = {
   421614: {
     name: 'arbitrum-sepolia-testnet',
     subgraphUrl:
-      'https://thegraph.arbitrum-sepolia-testnet.iex.ec/api/subgraphs/id/5YjRPLtjS6GH6bB4yY55Qg4HzwtRGQ8TaHtGf9UBWWd',
+      'https://thegraph.arbitrum-sepolia-testnet.iex.ec/api/subgraphs/id/2GCj8gzLCihsiEDq8cYvC5nUgK6VfwZ6hm3Wj8A3kcxz',
     ipfsGateway: 'https://ipfs-gateway.arbitrum-sepolia-testnet.iex.ec',
     ipfsNode: 'https://ipfs-upload.arbitrum-sepolia-testnet.iex.ec',
     workerpoolAddress: '0xB967057a21dc6A66A29721d96b8Aa7454B7c383F',
@@ -33,7 +32,7 @@ const CHAIN_CONFIG: Record<ChainId, ChainConfig> = {
   42161: {
     name: 'arbitrum-mainnet',
     subgraphUrl:
-      'https://thegraph.arbitrum.iex.ec/api/subgraphs/id/Ep5zs5zVr4tDiVuQJepUu51e5eWYJpka624X4DMBxe3u',
+      'https://thegraph.arbitrum.iex.ec/api/subgraphs/id/B1comLe9SANBLrjdnoNTJSubbeC7cY7EoNu6zD82HeKy',
     ipfsGateway: 'https://ipfs-gateway.arbitrum-mainnet.iex.ec',
     ipfsNode: 'https://ipfs-upload.arbitrum-mainnet.iex.ec',
     workerpoolAddress: '0x2C06263943180Cc024dAFfeEe15612DB6e5fD248',
