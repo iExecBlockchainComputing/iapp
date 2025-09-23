@@ -24,6 +24,15 @@ export type OnStatusUpdateFn<T> = (params: {
   payload?: Record<string, any>;
 }) => void;
 
+export type DefaultWorkerpoolConsumer = {
+  defaultWorkerpool: AddressOrENS;
+};
+
+export type MatchOptions = {
+  useVoucher: boolean;
+  voucherAddress?: string;
+};
+
 // ---------------------Constructor Types------------------------------------
 /**
  * Configuration options for DataProtector.
@@ -232,7 +241,7 @@ export type TransferResponse = {
 };
 
 // ---------------------RunIApp Types------------------------------------
-export type ProcessProtectedDataStatuses =
+export type RunIAppStatuses =
   | 'FETCH_ORDERS'
   | 'FETCH_PROTECTED_DATA_ORDERBOOK'
   | 'FETCH_APP_ORDERBOOK'
@@ -252,7 +261,7 @@ export type RunIAppParams = {
   /**
    * Address or ENS of the authorized protected data that the iapp will process.
    */
-  app: AddressOrENS;
+  protectedData: AddressOrENS;
 
   /**
    * Address of an ERC734 whitelist contract authorized to access the protectedData, including the current user address. This address will be used to search for granted accesses instead of the user address.
@@ -316,7 +325,7 @@ export type RunIAppParams = {
   /**
    * Callback function that will get called at each step of the process
    */
-  onStatusUpdate?: OnStatusUpdateFn<ProcessProtectedDataStatuses>;
+  onStatusUpdate?: OnStatusUpdateFn<RunIAppStatuses>;
 };
 
 export type RunIAppResponse = {

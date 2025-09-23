@@ -1,4 +1,3 @@
-import { ethers } from 'ethers';
 import {
   MAX_DESIRED_APP_ORDER_PRICE,
   MAX_DESIRED_DATA_ORDER_PRICE,
@@ -31,20 +30,23 @@ import {
   DefaultWorkerpoolConsumer,
   MatchOptions,
   OnStatusUpdateFn,
-  ProcessProtectedDataParams,
-  ProcessProtectedDataResponse,
-  ProcessProtectedDataStatuses,
+  RunIAppParams,
+  RunIAppResponse,
+  RunIAppStatuses,
 } from '../types/index.js';
+import { DataProtectorConsumer } from '../types/internalTypes.js';
 import { IExecConsumer, VoucherInfo } from '../types/internalTypes.js';
-import { getResultFromCompletedTask } from './getResultFromCompletedTask.js';
+import { IExecDataProtectorCore } from '@iexec/dataprotector';
 import { getWhitelistContract } from './smartContract/getWhitelistContract.js';
 import { isAddressInWhitelist } from './smartContract/whitelistContract.read.js';
 
 export const runIApp = async ({
   iexec = throwIfMissing(),
+  ethProvider = throwIfMissing(),
+  options = throwIfMissing(),
   defaultWorkerpool,
+  iapp,
   protectedData,
-  app,
   userWhitelist,
   dataMaxPrice = MAX_DESIRED_DATA_ORDER_PRICE,
   appMaxPrice = MAX_DESIRED_APP_ORDER_PRICE,
@@ -59,15 +61,16 @@ export const runIApp = async ({
   onStatusUpdate = () => {},
 }: IExecConsumer &
   DefaultWorkerpoolConsumer &
-  ProcessProtectedDataParams): Promise<ProcessProtectedDataResponse> => {
+  DataProtectorConsumer &
+  RunIAppParams): Promise<RunIAppResponse> => {
+  const vIApp = addressOrEnsSchema()
+    .required()
+    .label('iapp')
+    .validateSync(iapp);
   const vProtectedData = addressOrEnsSchema()
     .required()
-    .label('protectedData')
+    .label('authorizedProtectedData')
     .validateSync(protectedData);
-  const vApp = addressOrEnsSchema()
-    .required()
-    .label('authorizedApp')
-    .validateSync(app);
   const vUserWhitelist = addressSchema()
     .label('userWhitelist')
     .validateSync(userWhitelist);
@@ -98,9 +101,9 @@ export const runIApp = async ({
     .validateSync(voucherOwner);
   try {
     const vOnStatusUpdate =
-      validateOnStatusUpdateCallback<
-        OnStatusUpdateFn<ProcessProtectedDataStatuses>
-      >(onStatusUpdate);
+      validateOnStatusUpdateCallback<OnStatusUpdateFn<RunIAppStatuses>>(
+        onStatusUpdate
+      );
 
     let requester = await iexec.wallet.getAddress();
     if (vUserWhitelist) {
@@ -158,7 +161,7 @@ export const runIApp = async ({
       // Fetch dataset order
       iexec.orderbook
         .fetchDatasetOrderbook(vProtectedData, {
-          app: vApp,
+          app: vIApp,
           requester: requester,
         })
         .then((datasetOrderbook) => {
@@ -170,8 +173,8 @@ export const runIApp = async ({
       // Fetch dataset order for whitelist
       iexec.orderbook
         .fetchDatasetOrderbook(vProtectedData, {
-          app: vUserWhitelist,
-          requester: requester,
+          app: vIApp,
+          requester: vUserWhitelist,
         })
         .then((datasetOrderbook) => {
           const desiredPriceDataOrderbook = datasetOrderbook.orders.filter(
@@ -181,7 +184,7 @@ export const runIApp = async ({
         }),
       // Fetch app order
       iexec.orderbook
-        .fetchAppOrderbook(vApp, {
+        .fetchAppOrderbook(vIApp, {
           minTag: ['tee', 'scone'],
           maxTag: ['tee', 'scone'],
           workerpool: vWorkerpool,
@@ -196,47 +199,31 @@ export const runIApp = async ({
           }
           return desiredPriceAppOrder;
         }),
-      // Fetch workerpool order for App or AppWhitelist
-      Promise.all([
-        // for app
-        iexec.orderbook.fetchWorkerpoolOrderbook({
+      // Fetch workerpool order for App
+      iexec.orderbook
+        .fetchWorkerpoolOrderbook({
           workerpool: vWorkerpool,
-          app: vApp,
+          app: vIApp,
           dataset: vProtectedData,
           requester: requester, // public orders + user specific orders
           isRequesterStrict: useVoucher, // If voucher, we only want user specific orders
           minTag: ['tee', 'scone'],
           maxTag: ['tee', 'scone'],
           category: 0,
-        }),
-        // for app whitelist
-        iexec.orderbook.fetchWorkerpoolOrderbook({
-          workerpool: vWorkerpool === ethers.ZeroAddress ? 'any' : vWorkerpool,
-          app: vUserWhitelist,
-          dataset: vProtectedData,
-          requester: requester, // public orders + user specific orders
-          isRequesterStrict: useVoucher, // If voucher, we only want user specific orders
-          minTag: ['tee', 'scone'],
-          maxTag: ['tee', 'scone'],
-          category: 0,
-        }),
-      ]).then(
-        ([workerpoolOrderbookForApp, workerpoolOrderbookForAppWhitelist]) => {
+        })
+        .then((workerpoolOrderbooks) => {
           const desiredPriceWorkerpoolOrder = filterWorkerpoolOrders({
-            workerpoolOrders: [
-              ...workerpoolOrderbookForApp.orders,
-              ...workerpoolOrderbookForAppWhitelist.orders,
-            ],
+            workerpoolOrders: workerpoolOrderbooks[0].orders,
             workerpoolMaxPrice: vWorkerpoolMaxPrice,
             useVoucher: vUseVoucher,
             userVoucher,
           });
+
           if (!desiredPriceWorkerpoolOrder) {
             throw new Error('No Workerpool order found for the desired price');
           }
           return desiredPriceWorkerpoolOrder;
-        }
-      ),
+        }),
     ]);
 
     if (!workerpoolorder) {
@@ -266,7 +253,7 @@ export const runIApp = async ({
       isDone: false,
     });
     const requestorderToSign = await iexec.order.createRequestorder({
-      app: vApp,
+      app: vIApp,
       category: workerpoolorder.category,
       dataset: vProtectedData,
       appmaxprice: apporder.appprice,
@@ -335,8 +322,9 @@ export const runIApp = async ({
       },
     });
 
-    const { result } = await getResultFromCompletedTask({
-      iexec,
+    // Create an instance of IExecDataProtectorCore to get the result
+    const dataProtectorCore = new IExecDataProtectorCore(ethProvider, options);
+    const { result } = await dataProtectorCore.getResultFromCompletedTask({
       taskId,
       path: vPath,
       onStatusUpdate: vOnStatusUpdate,

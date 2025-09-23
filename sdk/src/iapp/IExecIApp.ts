@@ -1,7 +1,5 @@
-import { AbstractProvider, AbstractSigner, Eip1193Provider } from 'ethers';
 import { GraphQLClient } from 'graphql-request';
 import {
-  Web3SignerProvider,
   IAppConfigOptions,
   GrantAccessParams,
   GrantedAccess,
@@ -32,13 +30,7 @@ import {
   GetResultFromCompletedTaskResponse,
 } from '@iexec/dataprotector';
 import { runIApp } from './runIApp.js';
-
-type EthersCompatibleProvider =
-  | AbstractProvider
-  | AbstractSigner
-  | Eip1193Provider
-  | Web3SignerProvider
-  | string;
+import { EthersCompatibleProvider } from '../types/internalTypes.js';
 
 interface IExecIAppResolvedConfig {
   graphQLClient: GraphQLClient;
@@ -170,7 +162,10 @@ export class IExecIApp {
   async getResultFromCompletedTask(
     args: GetResultFromCompletedTaskParams
   ): Promise<GetResultFromCompletedTaskResponse> {
-    const dataProtectorCore = new IExecDataProtectorCore(this.ethProvider, this.options);
+    const dataProtectorCore = new IExecDataProtectorCore(
+      this.ethProvider,
+      this.options
+    );
     return dataProtectorCore.getResultFromCompletedTask(args);
   }
 
@@ -181,6 +176,8 @@ export class IExecIApp {
       ...args,
       iexec: this.iexec,
       defaultWorkerpool: this.defaultWorkerpool,
+      ethProvider: this.ethProvider,
+      options: this.options,
     });
   }
 

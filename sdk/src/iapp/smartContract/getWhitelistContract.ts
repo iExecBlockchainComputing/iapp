@@ -1,13 +1,12 @@
 import { Contract } from 'ethers';
 import { IExec } from 'iexec';
-import { ABI } from '../../../generated/abis/sharing/registry/ERC734.sol/ERC734.js';
-import { ERC734 } from '../../../generated/typechain/sharing/registry/ERC734.js';
+import { ABI } from './ERC734_ABI.js';
 import { AddressOrENS } from '../../types/index.js';
 
 export async function getWhitelistContract(
   iexec: IExec,
   contractAddress: AddressOrENS
-): Promise<ERC734> {
+): Promise<any> {
   const { signer } = await iexec.config.resolveContractsClient();
-  return new Contract(contractAddress, ABI).connect(signer) as ERC734;
+  return new Contract(contractAddress, ABI).connect(signer);
 }
