@@ -231,22 +231,6 @@ export type TransferResponse = {
   txHash: string;
 };
 
-// ---------------------GetResultFromCompletedTask Types------------------------------------
-export type GetResultFromCompletedTaskStatuses =
-  | 'CONSUME_RESULT_DOWNLOAD'
-  | 'CONSUME_RESULT_DECRYPT';
-
-export type GetResultFromCompletedTaskParams = {
-  taskId: string;
-  path?: string;
-  pemPrivateKey?: string;
-  onStatusUpdate?: OnStatusUpdateFn<GetResultFromCompletedTaskStatuses>;
-};
-
-export type GetResultFromCompletedTaskResponse = {
-  result: ArrayBuffer;
-};
-
 // ---------------------RunIApp Types------------------------------------
 export type ProcessProtectedDataStatuses =
   | 'FETCH_ORDERS'
@@ -261,12 +245,12 @@ export type ProcessProtectedDataStatuses =
 
 export type RunIAppParams = {
   /**
-   * Address or ENS (Ethereum Name Service) of the protected data.
+   * Address or ENS (Ethereum Name Service) of the iapp.
    */
-  protectedData: AddressOrENS;
+  iapp: AddressOrENS;
 
   /**
-   * Address or ENS of the authorized application to process the protected data.
+   * Address or ENS of the authorized protected data that the iapp will process.
    */
   app: AddressOrENS;
 

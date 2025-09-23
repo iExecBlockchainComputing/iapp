@@ -26,6 +26,11 @@ import { transferOwnership } from './transferOwnership.js';
 import { revokeOneAccess } from './revokeOneAccess.js';
 import { revokeAllAccess } from './revokeAllAccess.js';
 import { getIApp } from './getIApp.js';
+import {
+  IExecDataProtectorCore,
+  GetResultFromCompletedTaskParams,
+  GetResultFromCompletedTaskResponse,
+} from '@iexec/dataprotector';
 import { runIApp } from './runIApp.js';
 
 type EthersCompatibleProvider =
@@ -160,6 +165,13 @@ export class IExecIApp {
     await this.init();
     await isValidProvider(this.iexec);
     return transferOwnership({ ...args, iexec: this.iexec });
+  }
+
+  async getResultFromCompletedTask(
+    args: GetResultFromCompletedTaskParams
+  ): Promise<GetResultFromCompletedTaskResponse> {
+    const dataProtectorCore = new IExecDataProtectorCore(this.ethProvider, this.options);
+    return dataProtectorCore.getResultFromCompletedTask(args);
   }
 
   async runIApp(args: RunIAppParams): Promise<RunIAppResponse> {
