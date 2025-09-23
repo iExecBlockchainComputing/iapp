@@ -71,6 +71,7 @@ export class IExecIApp {
         this.ipfsNode = config.ipfsNode;
         this.ipfsGateway = config.ipfsGateway;
         this.defaultWorkerpool = config.defaultWorkerpool;
+        this.graphQLClient = config.graphQLClient;
         this.iexec = config.iexec;
       });
     }
