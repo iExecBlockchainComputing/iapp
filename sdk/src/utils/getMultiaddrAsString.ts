@@ -26,9 +26,10 @@ export function getMultiaddrAsString({
 
   // try utf8 encoded url
   try {
-    const decodedString = new TextDecoder().decode(multiaddrAsBytes);
-    if (decodedString.startsWith('https://')) {
-      return decodedString;
+    const decoded = new TextDecoder().decode(multiaddrAsBytes);
+    // printable ASCII (space to ~), no control chars
+    if (/^[\x20-\x7E]+$/.test(decoded)) {
+      return decoded;
     }
   } catch {
     // noop
@@ -43,7 +44,7 @@ export function getMultiaddrAsString({
   }
 
   console.warn(
-    `[getMultiaddrAsString] ERROR: "${multiaddrAsHexString}" is not a valid hex encoded multiaddr?`
+    `[getMultiaddrAsString] ERROR: "${multiaddrAsHexString}" is not a valid hex-encoded multiaddr or ASCII string`
   );
   return undefined;
 }

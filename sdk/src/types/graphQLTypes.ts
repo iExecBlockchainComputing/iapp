@@ -15,5 +15,5 @@ export type OneIApp = {
 };
 
 export type IAppGraphQLResponse = {
-  iapps: OneIApp[];
+  apps: OneIApp[];
 };

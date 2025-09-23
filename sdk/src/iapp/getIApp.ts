@@ -42,14 +42,14 @@ export const getIApp = async ({
       whereFilters.push({ id: vIApp });
     }
     if (vOwner) {
-      whereFilters.push({ owner: vOwner });
+      whereFilters.push({ owner_: { id: vOwner } });
     }
     if (vCreatedAfterTimestamp) {
       whereFilters.push({ timestamp_gte: vCreatedAfterTimestamp });
     }
 
     const filteredProtectedDataQuery = gql`
-      query ($start: Int!, $range: Int!, $where: ProtectedData_filter) {
+      query ($start: Int!, $range: Int!, $where: App_filter) {
         apps(
           where: $where
           skip: $start
@@ -94,7 +94,7 @@ export const getIApp = async ({
 };
 
 function transformGraphQLResponse(response: IAppGraphQLResponse): IApp[] {
-  return response.iapps
+  return response.apps
     .map((iapp) => {
       try {
         const readableMultiAddr = getMultiaddrAsString({
