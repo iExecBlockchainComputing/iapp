@@ -1,26 +1,26 @@
 export const ABI = [
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "bytes32",
-        "name": "key",
-        "type": "bytes32"
+        internalType: 'bytes32',
+        name: 'key',
+        type: 'bytes32',
       },
       {
-        "internalType": "uint256",
-        "name": "purpose",
-        "type": "uint256"
-      }
+        internalType: 'uint256',
+        name: 'purpose',
+        type: 'uint256',
+      },
     ],
-    "name": "keyHasPurpose",
-    "outputs": [
+    name: 'keyHasPurpose',
+    outputs: [
       {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      }
+        internalType: 'bool',
+        name: '',
+        type: 'bool',
+      },
     ],
-    "stateMutability": "view",
-    "type": "function"
-  }
+    stateMutability: 'view',
+    type: 'function',
+  },
 ];
