@@ -206,7 +206,7 @@ export const runIApp = async ({
     });
 
     vOnStatusUpdate({
-      title: 'REQUEST_TO_PROCESS_PROTECTED_DATA',
+      title: 'REQUEST_TO_RUN_IAPP',
       isDone: false,
     });
     const requestorderToSign = await iexec.order.createRequestorder({
@@ -249,7 +249,7 @@ export const runIApp = async ({
     const taskId = await iexec.deal.computeTaskId(dealid, 0);
 
     vOnStatusUpdate({
-      title: 'REQUEST_TO_PROCESS_PROTECTED_DATA',
+      title: 'REQUEST_TO_RUN_IAPP',
       isDone: true,
       payload: {
         txHash: txHash,
@@ -284,20 +284,33 @@ export const runIApp = async ({
       },
     });
 
-    // Create an instance of IExecDataProtectorCore to get the result
-    const dataProtectorCore = new IExecDataProtectorCore(ethProvider, options);
-    const { result } = await dataProtectorCore.getResultFromCompletedTask({
-      taskId,
-      path: vPath,
-      onStatusUpdate: vOnStatusUpdate,
-    });
+    if (vCallbackContract) {
+      // When callback is set, results are handled on-chain via callback
+      // No need to retrieve results as they've been processed by the callback contract
+      return {
+        txHash: txHash,
+        dealId: dealid,
+        taskId,
+      };
+    } else {
+      // Create an instance of IExecDataProtectorCore to get the result
+      const dataProtectorCore = new IExecDataProtectorCore(
+        ethProvider,
+        options
+      );
+      const resultData = await dataProtectorCore.getResultFromCompletedTask({
+        taskId,
+        path: vPath,
+        onStatusUpdate: vOnStatusUpdate,
+      });
 
-    return {
-      txHash: txHash,
-      dealId: dealid,
-      taskId,
-      result,
-    };
+      return {
+        txHash: txHash,
+        dealId: dealid,
+        taskId,
+        result: resultData.result,
+      };
+    }
   } catch (error) {
     console.error('[runIApp] ERROR', error);
     handleIfProtocolError(error);

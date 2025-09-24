@@ -247,7 +247,7 @@ export type RunIAppStatuses =
   | 'FETCH_APP_ORDERBOOK'
   | 'FETCH_WORKERPOOL_ORDERBOOK'
   | 'PUSH_REQUESTER_SECRET'
-  | 'REQUEST_TO_PROCESS_PROTECTED_DATA'
+  | 'REQUEST_TO_RUN_IAPP'
   | 'CONSUME_TASK'
   | 'CONSUME_RESULT_DOWNLOAD'
   | 'CONSUME_RESULT_DECRYPT';
@@ -332,5 +332,5 @@ export type RunIAppResponse = {
   txHash: string;
   dealId: string;
   taskId: string;
-  result: ArrayBuffer;
+  result?: ArrayBuffer;
 };
