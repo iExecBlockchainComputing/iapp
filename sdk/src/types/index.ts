@@ -100,7 +100,7 @@ export type GetGrantedAccessParams = {
   /**
    * iApp address or ENS
    *
-   * Default fetch for any protectedData
+   * Default fetch for any iApp
    */
 
   iapp?: AddressOrENS;
@@ -167,14 +167,14 @@ export type GrantAccessParams = {
   /**
    * Address or ENS of the protected data authorized to use the `iapp`
    */
-  authorizedProtectedData: AddressOrENS;
+  authorizedProtectedData?: AddressOrENS;
 
   /**
    * Address or ENS of the user authorized to use the `protectedData`
    *
    * The address zero `0x0000000000000000000000000000000000000000` can be use to authorize any user to use the `protectedData`.
    */
-  authorizedUser: AddressOrENS;
+  authorizedUser?: AddressOrENS;
 
   /**
    * Price paid by the `authorizedUser` per access to the `protectedData` labeled in nRLC.
@@ -261,12 +261,7 @@ export type RunIAppParams = {
   /**
    * Address or ENS of the authorized protected data that the iapp will process.
    */
-  protectedData: AddressOrENS;
-
-  /**
-   * Address of an ERC734 whitelist contract authorized to access the protectedData, including the current user address. This address will be used to search for granted accesses instead of the user address.
-   */
-  userWhitelist?: Address;
+  protectedData?: AddressOrENS;
 
   /**
    * The maximum price of dataset per task for processing the protected data.
