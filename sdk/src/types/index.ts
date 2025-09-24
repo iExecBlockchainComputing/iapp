@@ -303,6 +303,11 @@ export type RunIAppParams = {
   secrets?: Record<number, string>;
 
   /**
+   * Address or ENS of the smart contract to be called back once the task is completed.
+   */
+  callbackContract?: AddressOrENS;
+
+  /**
    * The workerpool to use for the application's execution. (default iExec production workerpool)
    */
   workerpool?: AddressOrENS;

@@ -50,6 +50,7 @@ export const runIApp = async ({
   args,
   inputFiles,
   secrets,
+  callbackContract,
   workerpool,
   useVoucher = false,
   voucherOwner,
@@ -80,6 +81,9 @@ export const runIApp = async ({
     .validateSync(inputFiles);
   const vArgs = stringSchema().label('args').validateSync(args);
   const vSecrets = secretsSchema().label('secrets').validateSync(secrets);
+  const vCallbackContract = addressOrEnsSchema()
+    .label('callbackContract')
+    .validateSync(callbackContract);
   const vWorkerpool = addressOrEnsSchema()
     .default(defaultWorkerpool) // Default workerpool if none is specified
     .label('workerpool')
@@ -212,6 +216,7 @@ export const runIApp = async ({
       workerpoolmaxprice: workerpoolorder.workerpoolprice,
       tag: SCONE_TAG,
       workerpool: workerpoolorder.workerpool,
+      callback: vCallbackContract,
       ...(vProtectedData
         ? {
             dataset: vProtectedData,
