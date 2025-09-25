@@ -8,24 +8,24 @@
 
 <div align="center">
 
-[![npm](https://img.shields.io/npm/v/@iexec/iapp)](https://www.npmjs.com/package/@iexec/iapp)[![license](https://img.shields.io/badge/license-Apache%202-blue)](/LICENSE)
+[![npm](https://img.shields.io/npm/v/@mage-sombre/iapp)](https://www.npmjs.com/package/@mage-sombre/iapp)[![license](https://img.shields.io/badge/license-Apache%202-blue)](/LICENSE)
 
 </div>
 
 ## Installation
 
-Web3mail is available as an [npm package](https://www.npmjs.com/package/@iexec/iapp).
+Web3mail is available as an [npm package](https://www.npmjs.com/package/@mage-sombre/iapp).
 
 **npm:**
 
 ```sh
-npm install @iexec/iapp
+npm install @mage-sombre/iapp
 ```
 
 **yarn:**
 
 ```sh
-yarn add @iexec/iapp
+yarn add @mage-sombre/iapp
 ```
 
 ## Get started
@@ -33,7 +33,7 @@ yarn add @iexec/iapp
 ### Browser
 
 ```ts
-import { IExecIApp } from "@iexec/iapp";
+import { IExecIApp } from "@mage-sombre/iapp";
 
 const web3Provider = window.ethereum;
 const iapp=IExecIApp(web3Provider);
@@ -42,7 +42,7 @@ const iapp=IExecIApp(web3Provider);
 ### NodeJS
 
 ```ts
-import { IExecIApp, getWeb3Provider } from "@iexec/iapp";
+import { IExecIApp, getWeb3Provider } from "@mage-sombre/iapp";
 
 const { PRIVATE_KEY } = process.env; 
 
