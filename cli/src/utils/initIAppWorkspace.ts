@@ -18,6 +18,7 @@ export async function initIAppWorkspace({
   template = 'JavaScript',
   useArgs = false,
   useProtectedData = false,
+  useBulkProcessing = false,
   useInputFile = false,
   useRequesterSecret = false,
   useAppSecret = false,
@@ -26,6 +27,7 @@ export async function initIAppWorkspace({
   template: TemplateName;
   useArgs?: boolean;
   useProtectedData?: boolean;
+  useBulkProcessing?: boolean;
   useInputFile?: boolean;
   useRequesterSecret?: boolean;
   useAppSecret?: boolean;
@@ -40,6 +42,7 @@ export async function initIAppWorkspace({
       useInputFile,
       useRequesterSecret,
       useAppSecret,
+      useBulkProcessing,
     });
     // Create other files
     await createConfigurationFiles({
@@ -92,6 +95,7 @@ async function copyChosenTemplateFiles({
   useInputFile,
   useRequesterSecret,
   useAppSecret,
+  useBulkProcessing,
 }: {
   template: string;
   srcFiles: string[];
@@ -100,6 +104,7 @@ async function copyChosenTemplateFiles({
   useInputFile: boolean;
   useRequesterSecret: boolean;
   useAppSecret: boolean;
+  useBulkProcessing: boolean;
 }) {
   const templatesBaseDir = path.resolve(
     fileURLToPath(import.meta.url),
@@ -139,6 +144,12 @@ async function copyChosenTemplateFiles({
         ''
       );
     }
+    if (!useBulkProcessing) {
+      modifiedCode = modifiedCode.replaceAll(
+        / *(\/\/|#) <<bulkProcessing>>\n((.*)\n)*? *(\/\/|#) <<\/bulkProcessing>>(\n)?/g,
+        ''
+      );
+    }
     if (!useInputFile) {
       modifiedCode = modifiedCode.replaceAll(
         / *(\/\/|#) <<inputFile>>\n((.*)\n)*? *(\/\/|#) <<\/inputFile>>(\n)?/g,
@@ -173,7 +184,7 @@ async function copyChosenTemplateFiles({
   const commonPath = path.resolve(templatesBaseDir, 'common');
   await copy(commonPath, path.join(process.cwd()));
 
-  if (useProtectedData) {
+  if (useProtectedData || useBulkProcessing) {
     const mockPath = path.resolve(templatesBaseDir, 'mock', 'protectedData');
     await copy(mockPath, PROTECTED_DATA_MOCK_DIR);
   }

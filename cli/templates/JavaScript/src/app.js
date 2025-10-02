@@ -6,6 +6,9 @@ import figlet from 'figlet';
 // <<protectedData>>
 import { IExecDataProtectorDeserializer } from '@iexec/dataprotector-deserializer';
 // <</protectedData>>
+// <<bulkProcessing>>
+import { IExecDataProtectorDeserializer } from '@iexec/dataprotector-deserializer';
+// <</bulkProcessing>>
 
 const main = async () => {
   const { IEXEC_OUT } = process.env;
