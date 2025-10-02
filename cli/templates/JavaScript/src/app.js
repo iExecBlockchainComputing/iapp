@@ -1,4 +1,7 @@
 import fs from 'node:fs/promises';
+// <<bulkProcessing>>
+import path from 'node:path';
+// <</bulkProcessing>>
 import figlet from 'figlet';
 // <<protectedData>>
 import { IExecDataProtectorDeserializer } from '@iexec/dataprotector-deserializer';
@@ -32,6 +35,36 @@ const main = async () => {
       console.log('It seems there is an issue with your protected data:', e);
     }
     // <</protectedData>>
+    // <<bulkProcessing>>
+
+    const bulkSize = parseInt(process.env.BULK_SLICE_SIZE);
+    if (bulkSize > 0) {
+      console.log(`Got ${bulkSize} protected data to process in bulk!`);
+      for (let i = 1; i <= bulkSize; i++) {
+        try {
+          const deserializer = new IExecDataProtectorDeserializer({
+            protectedDataPath: path.join(
+              process.env.IEXEC_IN,
+              process.env[`BULK_DATASET_${i}_FILENAME`]
+            ),
+          });
+          // The protected data mock created for the purpose of this Hello World journey
+          // contains an object with a key "secretText" which is a string
+          const protectedName = await deserializer.getValue(
+            'secretText',
+            'string'
+          );
+          console.log(`Found protected data ${i} of bulk`);
+          messages.push(protectedName);
+        } catch (e) {
+          console.log(
+            `It seems there is an issue with protected data ${i}:`,
+            e.message
+          );
+        }
+      }
+    }
+    // <</bulkProcessing>>
     // <<inputFile>>
 
     const { IEXEC_INPUT_FILES_NUMBER, IEXEC_IN } = process.env;
