@@ -3,12 +3,9 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 // <</bulkProcessing>>
 import figlet from 'figlet';
-// <<protectedData>>
+// <<protectedData|bulkProcessing>>
 import { IExecDataProtectorDeserializer } from '@iexec/dataprotector-deserializer';
-// <</protectedData>>
-// <<bulkProcessing>>
-import { IExecDataProtectorDeserializer } from '@iexec/dataprotector-deserializer';
-// <</bulkProcessing>>
+// <</protectedData|bulkProcessing>>
 
 const main = async () => {
   const { IEXEC_OUT } = process.env;
@@ -31,9 +28,9 @@ const main = async () => {
       const deserializer = new IExecDataProtectorDeserializer();
       // The protected data mock created for the purpose of this Hello World journey
       // contains an object with a key "secretText" which is a string
-      const protectedName = await deserializer.getValue('secretText', 'string');
+      const protectedText = await deserializer.getValue('secretText', 'string');
       console.log('Found a protected data');
-      messages.push(protectedName);
+      messages.push(protectedText);
     } catch (e) {
       console.log('It seems there is an issue with your protected data:', e);
     }
@@ -53,12 +50,12 @@ const main = async () => {
           });
           // The protected data mock created for the purpose of this Hello World journey
           // contains an object with a key "secretText" which is a string
-          const protectedName = await deserializer.getValue(
+          const protectedText = await deserializer.getValue(
             'secretText',
             'string'
           );
           console.log(`Found protected data ${i} of bulk`);
-          messages.push(protectedName);
+          messages.push(protectedText);
         } catch (e) {
           console.log(
             `It seems there is an issue with protected data ${i}:`,
