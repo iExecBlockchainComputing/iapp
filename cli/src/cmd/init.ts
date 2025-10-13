@@ -145,14 +145,6 @@ export async function init() {
           },
           {
             type: 'confirm',
-            name: 'useBulkProcessing',
-            message: `Would you like to use multiple protected data in bulk processing inside your iApp? ${color.promptHelper(
-              '(bulk processing allows you to load multiple protected data files in a single iApp run)'
-            )}`,
-            initial: false,
-          },
-          {
-            type: 'confirm',
             name: 'useAppSecret',
             message: `Would you like to use an app secret inside your iApp? ${color.promptHelper('(app secret is an immutable secret string provisioned once by the iApp owner)')}`,
             initial: false,
