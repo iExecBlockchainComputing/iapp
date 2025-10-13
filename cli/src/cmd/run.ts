@@ -1,6 +1,7 @@
 import { v4 as uuidV4 } from 'uuid';
 import { ethers } from 'ethers';
 import { utils } from 'iexec';
+import { ConsumableDatasetorder } from 'iexec/IExecOrderModule';
 import { mkdir, rm } from 'node:fs/promises';
 import { askForWallet } from '../cli-helpers/askForWallet.js';
 import {
@@ -27,14 +28,14 @@ import { warnBeforeTxFees } from '../cli-helpers/warnBeforeTxFees.js';
 export async function run({
   iAppAddress,
   args,
-  protectedData,
+  protectedData = [],
   inputFile: inputFiles = [], // rename variable (it's an array)
   requesterSecret: requesterSecrets = [], // rename variable (it's an array)
   chain,
 }: {
   iAppAddress: string;
   args?: string;
-  protectedData?: string;
+  protectedData?: string[];
   inputFile?: string[];
   requesterSecret?: { key: number; value: string }[];
   chain?: string;
@@ -62,24 +63,26 @@ export async function run({
     if ((await readOnlyIexec.app.checkDeployedApp(iAppAddress)) === false) {
       throw Error('No iApp found at the specified address.');
     }
-    if (protectedData) {
-      if (
-        (await readOnlyIexec.dataset.checkDeployedDataset(protectedData)) ===
-        false
-      ) {
-        throw Error('No protectedData found at the specified address.');
-      }
-      const isSecretSet = await readOnlyIexec.dataset.checkDatasetSecretExists(
-        protectedData,
-        {
-          teeFramework: 'scone',
-        }
+    if (protectedData.length > 0) {
+      await Promise.all(
+        protectedData.map(async (dataset) => {
+          if (
+            (await readOnlyIexec.dataset.checkDeployedDataset(dataset)) ===
+            false
+          ) {
+            throw Error(`No protectedData found at ${dataset}.`);
+          }
+          const isSecretSet =
+            await readOnlyIexec.dataset.checkDatasetSecretExists(dataset, {
+              teeFramework: 'scone',
+            });
+          if (!isSecretSet) {
+            throw Error(
+              `The protectedData secret key for ${dataset} is not registered in the Secret Management Service (SMS) of iExec protocol.`
+            );
+          }
+        })
       );
-      if (!isSecretSet) {
-        throw Error(
-          `The protectedData secret key is not registered in the Secret Management Service (SMS) of iExec protocol.`
-        );
-      }
     }
 
     // Get wallet from privateKey
@@ -96,23 +99,6 @@ export async function run({
       });
     }
 
-    // Workerpool Order
-    spinner.start('Fetching workerpool order...');
-    const workerpoolOrderbook = await iexec.orderbook.fetchWorkerpoolOrderbook({
-      workerpool: useTdx ? WORKERPOOL_TDX : chainConfig.workerpool,
-      app: iAppAddress,
-      dataset: protectedData || ethers.ZeroAddress,
-      minTag: SCONE_TAG,
-      maxTag: SCONE_TAG,
-    });
-    const workerpoolorder = workerpoolOrderbook.orders[0]?.order;
-    if (!workerpoolorder) {
-      throw Error(
-        'No WorkerpoolOrder found, Wait until some workerpoolOrder come back'
-      );
-    }
-    spinner.succeed('Workerpool order fetched');
-
     // App Order
     spinner.start('Creating app order...');
     const apporderTemplate = await iexec.order.createApporder({
@@ -124,26 +110,37 @@ export async function run({
     spinner.succeed('AppOrder created');
 
     // Dataset Order
-    let datasetorder;
-    if (protectedData) {
+    let bulkCid: string | undefined;
+    let volume = 1;
+    let datasetorders: ConsumableDatasetorder[] = [];
+    if (protectedData.length > 0) {
       spinner.start('Fetching protectedData access...');
-      const datasetOrderbook = await iexec.orderbook.fetchDatasetOrderbook(
-        protectedData,
-        {
-          app: iAppAddress,
-          workerpool: workerpoolorder.workerpool,
-          requester: userAddress,
-          minTag: SCONE_TAG,
-          maxTag: SCONE_TAG,
-        }
+      datasetorders = await Promise.all(
+        protectedData.map(async (dataset) => {
+          const datasetOrderbook = await iexec.orderbook.fetchDatasetOrderbook({
+            dataset,
+            app: iAppAddress,
+            requester: userAddress,
+            minTag: SCONE_TAG,
+            maxTag: SCONE_TAG,
+            bulkOnly: protectedData.length > 1, // bulk if multiple datasets
+          });
+          const datasetorder = datasetOrderbook.orders[0]?.order;
+          if (!datasetorder) {
+            throw Error(
+              `No matching ProtectedData access found, It seems your iApp is not allowed to access the protectedData ${dataset}, please grantAccess to it`
+            );
+          }
+          return datasetorder;
+        })
       );
-      datasetorder = datasetOrderbook.orders[0]?.order;
-      if (!datasetorder) {
-        throw Error(
-          'No matching ProtectedData access found, It seems your iApp is not allowed to access the protectedData, please grantAccess to it'
-        );
-      }
       spinner.succeed('ProtectedData access found');
+      if (protectedData.length > 1) {
+        spinner.start('Preparing bulk access...');
+        const bulk = await iexec.order.prepareDatasetBulk(datasetorders);
+        bulkCid = bulk.cid;
+        volume = bulk.volume;
+      }
     }
 
     // Requester secrets
@@ -164,20 +161,44 @@ export async function run({
       spinner.succeed('Requester secrets provisioned');
     }
 
+    // Workerpool Order
+    spinner.start('Fetching workerpool order...');
+    const workerpoolOrderbook = await iexec.orderbook.fetchWorkerpoolOrderbook({
+      workerpool: useTdx ? WORKERPOOL_TDX : chainConfig.workerpool,
+      app: iAppAddress,
+      minTag: SCONE_TAG,
+      maxTag: SCONE_TAG,
+      minVolume: volume, // TODO handle multiple matches if not enough volume
+    });
+    const workerpoolorder = workerpoolOrderbook.orders[0]?.order;
+    if (!workerpoolorder) {
+      throw Error(
+        'No workerpool order found, Wait until some workerpool order come back'
+      );
+    }
+    spinner.succeed('Workerpool order fetched');
+
     spinner.start('Creating request order...');
     const requestorderToSign = await iexec.order.createRequestorder({
       app: iAppAddress,
       category: workerpoolorder.category,
-      dataset: protectedData || ethers.ZeroAddress,
+      dataset:
+        datasetorders.length === 1
+          ? datasetorders[0].dataset
+          : ethers.ZeroAddress,
       appmaxprice: apporder.appprice,
-      datasetmaxprice: datasetorder?.datasetprice || 0,
+      datasetmaxprice:
+        datasetorders.length === 1
+          ? datasetorders[0].datasetprice.toString()
+          : 0,
       workerpoolmaxprice: workerpoolorder.workerpoolprice,
       tag: SCONE_TAG,
-      workerpool: workerpoolorder.workerpool,
+      volume,
       params: {
         iexec_args: args,
         iexec_input_files: inputFiles.length > 0 ? inputFiles : undefined,
         iexec_secrets,
+        bulk_cid: bulkCid,
       },
     });
     const requestorder = await iexec.order.signRequestorder(requestorderToSign);
@@ -185,7 +206,7 @@ export async function run({
 
     const matchOrderParams = {
       apporder,
-      datasetorder: protectedData ? datasetorder : undefined,
+      datasetorder: datasetorders.length === 1 ? datasetorders[0] : undefined,
       workerpoolorder,
       requestorder,
     };
