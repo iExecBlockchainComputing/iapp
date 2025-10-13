@@ -203,9 +203,11 @@ export async function testApp({
       // dataset bulk processing env
       ...(PROTECTED_DATA_MOCK_NAMES.length > 1
         ? PROTECTED_DATA_MOCK_NAMES.map(
-            (name, index) => `BULK_DATASET_${index + 1}_FILENAME=${name}`
-          ).concat([`BULK_SLICE_SIZE=${PROTECTED_DATA_MOCK_NAMES.length}`])
-        : [`BULK_SLICE_SIZE=0`]),
+            (name, index) => `IEXEC_DATASET_${index + 1}_FILENAME=${name}`
+          ).concat([
+            `IEXEC_BULK_SLICE_SIZE=${PROTECTED_DATA_MOCK_NAMES.length}`,
+          ])
+        : [`IEXEC_BULK_SLICE_SIZE=0`]),
       // input files env https://protocol.docs.iex.ec/for-developers/technical-references/application-io#input-files
       `IEXEC_INPUT_FILES_NUMBER=${inputFilesPath?.length || 0}`,
       ...(inputFilesPath?.length > 0
