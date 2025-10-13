@@ -1,5 +1,3 @@
-import { useExperimentalNetworks } from '../utils/featureFlags.js';
-
 export const SCONE_TAG = ['tee', 'scone'];
 export const DEFAULT_SCONE_VERSION = 'v5.9';
 
