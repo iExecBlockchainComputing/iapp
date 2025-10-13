@@ -7,9 +7,9 @@ import sys
 import shutil
 # <</inputFile>>
 from pyfiglet import Figlet
-# <<protectedData>>
+# <<protectedData|bulkProcessing>>
 import protected_data
-# <</protectedData>>
+# <</protectedData|bulkProcessing>>
 
 # ⚠️ Your Python code will be run in a python v3.8.3 environment
 
@@ -32,10 +32,28 @@ try:
         # The protected data mock created for the purpose of this Hello World journey
         # contains an object with a key "secretText" which is a string
         protected_text = protected_data.getValue('secretText', 'string')
+        print('Found a protected data')
         messages.append(protected_text)
     except Exception as e:
         print('It seems there is an issue with your protected data:', e)
     # <</protectedData>>
+    # <<bulkProcessing>>
+
+    bulkSize = int(os.getenv("IEXEC_BULK_SLICE_SIZE", "0"))
+    if bulkSize > 0:
+        print(f"Got {bulkSize} protected data to process in bulk!")
+        for i in range(1, bulkSize + 1):
+            try:
+                # The protected data mock created for the purpose of this Hello World journey
+                # contains an object with a key "secretText" which is a string
+                protected_text = protected_data.getValue(
+                    'secretText', 'string', i)
+                print(f"Found protected data {i} of bulk")
+                messages.append(protected_text)
+            except Exception as e:
+                print(
+                    f"It seems there is an issue with your protected data {i}:", e)
+    # <</bulkProcessing>>
     # <<inputFile>>
 
     IEXEC_INPUT_FILES_NUMBER = int(os.getenv("IEXEC_INPUT_FILES_NUMBER", 0))

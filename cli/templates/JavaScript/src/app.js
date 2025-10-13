@@ -1,8 +1,11 @@
 import fs from 'node:fs/promises';
+// <<bulkProcessing>>
+import path from 'node:path';
+// <</bulkProcessing>>
 import figlet from 'figlet';
-// <<protectedData>>
+// <<protectedData|bulkProcessing>>
 import { IExecDataProtectorDeserializer } from '@iexec/dataprotector-deserializer';
-// <</protectedData>>
+// <</protectedData|bulkProcessing>>
 
 const main = async () => {
   const { IEXEC_OUT } = process.env;
@@ -25,13 +28,43 @@ const main = async () => {
       const deserializer = new IExecDataProtectorDeserializer();
       // The protected data mock created for the purpose of this Hello World journey
       // contains an object with a key "secretText" which is a string
-      const protectedName = await deserializer.getValue('secretText', 'string');
+      const protectedText = await deserializer.getValue('secretText', 'string');
       console.log('Found a protected data');
-      messages.push(protectedName);
+      messages.push(protectedText);
     } catch (e) {
       console.log('It seems there is an issue with your protected data:', e);
     }
     // <</protectedData>>
+    // <<bulkProcessing>>
+
+    const bulkSize = parseInt(process.env.IEXEC_BULK_SLICE_SIZE);
+    if (bulkSize > 0) {
+      console.log(`Got ${bulkSize} protected data to process in bulk!`);
+      for (let i = 1; i <= bulkSize; i++) {
+        try {
+          const deserializer = new IExecDataProtectorDeserializer({
+            protectedDataPath: path.join(
+              process.env.IEXEC_IN,
+              process.env[`IEXEC_DATASET_${i}_FILENAME`]
+            ),
+          });
+          // The protected data mock created for the purpose of this Hello World journey
+          // contains an object with a key "secretText" which is a string
+          const protectedText = await deserializer.getValue(
+            'secretText',
+            'string'
+          );
+          console.log(`Found protected data ${i} of bulk`);
+          messages.push(protectedText);
+        } catch (e) {
+          console.log(
+            `It seems there is an issue with protected data ${i}:`,
+            e.message
+          );
+        }
+      }
+    }
+    // <</bulkProcessing>>
     // <<inputFile>>
 
     const { IEXEC_INPUT_FILES_NUMBER, IEXEC_IN } = process.env;

@@ -63,8 +63,9 @@ yargsInstance
         })
         .option('protectedData', {
           describe:
-            'Specify the protected data mock name (use "default" protected data mock or create custom mocks with `iapp mock protectedData`) ',
+            'Specify the protected data mock name (use "default" protected data mock or create custom mocks with `iapp mock protectedData`). Specify multiple names for bulk processing (Ex: `--protectedData data1 data2` will make available two protected data files in the iApp, `data1` at `$IEXEC_IN/$IEXEC_DATASET_FILENAME` and `data2` at `$IEXEC_IN/BULK_DATASET_2_FILENAME`)',
           type: 'string',
+          array: true, // multiple values for bulk processing
         })
         .option('inputFile', {
           describe:
@@ -118,6 +119,7 @@ yargsInstance
         .option('protectedData', {
           describe: 'Specify the protected data address',
           type: 'string',
+          array: true, // multiple values for bulk processing
         })
         .option('inputFile', {
           describe:
