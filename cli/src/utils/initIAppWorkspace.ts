@@ -150,6 +150,12 @@ async function copyChosenTemplateFiles({
         ''
       );
     }
+    if (!useBulkProcessing && !useProtectedData) {
+      modifiedCode = modifiedCode.replaceAll(
+        / *(\/\/|#) <<protectedData\|bulkProcessing>>\n((.*)\n)*? *(\/\/|#) <<\/protectedData\|bulkProcessing>>(\n)?/g,
+        ''
+      );
+    }
     if (!useInputFile) {
       modifiedCode = modifiedCode.replaceAll(
         / *(\/\/|#) <<inputFile>>\n((.*)\n)*? *(\/\/|#) <<\/inputFile>>(\n)?/g,

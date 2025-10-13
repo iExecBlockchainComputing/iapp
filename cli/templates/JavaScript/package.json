@@ -5,9 +5,9 @@
   "main": "src/app.js",
   "type": "module",
   "dependencies": {
-    // <<protectedData>>
+    // <<protectedData|bulkProcessing>>
     "@iexec/dataprotector-deserializer": "^0.1.1",
-    // <</protectedData>>
+    // <</protectedData|bulkProcessing>>
     "figlet": "^1.8.1"
   }
 }
