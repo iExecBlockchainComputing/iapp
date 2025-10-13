@@ -40,7 +40,7 @@ const main = async () => {
     // <</protectedData>>
     // <<bulkProcessing>>
 
-    const bulkSize = parseInt(process.env.BULK_SLICE_SIZE);
+    const bulkSize = parseInt(process.env.IEXEC_BULK_SLICE_SIZE);
     if (bulkSize > 0) {
       console.log(`Got ${bulkSize} protected data to process in bulk!`);
       for (let i = 1; i <= bulkSize; i++) {
@@ -48,7 +48,7 @@ const main = async () => {
           const deserializer = new IExecDataProtectorDeserializer({
             protectedDataPath: path.join(
               process.env.IEXEC_IN,
-              process.env[`BULK_DATASET_${i}_FILENAME`]
+              process.env[`IEXEC_DATASET_${i}_FILENAME`]
             ),
           });
           // The protected data mock created for the purpose of this Hello World journey
