@@ -119,6 +119,7 @@ yargsInstance
         .option('protectedData', {
           describe: 'Specify the protected data address',
           type: 'string',
+          array: true, // multiple values for bulk processing
         })
         .option('inputFile', {
           describe:
