@@ -1,5 +1,3 @@
-import { useExperimentalNetworks } from '../utils/featureFlags.js';
-
 export const SCONE_TAG = ['tee', 'scone'];
 export const DEFAULT_SCONE_VERSION = 'v5.9';
 
@@ -90,14 +88,12 @@ export const CHAINS_CONFIGURATIONS: Record<string, ChainConfig> = {
     iexecExplorerUrl: 'https://explorer.iex.ec/arbitrum-mainnet',
     workerpool: '0x2c06263943180cc024daffeee15612db6e5fd248',
   },
-  ...(useExperimentalNetworks && {
-    'arbitrum-sepolia-testnet': {
-      rpcHostUrl: 'https://sepolia-rollup.arbitrum.io/rpc',
-      ipfsGatewayUrl: 'https://ipfs-gateway.arbitrum-sepolia-testnet.iex.ec',
-      iexecExplorerUrl: 'https://explorer.iex.ec/arbitrum-sepolia-testnet',
-      workerpool: '0xB967057a21dc6A66A29721d96b8Aa7454B7c383F',
-    },
-  }),
+  'arbitrum-sepolia-testnet': {
+    rpcHostUrl: 'https://sepolia-rollup.arbitrum.io/rpc',
+    ipfsGatewayUrl: 'https://ipfs-gateway.arbitrum-sepolia-testnet.iex.ec',
+    iexecExplorerUrl: 'https://explorer.iex.ec/arbitrum-sepolia-testnet',
+    workerpool: '0xB967057a21dc6A66A29721d96b8Aa7454B7c383F',
+  },
 };
 
 export const SUPPORTED_CHAINS = Object.keys(CHAINS_CONFIGURATIONS);

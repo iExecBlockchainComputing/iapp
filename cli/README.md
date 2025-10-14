@@ -113,9 +113,6 @@ Options:
   (overrides defaultChain configuration which is `bellecour`). Possible values
   are `bellecour|arbitrum-sepolia-testnet|arbitrum-mainnet`
 
-> [!IMPORTANT] To use a chain other than `bellecour`, you must pass (or set in
-> your system) `EXPERIMENTAL_NETWORKS=true` before the `iApp` command.
-
 ---
 
 ### `run`
@@ -147,9 +144,6 @@ Options:
 - use `--chain` Specify the blockchain on which the iApp will be deployed
   (overrides defaultChain configuration which is `bellecour`). Possible values
   are `bellecour|arbitrum-sepolia-testnet|arbitrum-mainnet`
-
-> [!IMPORTANT] To use a chain other than `bellecour`, you must pass (or set in
-> your system) `EXPERIMENTAL_NETWORKS=true` before the `iApp` command.
 
 ---
 
