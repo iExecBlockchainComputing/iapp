@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0](https://github.com/iExecBlockchainComputing/iapp/compare/iapp-v1.0.0...iapp-v1.1.0) (2025-10-14)
+
+
+### Added
+
+* Migrate `arbitrum-sepolia-testnet` from experimental to non-experimental network ([#242](https://github.com/iExecBlockchainComputing/iapp/issues/242)) ([730c49b](https://github.com/iExecBlockchainComputing/iapp/commit/730c49b6a623b3efd7a095a11f50169d000c17d6))
+
 ## [1.0.0](https://github.com/iExecBlockchainComputing/iapp/compare/iapp-v1.0.0...iapp-v1.0.0) (2025-09-04)
 
 Initial stable release.
