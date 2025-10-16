@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.0.0](https://github.com/iExecBlockchainComputing/iapp/compare/iapp-api-v0.3.2...iapp-api-v1.0.0) (2025-10-16)
+
+
+### ⚠ BREAKING CHANGES
+
+* store tasks as taskids array instead of one taskid in run cache
+
+### Changed
+
+* store tasks as taskids array instead of one taskid in run cache ([026fe1a](https://github.com/iExecBlockchainComputing/iapp/commit/026fe1a03ece3b98db89f4a9fb756d373bbe0903))
+
 ## [0.3.2](https://github.com/iExecBlockchainComputing/iapp/compare/iapp-api-v0.3.1...iapp-api-v0.3.2) (2025-08-21)
 
 
