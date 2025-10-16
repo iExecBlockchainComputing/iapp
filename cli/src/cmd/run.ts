@@ -255,7 +255,8 @@ export async function run({
     const task = await iexec.task.show(taskid);
     const { location } = task.results as { storage: string; location?: string };
     spinner.succeed(`Task finalized
-You can download the result of your task here: ${color.link(`${chainConfig.ipfsGatewayUrl}${location}`)}`);
+You can download the result of your task here:
+${color.link(`${chainConfig.ipfsGatewayUrl}${location}`)}`);
 
     const downloadAnswer = await spinner.prompt({
       type: 'confirm',

@@ -27,7 +27,7 @@ export async function mockProtectedData() {
         type: 'text',
         name: 'key',
         message:
-          "What key do you want to use to store the piece of data? (use '.' to access nested keys)",
+          "Protected Data is an object holding different asset types (email, passport, ID, etc.). Define a key to access it? (use '.' to access nested keys)",
       });
 
       // check key is valid
