@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.0](https://github.com/iExecBlockchainComputing/iapp/compare/iapp-v1.1.0...iapp-v1.2.0) (2025-10-16)
+
+
+### Added
+
+* improve CLI prompts and IPFS link display ([#244](https://github.com/iExecBlockchainComputing/iapp/issues/244)) ([f1a4380](https://github.com/iExecBlockchainComputing/iapp/commit/f1a438005f07bdd58855bcd99f03b2bdc0419321))
+
 ## [1.1.0](https://github.com/iExecBlockchainComputing/iapp/compare/iapp-v1.0.0...iapp-v1.1.0) (2025-10-14)
 
 
