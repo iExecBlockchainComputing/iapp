@@ -1,0 +1,34 @@
+# ⚠️ THIS WORKFLOW IS THE TRUSTED PUBLISHER CONFIGURED ON NPMJS.COM, DO NOT RENAME OR DELETE THIS FILE ⚠️
+name: CLI npm publish
+
+on:
+  # For staging releases
+  workflow_dispatch:
+  # For latest releases
+  release:
+    types: [published]
+
+jobs:
+  compute-staging-version:
+    # Only run for manual dispatch (staging)
+    if: github.event_name == 'workflow_dispatch'
+    uses: ./.github/workflows/reusable-compute-staging-version.yml
+    with:
+      working-directory: cli
+
+  npm-publish-staging:
+    # Only run for manual dispatch (staging)
+    if: github.event_name == 'workflow_dispatch'
+    uses: ./.github/workflows/reusable-cli-npm.yml
+    needs: compute-staging-version
+    with:
+      version: ${{ needs.compute-staging-version.outputs.version }}
+      tag: ${{ needs.compute-staging-version.outputs.dist-tag }}
+
+  npm-publish-latest:
+    # Only run for releases with tag 'iapp-v*' as created by release-please for CLI
+    if:
+      ${{ github.event_name == 'release' && startsWith(github.ref_name,'iapp-v') }}
+    uses: ./.github/workflows/reusable-cli-npm.yml
+    with:
+      tag: 'latest'
