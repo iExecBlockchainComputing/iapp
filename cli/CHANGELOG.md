@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.0](https://github.com/iExecBlockchainComputing/iapp/compare/iapp-v1.2.0...iapp-v1.3.0) (2025-11-12)
+
+
+### Added
+
+* add support support for data bulk processing ([#243](https://github.com/iExecBlockchainComputing/iapp/issues/243)) ([62b4691](https://github.com/iExecBlockchainComputing/iapp/commit/62b4691baea31785ea74840c8497963484e33549))
+
 ## [1.2.0](https://github.com/iExecBlockchainComputing/iapp/compare/iapp-v1.1.0...iapp-v1.2.0) (2025-10-16)
 
 
