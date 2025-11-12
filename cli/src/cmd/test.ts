@@ -30,12 +30,12 @@ import { IEXEC_TDX_WORKER_HEAP_SIZE } from '../utils/tdx-poc.js';
 
 export async function test({
   args,
-  protectedData: protectedDataMock,
+  protectedData: protectedDataMocks,
   inputFile: inputFiles = [], // rename variable (it's an array)
   requesterSecret: requesterSecrets = [], // rename variable (it's an array)
 }: {
   args?: string;
-  protectedData?: string;
+  protectedData?: string[];
   inputFile?: string[];
   requesterSecret?: { key: number; value: string }[];
 }) {
@@ -49,10 +49,11 @@ export async function test({
       inputFiles,
       requesterSecrets,
       spinner,
-      protectedDataMock:
-        protectedDataMock !== undefined
-          ? protectedDataMock || 'default'
-          : protectedDataMock,
+      protectedDataMocks: protectedDataMocks
+        ? protectedDataMocks.length > 0
+          ? protectedDataMocks
+          : ['default']
+        : [],
     });
     await checkTestOutput({ spinner });
     await askShowResult({ spinner, outputPath: TEST_OUTPUT_DIR });
@@ -110,13 +111,13 @@ export async function testApp({
   args = undefined,
   inputFiles = [],
   requesterSecrets = [],
-  protectedDataMock,
+  protectedDataMocks = [],
 }: {
   spinner: Spinner;
   args?: string;
   inputFiles?: string[];
   requesterSecrets?: { key: number; value: string }[];
-  protectedDataMock?: string;
+  protectedDataMocks?: string[];
 }) {
   const appSecret = await askForAppSecret({ spinner });
 
@@ -133,6 +134,36 @@ export async function testApp({
   });
   spinner.succeed(`App docker image built (${imageId})`);
 
+  let PROTECTED_DATA_MOCK_NAMES: string[] = [];
+
+  if (protectedDataMocks?.length > 0) {
+    if (protectedDataMocks.length > 1) {
+      spinner.info('Using protectedData bulk processing');
+    }
+    spinner.start(`Loading protectedData mocks...\n`);
+    PROTECTED_DATA_MOCK_NAMES = await Promise.all(
+      protectedDataMocks.map(async (protectedDataMock, i) => {
+        spinner.text += ` - "${protectedDataMock}"\n`;
+        const fileName = `protectedDataMock_${i + 1}`;
+        const protectedDataMockPath = join(
+          PROTECTED_DATA_MOCK_DIR,
+          protectedDataMock
+        );
+        const mockExists = await fileExists(protectedDataMockPath);
+        if (!mockExists) {
+          throw Error(
+            `No protectedData mock "${protectedDataMock}" found in ${PROTECTED_DATA_MOCK_DIR}, run ${color.command('iapp mock protectedData')} to create a new protectedData mock`
+          );
+        }
+        await copy(join(protectedDataMockPath), join(TEST_INPUT_DIR, fileName));
+        return fileName;
+      })
+    );
+    spinner.succeed(
+      `${protectedDataMocks.length} protectedData mocks loaded for test`
+    );
+  }
+
   let inputFilesPath: string[] = [];
   if (inputFiles.length > 0) {
     spinner.start('Preparing input files...\n');
@@ -140,28 +171,6 @@ export async function testApp({
       inputFiles.map((url) => prepareInputFile(url))
     );
     spinner.succeed('Input files prepared for test');
-  }
-
-  const PROTECTED_DATA_MOCK_NAME = 'protectedDataMock';
-  if (protectedDataMock) {
-    spinner.start(`Loading "${protectedDataMock}" protectedData mock...\n`);
-    const protectedDataMockPath = join(
-      PROTECTED_DATA_MOCK_DIR,
-      protectedDataMock
-    );
-    const mockExists = await fileExists(protectedDataMockPath);
-    if (!mockExists) {
-      throw Error(
-        `No protectedData mock "${protectedDataMock}" found in ${PROTECTED_DATA_MOCK_DIR}, run ${color.command('iapp mock protectedData')} to create a new protectedData mock`
-      );
-    }
-    await copy(
-      join(protectedDataMockPath),
-      join(TEST_INPUT_DIR, PROTECTED_DATA_MOCK_NAME)
-    );
-    spinner.succeed(
-      `"${protectedDataMock}" protectedData mock loaded for test`
-    );
   }
 
   // run the temp image
@@ -188,9 +197,17 @@ export async function testApp({
       // simulate a task id
       `IEXEC_TASK_ID=${hexlify(randomBytes(32))}`,
       // dataset env https://protocol.docs.iex.ec/for-developers/technical-references/application-io#dataset
-      ...(protectedDataMock
-        ? [`IEXEC_DATASET_FILENAME=${PROTECTED_DATA_MOCK_NAME}`]
+      ...(PROTECTED_DATA_MOCK_NAMES.length === 1
+        ? [`IEXEC_DATASET_FILENAME=${PROTECTED_DATA_MOCK_NAMES[0]}`]
         : []),
+      // dataset bulk processing env
+      ...(PROTECTED_DATA_MOCK_NAMES.length > 1
+        ? PROTECTED_DATA_MOCK_NAMES.map(
+            (name, index) => `IEXEC_DATASET_${index + 1}_FILENAME=${name}`
+          ).concat([
+            `IEXEC_BULK_SLICE_SIZE=${PROTECTED_DATA_MOCK_NAMES.length}`,
+          ])
+        : [`IEXEC_BULK_SLICE_SIZE=0`]),
       // input files env https://protocol.docs.iex.ec/for-developers/technical-references/application-io#input-files
       `IEXEC_INPUT_FILES_NUMBER=${inputFilesPath?.length || 0}`,
       ...(inputFilesPath?.length > 0

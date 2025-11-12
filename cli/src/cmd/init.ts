@@ -88,7 +88,7 @@ export async function init() {
 
     const {
       useArgs = true,
-      useProtectedData = true,
+      protectedData = 'useProtectedData',
       useInputFile = false,
       useRequesterSecret = false,
       useAppSecret = false,
@@ -119,12 +119,29 @@ export async function init() {
             initial: false,
           },
           {
-            type: 'confirm',
-            name: 'useProtectedData',
-            message: `Would you like to use a protected data inside your iApp? ${color.promptHelper(
+            type: 'select',
+            name: 'protectedData',
+            message: `Would you like to use protected data inside your iApp? ${color.promptHelper(
               '(protected data a secret file, the protected data is provided by a third party for users that will run your iApp)'
             )}`,
-            initial: false,
+            choices: [
+              {
+                title: 'no',
+                value: 'noProtectedData',
+              },
+              {
+                title: 'yes - only one protected data',
+                value: 'useProtectedData',
+                selected: true,
+                description: 'one protected data per iApp run',
+              },
+              {
+                title: 'yes - many protected data (bulk processing)',
+                value: 'useBulkProcessing',
+                description:
+                  'multiple protected data loaded in the same context of an iApp run',
+              },
+            ],
           },
           {
             type: 'confirm',
@@ -134,6 +151,9 @@ export async function init() {
           },
         ])
       : {}; // default
+
+    const useProtectedData = protectedData === 'useProtectedData';
+    const useBulkProcessing = protectedData === 'useBulkProcessing';
 
     await mkdir(projectName);
     process.chdir(projectName);
@@ -146,6 +166,7 @@ export async function init() {
       template,
       useArgs,
       useProtectedData,
+      useBulkProcessing,
       useInputFile,
       useRequesterSecret,
       useAppSecret,
@@ -188,6 +209,12 @@ export async function init() {
         ? `
     ${color.comment('# with a protected data')}
     ${color.command('$ iapp test --protectedData default')}`
+        : ''
+    }${
+      useBulkProcessing
+        ? `
+    ${color.comment('# with a multiple protected data processed in bulk')}
+    ${color.command('$ iapp test --protectedData data1 data2 data3')}`
         : ''
     }
 
