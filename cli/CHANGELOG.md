@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.1](https://github.com/iExecBlockchainComputing/iapp/compare/iapp-v1.3.0...iapp-v1.3.1) (2025-11-20)
+
+
+### Changed
+
+* enable bulk on arbitrum-mainnet ([#252](https://github.com/iExecBlockchainComputing/iapp/issues/252)) ([fc241d3](https://github.com/iExecBlockchainComputing/iapp/commit/fc241d3947984893536a99def22f9e891ab50428))
+
 ## [1.3.0](https://github.com/iExecBlockchainComputing/iapp/compare/iapp-v1.2.0...iapp-v1.3.0) (2025-11-12)
 
 
