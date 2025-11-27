@@ -1,18 +1,11 @@
 import { readFile } from 'node:fs/promises';
 import express from 'express';
 import { pino } from 'pino';
-import {
-  deprecated_sconifyHttpHandler,
-  deprecated_sconifyWsHandler,
-} from './sconify/deprecated_sconify.handler.js';
 import { loggerMiddleware } from './utils/logger.js';
 import { requestIdMiddleware } from './utils/requestId.js';
-import { errorHandlerMiddleware } from './utils/errors.js';
+import { errorHandlerMiddleware, OutdatedClientError } from './utils/errors.js';
 import { attachWebSocketServer } from './utils/websocket.js';
-import {
-  deprecated_sconifyBuildHttpHandler,
-  sconifyBuildWsHandler,
-} from './sconify/sconifyBuild.handler.js';
+import { sconifyBuildWsHandler } from './sconify/sconifyBuild.handler.js';
 
 const app = express();
 const hostname = '0.0.0.0';
@@ -31,10 +24,15 @@ app.use(express.json());
 app.use(requestIdMiddleware);
 app.use(loggerMiddleware);
 
-// deprecated endpoint, clients should use /sconify/build
-app.post('/sconify', deprecated_sconifyHttpHandler);
+app.post('/sconify', () => {
+  throw new OutdatedClientError('/sconify endpoint is no longer supported.');
+});
 
-app.post('/sconify/build', deprecated_sconifyBuildHttpHandler);
+app.post('/sconify/build', () => {
+  throw new OutdatedClientError(
+    '/sconify/build endpoint is no longer supported.'
+  );
+});
 
 // Health endpoint
 app.get('/health', (req, res) => {
@@ -58,9 +56,10 @@ const server = app.listen(port, hostname, () => {
 attachWebSocketServer({
   server,
   requestRouter: (requestTarget) => {
-    // deprecated requestTarget, clients should use SCONIFY_BUILD
     if (requestTarget === 'SCONIFY') {
-      return deprecated_sconifyWsHandler;
+      throw new OutdatedClientError(
+        'SCONIFY request target is no longer supported.'
+      );
     }
     if (requestTarget === 'SCONIFY_BUILD') {
       return sconifyBuildWsHandler;

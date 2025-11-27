@@ -8,7 +8,6 @@ import { checkPushToken } from '../singleFunction/checkPushToken.js';
 import { getSconifiedImageFingerprint } from '../singleFunction/getSconifiedImageFingerprint.js';
 import { inspectImage } from '../singleFunction/inspectImage.js';
 import { pullPublicImage } from '../singleFunction/pullPublicImage.js';
-import { pullSconeImage } from '../singleFunction/pullSconeImage.js';
 import { pushImage } from '../singleFunction/pushImage.js';
 import { removeImage } from '../singleFunction/removeImage.js';
 import { sconifyImage } from '../singleFunction/sconifyImage.js';
@@ -133,13 +132,7 @@ export async function sconify({
 
     // TODO we may want to ensure the dockerImageToSconify uses a supported version of glibc (GLIBC 2.31 for ubuntu:20.04) or musl (musl libc 1.2.5 for alpine:3.21)
 
-    logger.info('---------- 4 ---------- Ensure Scone curated image');
-    // curated images are not needed with scone v5.9
-    if (sconeVersion === 'v5' && configTemplate.sconeCuratedImage) {
-      await pullSconeImage(configTemplate.sconeCuratedImage);
-    }
-
-    logger.info('---------- 5 ---------- Start sconification...');
+    logger.info('---------- 4 ---------- Start sconification...');
     sconifiedImageId = await sconifyImage({
       fromImage: dockerImageToSconify,
       sconifyVersion,
@@ -177,7 +170,7 @@ export async function sconify({
   let pushed;
   let fingerprint;
   try {
-    logger.info('---------- 6 ---------- Pushing image to user dockerhub...');
+    logger.info('---------- 5 ---------- Pushing image to user dockerhub...');
 
     if (wsEnabled) {
       logger.info('Ask for renew dockerhubPushToken');
@@ -209,7 +202,7 @@ export async function sconify({
     });
     logger.info(pushed, 'Pushed image');
 
-    logger.info('---------- 7 ---------- Getting TEE image fingerprint...');
+    logger.info('---------- 6 ---------- Getting TEE image fingerprint...');
     fingerprint = await getSconifiedImageFingerprint(sconifiedImageId);
     logger.info({ sconifiedImageFingerprint: fingerprint });
   } finally {

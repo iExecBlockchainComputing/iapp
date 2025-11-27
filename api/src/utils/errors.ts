@@ -16,6 +16,27 @@ class OperationalError extends Error {
 export class ForbiddenError extends OperationalError {}
 
 /**
+ * Returns 410 gone, error message and workaround are exposed
+ */
+export class OutdatedClientError extends OperationalError {
+  /**
+   * A suggested workaround for the client
+   */
+  workaround: string;
+  constructor(
+    message?: string,
+    options?: ErrorOptions & { workaround?: string }
+  ) {
+    super(message, options);
+    if (options?.workaround) {
+      this.workaround = options.workaround;
+    } else {
+      this.workaround = 'Please update @iexec/iapp to the latest version.';
+    }
+  }
+}
+
+/**
  * Clean error for sending to client
  */
 export const errorHandler = (
@@ -33,6 +54,15 @@ export const errorHandler = (
     callback({
       code: 400,
       error: err.toString(),
+    });
+  }
+  // handle outdated client errors
+  else if (err instanceof OutdatedClientError) {
+    logger.info({ err }, err.name);
+    callback({
+      code: 410,
+      error: `${err.toString()}
+${err.workaround}`,
     });
   }
   // handle business errors

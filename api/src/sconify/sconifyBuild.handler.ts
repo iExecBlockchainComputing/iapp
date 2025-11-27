@@ -1,14 +1,15 @@
 import { z } from 'zod';
 import { createMessageBuilder, fromError } from 'zod-validation-error';
 import {
+  OutdatedSconeVersion,
+  OutdatedTemplateName,
   SconeVersion,
   TEMPLATE_CONFIG,
   type TemplateName,
 } from '../constants/constants.js';
 import { ethereumAddressZodSchema } from '../utils/ethereumAddressZodSchema.js';
 import { sconify } from './sconifyBuild.service.js';
-import type { Request, Response } from 'express';
-import { logger } from '../utils/logger.js';
+import { OutdatedClientError } from '../utils/errors.js';
 
 const bodySchema = z.object({
   yourWalletPublicAddress: ethereumAddressZodSchema,
@@ -26,7 +27,11 @@ const bodySchema = z.object({
       'An auth token with push access to dockerhub repository is required.'
     ),
   template: z
-    .enum(Object.keys(TEMPLATE_CONFIG) as [TemplateName])
+    .enum(
+      Object.keys(TEMPLATE_CONFIG).concat('Python') as [
+        TemplateName | OutdatedTemplateName,
+      ]
+    )
     .default('JavaScript'),
   sconeVersion: z.enum(['v5', 'v5.9']).default('v5'),
   sconeProd: z.boolean().default(false),
@@ -36,8 +41,8 @@ async function handleSconifyRequest(requestObj: object) {
   let yourWalletPublicAddress: string;
   let dockerhubImageToSconify: string;
   let dockerhubPushToken: string;
-  let sconeVersion: SconeVersion;
-  let template: TemplateName;
+  let sconeVersion: SconeVersion | OutdatedSconeVersion;
+  let template: TemplateName | OutdatedTemplateName;
   let sconeProd: boolean;
   try {
     ({
@@ -56,15 +61,19 @@ async function handleSconifyRequest(requestObj: object) {
     });
   }
   if (template === 'Python') {
-    logger.warn('Deprecated feature hit: template === "Python"');
+    throw new OutdatedClientError('template "Python" is no longer supported.', {
+      workaround:
+        'Please update your `iapp.config.json` to use template "Python3.13".',
+    });
   }
   if (sconeVersion === 'v5') {
-    logger.warn('Deprecated feature hit: sconeVersion === "v5"');
+    throw new OutdatedClientError('sconeVersion v5 is no longer supported.');
   }
   if (sconeProd === false) {
-    logger.warn('Deprecated feature hit: sconeProd === false');
+    throw new OutdatedClientError(
+      'debug sconification is no longer supported.'
+    );
   }
-
   const { dockerImage, dockerImageDigest, fingerprint, entrypoint } =
     await sconify({
       dockerImageToSconify: dockerhubImageToSconify,
@@ -98,26 +107,4 @@ export async function sconifyBuildWsHandler(message: object) {
     entrypoint,
     sconeVersion,
   };
-}
-
-export async function deprecated_sconifyBuildHttpHandler(
-  req: Request,
-  res: Response
-) {
-  logger.warn('Deprecated feature hit: POST /sconify/build');
-  const {
-    dockerImage,
-    dockerImageDigest,
-    fingerprint,
-    entrypoint,
-    sconeVersion,
-  } = await handleSconifyRequest(req.body || {});
-  res.status(200).json({
-    success: true,
-    dockerImage,
-    dockerImageDigest,
-    fingerprint,
-    entrypoint,
-    sconeVersion,
-  });
 }

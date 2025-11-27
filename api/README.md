@@ -10,10 +10,6 @@ The API is composed of:
     running)
   - 🟢 `GET /health`: will return a JSON object with the health status of the
     server and the version of the API.
-  - 🟠 `POST /sconify`: deprecated, use Websocket API request `SCONIFY_BUILD`
-    instead.
-  - 🟠 `POST /sconify/build`: deprecated, use Websocket API request
-    `SCONIFY_BUILD` instead.
 
 - Websocket API requests:
   - 🟢 `SCONIFY_BUILD`: will take a dockerhub image and return a
@@ -22,7 +18,6 @@ The API is composed of:
       access to the image's repo in order to push the sconified image
     - builds a sconified image out of it
     - publishes it to dockerhub with tag suffix
-  - 🟠 `SCONIFY`: deprecated, use `SCONIFY_BUILD` instead.
 
 ## Prerequisites
 
@@ -64,16 +59,16 @@ npm run start
 npm run dev:pretty
 ```
 
-## deprecations
+## deprecated and dropped API
 
-- `POST /sconify` is deprecated, websocket API request `SCONIFY_BUILD` should be
-  used instead.
-- `POST /sconify/build` is deprecated, websocket API request `SCONIFY_BUILD`
-  should be used instead.
-- websocket API request `SCONIFY` is deprecated, websocket API request
-  `SCONIFY_BUILD` should be used instead.
-- template `Python` is deprecated, template `Python3.13` should be used instead.
-- sconeVersion `v5` or `undefined` is deprecated, sconeVersion `v5.9` should be
-  used instead.
-- sconeProd `false` or `undefined` is deprecated, sconeProd `true` should be
-  used instead.
+- `POST /sconify` is dropped, websocket API request `SCONIFY_BUILD` must be used
+  instead.
+- `POST /sconify/build` is dropped, websocket API request `SCONIFY_BUILD` must
+  be used instead.
+- websocket API request `SCONIFY` is dropped, websocket API request
+  `SCONIFY_BUILD` must be used instead.
+- template `Python` is dropped, template `Python3.13` must be used instead.
+- sconeVersion `v5` or `undefined` is dropped, sconeVersion `v5.9` must be used
+  instead.
+- sconeProd `false` or `undefined` is dropped, sconeProd `true` must be used
+  instead.
