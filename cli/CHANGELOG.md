@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.3.2](https://github.com/iExecBlockchainComputing/iapp/compare/iapp-v1.3.1...iapp-v1.3.2) (2025-12-02)
+
+
+### Changed
+
+* update dependencies ([abca98d](https://github.com/iExecBlockchainComputing/iapp/commit/abca98d374025711ad0fa55c1d29c08d55e9c72b))
+* update vulnerable dependencies ([#255](https://github.com/iExecBlockchainComputing/iapp/issues/255)) ([abca98d](https://github.com/iExecBlockchainComputing/iapp/commit/abca98d374025711ad0fa55c1d29c08d55e9c72b))
+
 ## [1.3.1](https://github.com/iExecBlockchainComputing/iapp/compare/iapp-v1.3.0...iapp-v1.3.1) (2025-11-20)
 
 
