@@ -1,5 +1,6 @@
 import Docker from 'dockerode';
 import os from 'os';
+import { readdir } from 'fs/promises';
 import { createSigintAbortSignal } from '../utils/abortController.js';
 
 type ProgressEvent = { stream?: string };
@@ -28,9 +29,11 @@ export async function dockerBuild({
   progressCallback?: (msg: string) => void;
 }): Promise<string> {
   const osType = os.type();
+
+  const contextPath = process.cwd(); // Use current working directory
   const buildArgs = {
-    context: process.cwd(), // Use current working directory
-    src: ['./'],
+    context: contextPath,
+    src: await readdir(contextPath), // Include all files of the context
   };
 
   // by default force to build amd64 image which is architecture used in iExec workers
