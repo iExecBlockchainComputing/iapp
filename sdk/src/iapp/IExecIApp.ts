@@ -1,0 +1,201 @@
+import { GraphQLClient } from 'graphql-request';
+import {
+  IAppConfigOptions,
+  GrantAccessParams,
+  GrantedAccess,
+  GetGrantedAccessParams,
+  GrantedAccessResponse,
+  TransferParams,
+  TransferResponse,
+  RevokeAllAccessParams,
+  RevokedAccess,
+  GetIAppParams,
+  IApp,
+  RunIAppParams,
+  RunIAppResponse,
+} from '../types/index.js';
+import { IExec } from 'iexec';
+import { getChainConfig } from '../config/config.js';
+import { getChainIdFromProvider } from '../utils/getChainId.js';
+import { isValidProvider } from '../utils/validators.js';
+import { grantAccess } from './grantAccess.js';
+import { getGrantedAccess } from './getGrantedAccess.js';
+import { transferOwnership } from './transferOwnership.js';
+import { revokeOneAccess } from './revokeOneAccess.js';
+import { revokeAllAccess } from './revokeAllAccess.js';
+import { getIApp } from './getIApp.js';
+import {
+  IExecDataProtectorCore,
+  GetResultFromCompletedTaskParams,
+  GetResultFromCompletedTaskResponse,
+} from '@iexec/dataprotector';
+import { runIApp } from './runIApp.js';
+import { EthersCompatibleProvider } from '../types/internalTypes.js';
+
+interface IExecIAppResolvedConfig {
+  graphQLClient: GraphQLClient;
+  ipfsNode: string;
+  ipfsGateway: string;
+  defaultWorkerpool: string;
+  iexec: IExec;
+}
+
+export class IExecIApp {
+  protected graphQLClient!: GraphQLClient;
+
+  protected ipfsNode!: string;
+
+  protected ipfsGateway!: string;
+
+  protected defaultWorkerpool!: string;
+
+  protected iexec!: IExec;
+
+  private initPromise: Promise<void> | null = null;
+
+  private ethProvider: EthersCompatibleProvider;
+
+  private options: IAppConfigOptions;
+
+  constructor(
+    ethProvider?: EthersCompatibleProvider,
+    options?: IAppConfigOptions
+  ) {
+    this.ethProvider = ethProvider || 'bellecour';
+    this.options = options || {};
+  }
+
+  protected async init(): Promise<void> {
+    if (!this.initPromise) {
+      this.initPromise = this.resolveConfig().then((config) => {
+        this.ipfsNode = config.ipfsNode;
+        this.ipfsGateway = config.ipfsGateway;
+        this.defaultWorkerpool = config.defaultWorkerpool;
+        this.graphQLClient = config.graphQLClient;
+        this.iexec = config.iexec;
+      });
+    }
+    return this.initPromise;
+  }
+
+  private async resolveConfig(): Promise<IExecIAppResolvedConfig> {
+    const chainId = await getChainIdFromProvider(this.ethProvider);
+    const chainDefaultConfig = getChainConfig(chainId, {
+      allowExperimentalNetworks: this.options.allowExperimentalNetworks,
+    });
+
+    const subgraphUrl =
+      this.options?.subgraphUrl || chainDefaultConfig?.subgraphUrl;
+
+    const ipfsGateway =
+      this.options?.ipfsGateway || chainDefaultConfig?.ipfsGateway;
+    const defaultWorkerpool = chainDefaultConfig?.workerpoolAddress;
+    const ipfsNode = this.options?.ipfsNode || chainDefaultConfig?.ipfsNode;
+
+    const missing = [];
+    if (!subgraphUrl) missing.push('subgraphUrl');
+    if (!ipfsGateway) missing.push('ipfsGateway');
+    if (!defaultWorkerpool) missing.push('defaultWorkerpool');
+    if (!ipfsNode) missing.push('ipfsNode');
+
+    if (missing.length > 0) {
+      throw new Error(
+        `Missing required configuration for chainId ${chainId}: ${missing.join(
+          ', '
+        )}`
+      );
+    }
+
+    let iexec: IExec, graphQLClient: GraphQLClient;
+
+    try {
+      iexec = new IExec(
+        { ethProvider: this.ethProvider },
+        {
+          ipfsGatewayURL: ipfsGateway,
+          ...this.options?.iexecOptions,
+          allowExperimentalNetworks: this.options.allowExperimentalNetworks,
+        }
+      );
+    } catch (e: any) {
+      throw new Error(`Unsupported ethProvider: ${e.message}`);
+    }
+
+    try {
+      graphQLClient = new GraphQLClient(subgraphUrl);
+    } catch (error: any) {
+      throw new Error(`Failed to create GraphQLClient: ${error.message}`);
+    }
+
+    return {
+      defaultWorkerpool,
+      graphQLClient,
+      ipfsNode,
+      ipfsGateway,
+      iexec,
+    };
+  }
+
+  async grantAccess(args: GrantAccessParams): Promise<GrantedAccess> {
+    await this.init();
+    await isValidProvider(this.iexec);
+    return grantAccess({ ...args, iexec: this.iexec });
+  }
+
+  async revokeOneAccess(args: GrantedAccess): Promise<RevokedAccess> {
+    await this.init();
+    await isValidProvider(this.iexec);
+    return revokeOneAccess({ ...args, iexec: this.iexec });
+  }
+
+  async revokeAllAccess(args: RevokeAllAccessParams): Promise<RevokedAccess[]> {
+    await this.init();
+    await isValidProvider(this.iexec);
+    return revokeAllAccess({ ...args, iexec: this.iexec });
+  }
+
+  async transferOwnership(args: TransferParams): Promise<TransferResponse> {
+    await this.init();
+    await isValidProvider(this.iexec);
+    return transferOwnership({ ...args, iexec: this.iexec });
+  }
+
+  async getResultFromCompletedTask(
+    args: GetResultFromCompletedTaskParams
+  ): Promise<GetResultFromCompletedTaskResponse> {
+    const dataProtectorCore = new IExecDataProtectorCore(
+      this.ethProvider,
+      this.options
+    );
+    return dataProtectorCore.getResultFromCompletedTask(args);
+  }
+
+  async runIApp(args: RunIAppParams): Promise<RunIAppResponse> {
+    await this.init();
+    await isValidProvider(this.iexec);
+    return runIApp({
+      ...args,
+      iexec: this.iexec,
+      defaultWorkerpool: this.defaultWorkerpool,
+      ethProvider: this.ethProvider,
+      options: this.options,
+    });
+  }
+
+  // ----- READ METHODS -----
+  async getIApp(args?: GetIAppParams): Promise<IApp[]> {
+    await this.init();
+    return getIApp({
+      ...args,
+      iexec: this.iexec,
+      graphQLClient: this.graphQLClient,
+    });
+  }
+
+  async getGrantedAccess(
+    args: GetGrantedAccessParams
+  ): Promise<GrantedAccessResponse> {
+    await this.init();
+    return getGrantedAccess({ ...args, iexec: this.iexec });
+  }
+}
