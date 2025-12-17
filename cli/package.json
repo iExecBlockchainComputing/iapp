@@ -30,7 +30,8 @@
   "files": [
     "src",
     "dist",
-    "templates"
+    "templates",
+    "npm-shrinkwrap.json"
   ],
   "dependencies": {
     "borsh": "^2.0.0",
