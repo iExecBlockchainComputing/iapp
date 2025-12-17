@@ -1,3 +1,8 @@
+################ IMPORTANT NOTICE ###################
+# Do not modify this file                           #
+# Any modifications might not be taken into account #
+#####################################################
+
 # iapp config file may contain secrets
 iapp.config.json
 
