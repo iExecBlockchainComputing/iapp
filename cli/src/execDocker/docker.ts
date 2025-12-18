@@ -2,6 +2,7 @@ import Docker from 'dockerode';
 import os from 'os';
 import { readdir } from 'fs/promises';
 import { createSigintAbortSignal } from '../utils/abortController.js';
+import { CONFIG_FILE } from '../config/config.js';
 
 type ProgressEvent = { stream?: string };
 type FinishOutputRow = { error?: string };
@@ -31,9 +32,10 @@ export async function dockerBuild({
   const osType = os.type();
 
   const contextPath = process.cwd(); // Use current working directory
+  const contextFiles = await readdir(contextPath);
   const buildArgs = {
     context: contextPath,
-    src: await readdir(contextPath), // Include all files of the context
+    src: contextFiles.filter((fileName) => fileName !== CONFIG_FILE), // exclude config file from build context even if not in dockerignore
   };
 
   // by default force to build amd64 image which is architecture used in iExec workers

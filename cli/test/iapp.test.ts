@@ -1,5 +1,5 @@
 import { test, beforeEach, after, afterEach, describe } from 'node:test';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
 import assert from 'node:assert/strict';
 import { render, cleanup } from 'cli-testing-library';
 import {
@@ -10,6 +10,8 @@ import {
   removeTestDir,
   retry,
 } from './test-utils.ts';
+import { fileURLToPath } from 'node:url';
+import { readFile, rm, writeFile } from 'node:fs/promises';
 
 // Final cleanup code after all tests
 after(async () => {
@@ -42,10 +44,16 @@ test('iapp help command works', async () => {
 });
 
 test('iapp -v command works', async () => {
+  const __dirname = dirname(fileURLToPath(import.meta.url));
+  const packageJson = JSON.parse(
+    await readFile(join(__dirname, '../package.json'), 'utf-8')
+  );
+  const { version } = packageJson;
+
   const { findByText, debug, clear } = await render(IAPP_COMMAND, ['-v'], {
     cwd: testDir,
   });
-  await findByText('1.3.3');
+  await findByText(version);
   // debug();
   clear();
 });
@@ -123,8 +131,6 @@ describe('JavaScript iApp', () => {
         await checkDockerImageContent({
           dockerImageId,
           expectedFiles: [
-            'Dockerfile',
-            'README.md',
             'node_modules',
             'package-lock.json',
             'package.json',
@@ -194,8 +200,6 @@ describe('JavaScript iApp', () => {
         await checkDockerImageContent({
           dockerImageId,
           expectedFiles: [
-            'Dockerfile',
-            'README.md',
             'node_modules',
             'package-lock.json',
             'package.json',
@@ -254,7 +258,7 @@ describe('Python iApp', () => {
         // check built docker image content
         await checkDockerImageContent({
           dockerImageId,
-          expectedFiles: ['Dockerfile', 'README.md', 'requirements.txt', 'src'],
+          expectedFiles: ['requirements.txt', 'src'],
         });
       });
     });
@@ -318,8 +322,88 @@ describe('Python iApp', () => {
         // check built docker image content
         await checkDockerImageContent({
           dockerImageId,
-          expectedFiles: ['Dockerfile', 'README.md', 'requirements.txt', 'src'],
+          expectedFiles: ['requirements.txt', 'src'],
         });
+      });
+    });
+  });
+});
+
+describe('Custom app', () => {
+  describe('iapp test', () => {
+    const projectName = 'test-iapp';
+
+    // Initialize a test iApp project before each test
+    beforeEach(async () => {
+      await initIappProject({
+        testDir,
+        projectName,
+        template: 'JavaScript',
+        projectType: 'Hello World',
+      });
+    });
+
+    test('iapp test command works', async () => {
+      // removed .dockerignore
+      await rm(join(testDir, projectName, '.dockerignore'));
+      // changed Dockerfile to a custom one
+      const dockerfileContent = await readFile(
+        join(testDir, projectName, 'Dockerfile'),
+        'utf-8'
+      );
+      const customDockerfileContent = dockerfileContent.replace(
+        'COPY src/ ./src/',
+        'COPY . ./'
+      );
+      await writeFile(
+        join(testDir, projectName, 'Dockerfile'),
+        customDockerfileContent,
+        'utf-8'
+      );
+
+      const { findByText, debug, clear, userEvent, getStdallStr } =
+        await render(IAPP_COMMAND, ['test'], {
+          cwd: join(testDir, projectName),
+        });
+      // wait for docker build and test run
+      await retry(() => findByText('Would you like to see the app logs?'), {
+        retries: 8,
+        delay: 3000,
+      });
+      // extract docker image id from stdout
+      const std = getStdallStr();
+      const dockerImageIdMatch = std.match(
+        /App docker image built \(sha256:[a-f0-9]{64}\)/
+      );
+      assert.ok(dockerImageIdMatch, 'Docker image ID not found in output');
+      const dockerImageId = dockerImageIdMatch![0].split('(')[1].slice(0, -1);
+
+      // debug();
+      clear();
+      userEvent.keyboard('n');
+      await findByText('Would you like to see the result?');
+      // debug();
+      clear();
+      userEvent.keyboard('n');
+      await findByText('When ready run iapp deploy');
+      // debug();
+      clear();
+
+      // check built docker image content
+      await checkDockerImageContent({
+        dockerImageId,
+        expectedFiles: [
+          'Dockerfile',
+          'README.md',
+          'cache',
+          'input',
+          'mock',
+          'node_modules',
+          'output',
+          'package-lock.json',
+          'package.json',
+          'src',
+        ],
       });
     });
   });
