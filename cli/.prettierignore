@@ -4,3 +4,4 @@ templates/JavaScript/package.json
 # generated files
 dist
 CHANGELOG.md
+npm-shrinkwrap.json
