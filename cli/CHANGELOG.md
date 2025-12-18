@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.3.4](https://github.com/iExecBlockchainComputing/iapp/compare/iapp-v1.3.3...iapp-v1.3.4) (2025-12-18)
+
+
+### Changed
+
+* pin dependency tree for CLI users ([#261](https://github.com/iExecBlockchainComputing/iapp/issues/261)) ([a764bee](https://github.com/iExecBlockchainComputing/iapp/commit/a764beebad449ad05169dbb2798d17fe707e09a4))
+* reduce copied files in templates ([#263](https://github.com/iExecBlockchainComputing/iapp/issues/263)) ([8e497f6](https://github.com/iExecBlockchainComputing/iapp/commit/8e497f61514fb978e00d507039b46c4041ca7145))
+
 ## [1.3.3](https://github.com/iExecBlockchainComputing/iapp/compare/iapp-v1.3.2...iapp-v1.3.3) (2025-12-16)
 
 
