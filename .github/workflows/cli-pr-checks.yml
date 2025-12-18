@@ -1,6 +1,4 @@
 name: CLI PR checks
-description: check the CLI PR
-
 on:
   pull_request:
     paths: ['cli/**']
@@ -10,7 +8,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  check-code:
+  test:
     runs-on: ubuntu-latest
 
     steps:
@@ -19,7 +17,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
           cache-dependency-path: 'cli/npm-shrinkwrap.json'
 
@@ -39,11 +37,16 @@ jobs:
         working-directory: cli
         run: npm run lint
 
-      - name: Test no crash
+      - name: Install iapp cli
         working-directory: cli
         run: |
           npm i -g .
           iapp -h
+
+      - name: Test
+        working-directory: cli
+        run: |
+          npm run test
 
   npm-dry-run:
     uses: ./.github/workflows/reusable-cli-npm.yml
