@@ -6,3 +6,4 @@ api/sig
 .tags
 
 cli/dist
+cli/test/out

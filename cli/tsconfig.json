@@ -1,17 +1,5 @@
 {
-  "compilerOptions": {
-    "module": "node16",
-    "target": "ES2022",
-    "declaration": true,
-    "sourceMap": true,
-    "outDir": "dist",
-    "esModuleInterop": true,
-    "moduleResolution": "nodenext",
-    "skipLibCheck": true,
-    "allowJs": false,
-    "strict": true,
-    "noImplicitAny": true
-  },
+  "extends": "./tsconfig.base.json",
   "include": ["src/**/*"],
   "exclude": ["node_modules", "templates"]
 }
