@@ -12,6 +12,7 @@ import { SUPPORTED_CHAINS } from './config/config.js';
 import { checkPackageUpdate } from './cli-helpers/checkPackageUpdate.js';
 import { walletImport } from './cmd/wallet-import.js';
 import { walletSelect } from './cmd/wallet-select.js';
+import { chainSelect } from './cmd/chain-select.js';
 
 await checkPackageUpdate();
 
@@ -197,6 +198,20 @@ yargsInstance
       if (y.action === 'select') {
         return walletSelect();
       }
+    },
+  })
+
+  .command({
+    command: 'chain select <chainName>',
+    describe: 'Select the default blockchain environment to use',
+    builder: (y) =>
+      y.positional('chainName', {
+        describe: 'Name of the blockchain to use',
+        choices: SUPPORTED_CHAINS,
+        demandOption: true,
+      }),
+    handler: (y) => {
+      return chainSelect(y);
     },
   })
 
