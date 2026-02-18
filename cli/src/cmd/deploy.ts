@@ -101,9 +101,9 @@ export async function deploy({ chain }: { chain?: string }) {
         imageTag: originalImageTag,
       } = parseImagePath(nonTeeImage);
       const repo = `${dockerUserName}/${imageName}`;
-      const inspectResult = await inspectImage(nonTeeImage);
-      const tdxImageShortId = inspectResult.Id.substring(7, 7 + 12); // extract 12 first chars after the leading "sha256:"
-      const tdxImageTag = `${originalImageTag}-tdx-${tdxImageShortId}`; // add digest in tag to avoid replacing previous build
+      const { Id } = await inspectImage(nonTeeImage);
+      const tdxImageShortId = Id.split('sha256:')[1].substring(0, 12); // extract 12 first chars after the leading "sha256:"
+      const tdxImageTag = `${originalImageTag}-tdx-${tdxImageShortId}`; // add short ID in tag to avoid replacing previous build
       const tdxImage = await tagDockerImage({
         image: nonTeeImage,
         repo,
@@ -114,15 +114,16 @@ export async function deploy({ chain }: { chain?: string }) {
         dockerhubUsername,
         dockerhubAccessToken,
       });
-      spinner.succeed(`Pushed image ${tdxImage} on dockerhub`);
       appDockerImage = tdxImage;
+      spinner.succeed(`Pushed image ${tdxImage} on dockerhub`);
       spinner.start('Deploying your TDX TEE app on iExec...');
+      const { RepoDigests } = await inspectImage(tdxImage);
       const { address } = await iexec.app.deployApp({
         owner: await iexec.wallet.getAddress(),
         name: `${imageName}-${originalImageTag}`,
         type: 'DOCKER',
         multiaddr: tdxImage,
-        checksum: `0x${inspectResult.RepoDigests[0].split('@sha256:')[1]}`,
+        checksum: `0x${RepoDigests[0].split('@sha256:')[1]}`,
       });
       appContractAddress = address;
     } else {
