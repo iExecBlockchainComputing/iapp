@@ -4,11 +4,7 @@ import { utils } from 'iexec';
 import { ConsumableDatasetorder } from 'iexec/IExecOrderModule';
 import { mkdir, rm } from 'node:fs/promises';
 import { askForWallet } from '../cli-helpers/askForWallet.js';
-import {
-  SCONE_TAG,
-  RUN_OUTPUT_DIR,
-  TASK_OBSERVATION_TIMEOUT,
-} from '../config/config.js';
+import { RUN_OUTPUT_DIR, TASK_OBSERVATION_TIMEOUT } from '../config/config.js';
 import { addRunData } from '../utils/cacheExecutions.js';
 import { getSpinner, type Spinner } from '../cli-helpers/spinner.js';
 import { handleCliError } from '../cli-helpers/handleCliError.js';
@@ -19,8 +15,6 @@ import { goToProjectRoot } from '../cli-helpers/goToProjectRoot.js';
 import * as color from '../cli-helpers/color.js';
 import { IExec } from 'iexec';
 import { getChainConfig, readIAppConfig } from '../utils/iAppConfigFile.js';
-import { getIExecTdx, WORKERPOOL_TDX } from '../utils/tdx-poc.js';
-import { useTdx } from '../utils/featureFlags.js';
 import { ensureBalances } from '../cli-helpers/ensureBalances.js';
 import { askForAcknowledgment } from '../cli-helpers/askForAcknowledgment.js';
 import { warnBeforeTxFees } from '../cli-helpers/warnBeforeTxFees.js';
@@ -52,17 +46,27 @@ export async function run({
     await warnBeforeTxFees({ spinner, chain: chainConfig.name });
 
     spinner.start('checking inputs...');
-    let readOnlyIexec: IExec;
-    if (useTdx) {
-      readOnlyIexec = getIExecTdx(chainConfig);
-    } else {
-      readOnlyIexec = getIExec(chainConfig);
-    }
+    // initialize iExec
+    const readOnlyIexec = getIExec(chainConfig);
 
     // input checks
     if ((await readOnlyIexec.app.checkDeployedApp(iAppAddress)) === false) {
       throw Error('No iApp found at the specified address.');
     }
+
+    const { app } = await readOnlyIexec.app.showApp(iAppAddress);
+    // determine TEE framework based on app properties (SCONE apps define `appMREnclave`, TDX apps do NOT define `appMREnclave`)
+    const isTdxApp = !app.appMREnclave;
+    const teeFramework = isTdxApp ? 'tdx' : 'scone';
+    // check TEE framework compatibility with selected chain
+    try {
+      await readOnlyIexec.config.resolveSmsURL({ teeFramework });
+    } catch {
+      throw new Error(
+        `TEE framework ${teeFramework.toUpperCase()} is not supported on the selected chain`
+      );
+    }
+
     if (protectedData.length > 0) {
       await Promise.all(
         protectedData.map(async (dataset) => {
@@ -74,7 +78,7 @@ export async function run({
           }
           const isSecretSet =
             await readOnlyIexec.dataset.checkDatasetSecretExists(dataset, {
-              teeFramework: 'scone',
+              teeFramework,
             });
           if (!isSecretSet) {
             throw Error(
@@ -89,22 +93,17 @@ export async function run({
     const signer = await askForWallet({ spinner });
     const userAddress = await signer.getAddress();
 
-    let iexec: IExec;
-    if (useTdx) {
-      iexec = getIExecTdx({ ...chainConfig, signer });
-    } else {
-      iexec = getIExec({
-        ...chainConfig,
-        signer,
-      });
-    }
+    const iexec = getIExec({
+      ...chainConfig,
+      signer,
+    });
 
     // App Order
     spinner.start('Creating app order...');
     const apporderTemplate = await iexec.order.createApporder({
       app: iAppAddress,
       requesterrestrict: userAddress,
-      tag: SCONE_TAG,
+      tag: ['tee', teeFramework],
     });
     const apporder = await iexec.order.signApporder(apporderTemplate);
     spinner.succeed('AppOrder created');
@@ -121,8 +120,7 @@ export async function run({
             dataset,
             app: iAppAddress,
             requester: userAddress,
-            minTag: SCONE_TAG,
-            maxTag: SCONE_TAG,
+            minTag: ['tee'], // TEE framework tag is ignored for dataset order matching, as dataset can be shared between SCONE and TDX apps
             bulkOnly: protectedData.length > 1, // bulk if multiple datasets
           });
           const datasetorder = datasetOrderbook.orders[0]?.order;
@@ -153,6 +151,7 @@ export async function run({
             const name = await pushRequesterSecret({
               iexec,
               value,
+              teeFramework,
             });
             return [key, name];
           })
@@ -164,10 +163,11 @@ export async function run({
     // Workerpool Order
     spinner.start('Fetching workerpool order...');
     const workerpoolOrderbook = await iexec.orderbook.fetchWorkerpoolOrderbook({
-      workerpool: useTdx ? WORKERPOOL_TDX : chainConfig.workerpool,
+      workerpool: isTdxApp
+        ? chainConfig.tdxWorkerpool
+        : chainConfig.sconeWorkerpool,
       app: iAppAddress,
-      minTag: SCONE_TAG,
-      maxTag: SCONE_TAG,
+      minTag: apporder.tag,
       minVolume: volume, // TODO handle multiple matches if not enough volume
     });
     const workerpoolorder = workerpoolOrderbook.orders[0]?.order;
@@ -192,7 +192,7 @@ export async function run({
           ? datasetorders[0].datasetprice.toString()
           : 0,
       workerpoolmaxprice: workerpoolorder.workerpoolprice,
-      tag: SCONE_TAG,
+      tag: ['tee', teeFramework],
       volume,
       params: {
         iexec_args: args,
@@ -310,12 +310,14 @@ ${color.link(`${chainConfig.ipfsGatewayUrl}${location}`)}`);
 async function pushRequesterSecret({
   iexec,
   value,
+  teeFramework,
 }: {
   iexec: IExec;
   value: string;
+  teeFramework: 'scone' | 'tdx';
 }) {
   const secretName = uuidV4();
-  await iexec.secrets.pushRequesterSecret(secretName, value);
+  await iexec.secrets.pushRequesterSecret(secretName, value, { teeFramework });
   return secretName;
 }
 

@@ -248,3 +248,34 @@ export async function runDockerContainer({
     outOfMemory: State.OOMKilled,
   };
 }
+
+export async function tagDockerImage({
+  image,
+  repo,
+  tag,
+}: {
+  image: string;
+  repo: string;
+  tag: string;
+}) {
+  const dockerImage = docker.getImage(image);
+  await dockerImage.tag({
+    repo,
+    tag,
+  });
+  return `${repo}:${tag}`;
+}
+
+export async function inspectImage(image: string) {
+  const img = docker.getImage(image);
+  const inspectInfo = await img.inspect();
+  return inspectInfo;
+}
+
+export function parseImagePath(dockerImagePath: string) {
+  const dockerUserName = dockerImagePath.split('/')[0];
+  const nameWithTag = dockerImagePath.split('/')[1];
+  const imageName = nameWithTag.split(':')[0];
+  const imageTag = nameWithTag.split(':')[1] || 'latest';
+  return { dockerUserName, imageName, imageTag };
+}

@@ -1,4 +1,3 @@
-export const SCONE_TAG = ['tee', 'scone'];
 export const DEFAULT_SCONE_VERSION = 'v5.9';
 
 export const SCONIFY_API_WS_URL = 'wss://iapp-api.iex.ec';
@@ -13,7 +12,8 @@ export const PROTECTED_DATA_MOCK_DIR = 'mock/protectedData';
 export const IEXEC_OUT = '/iexec_out';
 export const IEXEC_COMPUTED_JSON = 'computed.json';
 export const IEXEC_DETERMINISTIC_OUTPUT_PATH_KEY = 'deterministic-output-path';
-export const IEXEC_WORKER_HEAP_SIZE = 1024 * 1024 * 1024; // iExec worker memory limit (1 GiB)
+export const IEXEC_SCONE_WORKER_HEAP_SIZE = 1024 * 1024 * 1024; // iExec SCONE worker memory limit (1 GiB)
+export const IEXEC_TDX_WORKER_HEAP_SIZE = 6 * 1024 * 1024 * 1024; // iExec TDX worker memory limit (6 GiB)
 export const IEXEC_RESULT_UPLOAD_MAX_SIZE = 50 * 1024 * 1024; // Maximum allowed size for the result output (50 MiB)
 
 export const TASK_OBSERVATION_TIMEOUT = 180000; // 3 minutes
@@ -70,7 +70,8 @@ type ChainConfig = {
   rpcHostUrl: string;
   ipfsGatewayUrl: string;
   iexecExplorerUrl: string;
-  workerpool: string;
+  sconeWorkerpool?: string;
+  tdxWorkerpool?: string;
 };
 
 export const DEFAULT_CHAIN = 'bellecour';
@@ -80,19 +81,20 @@ export const CHAINS_CONFIGURATIONS: Record<string, ChainConfig> = {
     rpcHostUrl: 'https://bellecour.iex.ec',
     ipfsGatewayUrl: 'https://ipfs-gateway.v8-bellecour.iex.ec',
     iexecExplorerUrl: 'https://explorer.iex.ec/bellecour',
-    workerpool: 'prod-v8-learn.main.pools.iexec.eth',
+    sconeWorkerpool: 'prod-v8-learn.main.pools.iexec.eth',
   },
   'arbitrum-mainnet': {
     rpcHostUrl: 'https://arb1.arbitrum.io/rpc',
     ipfsGatewayUrl: 'https://ipfs-gateway.arbitrum-mainnet.iex.ec',
     iexecExplorerUrl: 'https://explorer.iex.ec/arbitrum-mainnet',
-    workerpool: '0x2c06263943180cc024daffeee15612db6e5fd248',
+    sconeWorkerpool: '0x2c06263943180cc024daffeee15612db6e5fd248',
   },
   'arbitrum-sepolia-testnet': {
     rpcHostUrl: 'https://sepolia-rollup.arbitrum.io/rpc',
     ipfsGatewayUrl: 'https://ipfs-gateway.arbitrum-sepolia-testnet.iex.ec',
     iexecExplorerUrl: 'https://explorer.iex.ec/arbitrum-sepolia-testnet',
-    workerpool: '0xB967057a21dc6A66A29721d96b8Aa7454B7c383F',
+    sconeWorkerpool: '0xB967057a21dc6A66A29721d96b8Aa7454B7c383F',
+    tdxWorkerpool: '0x2956f0cb779904795a5f30d3b3ea88b714c3123f',
   },
 };
 

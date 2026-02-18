@@ -2,6 +2,9 @@ import {
   dockerBuild,
   pushDockerImage,
   checkDockerDaemon,
+  parseImagePath,
+  inspectImage,
+  tagDockerImage,
 } from '../execDocker/docker.js';
 import { sconify } from '../utils/sconify.js';
 import { askForDockerhubUsername } from '../cli-helpers/askForDockerhubUsername.js';
@@ -20,7 +23,6 @@ import { goToProjectRoot } from '../cli-helpers/goToProjectRoot.js';
 import * as color from '../cli-helpers/color.js';
 import { hintBox } from '../cli-helpers/box.js';
 import { addDeploymentData } from '../utils/cacheExecutions.js';
-import { deployTdxApp, getIExecTdx } from '../utils/tdx-poc.js';
 import { useTdx } from '../utils/featureFlags.js';
 import { ensureBalances } from '../cli-helpers/ensureBalances.js';
 import { warnBeforeTxFees } from '../cli-helpers/warnBeforeTxFees.js';
@@ -39,11 +41,16 @@ export async function deploy({ chain }: { chain?: string }) {
     const userAddress = await signer.getAddress();
 
     // initialize iExec
-    let iexec;
-    if (useTdx) {
-      iexec = getIExecTdx({ ...chainConfig, signer });
-    } else {
-      iexec = getIExec({ ...chainConfig, signer });
+    const iexec = getIExec({ ...chainConfig, signer });
+    // determine TEE framework based on feature flag
+    const teeFramework = useTdx ? 'tdx' : 'scone';
+    // check TEE framework compatibility with selected chain
+    try {
+      await iexec.config.resolveSmsURL({ teeFramework });
+    } catch {
+      throw new Error(
+        `TEE framework ${teeFramework.toUpperCase()} is not supported on the selected chain`
+      );
     }
 
     await ensureBalances({ spinner, iexec, warnOnlyRlc: true });
@@ -64,7 +71,7 @@ export async function deploy({ chain }: { chain?: string }) {
       throw Error('Invalid version');
     }
 
-    const imageTag = `${dockerhubUsername}/${projectNameToImageName(projectName)}:${iAppVersion}`;
+    const nonTeeImage = `${dockerhubUsername}/${projectNameToImageName(projectName)}:${iAppVersion}`;
 
     const appSecret = await askForAppSecret({ spinner });
 
@@ -75,37 +82,60 @@ export async function deploy({ chain }: { chain?: string }) {
     spinner.start('Building docker image...\n');
     const buildLogs = [];
     const imageId = await dockerBuild({
-      tag: imageTag,
+      tag: nonTeeImage,
       progressCallback: (msg) => {
         buildLogs.push(msg); // do we want to show build logs after build is successful?
         spinner.text = spinner.text + color.comment(msg);
       },
     });
-    spinner.succeed(`Docker image built (${imageId}) and tagged ${imageTag}`);
-
-    spinner.start('Pushing docker image...\n');
-    await pushDockerImage({
-      tag: imageTag,
-      dockerhubAccessToken,
-      dockerhubUsername,
-      progressCallback: (msg) => {
-        spinner.text = spinner.text + color.comment(msg);
-      },
-    });
-    spinner.succeed(`Pushed image ${imageTag} on dockerhub`);
+    spinner.succeed(`Docker image built (${imageId})`);
 
     let appDockerImage: string;
     let appContractAddress: string;
 
-    if (useTdx && iexec) {
+    if (useTdx) {
+      spinner.start('Pushing docker image...\n');
+      const {
+        dockerUserName,
+        imageName,
+        imageTag: originalImageTag,
+      } = parseImagePath(nonTeeImage);
+      const repo = `${dockerUserName}/${imageName}`;
+      const inspectResult = await inspectImage(nonTeeImage);
+      const tdxImageShortId = inspectResult.Id.substring(7, 7 + 12); // extract 12 first chars after the leading "sha256:"
+      const tdxImageTag = `${originalImageTag}-tdx-${tdxImageShortId}`; // add digest in tag to avoid replacing previous build
+      const tdxImage = await tagDockerImage({
+        image: nonTeeImage,
+        repo,
+        tag: tdxImageTag,
+      });
+      await pushDockerImage({
+        tag: tdxImage,
+        dockerhubUsername,
+        dockerhubAccessToken,
+      });
+      spinner.succeed(`Pushed image ${tdxImage} on dockerhub`);
+      appDockerImage = tdxImage;
       spinner.start('Deploying your TDX TEE app on iExec...');
-      ({ tdxImage: appDockerImage, appContractAddress } = await deployTdxApp({
-        iexec,
-        image: imageTag,
+      const { address } = await iexec.app.deployApp({
+        owner: await iexec.wallet.getAddress(),
+        name: `${imageName}-${originalImageTag}`,
+        type: 'DOCKER',
+        multiaddr: tdxImage,
+        checksum: `0x${inspectResult.RepoDigests[0].split('@sha256:')[1]}`,
+      });
+      appContractAddress = address;
+    } else {
+      spinner.start('Pushing docker image...\n');
+      await pushDockerImage({
+        tag: nonTeeImage,
         dockerhubAccessToken,
         dockerhubUsername,
-      }));
-    } else {
+        progressCallback: (msg) => {
+          spinner.text = spinner.text + color.comment(msg);
+        },
+      });
+      spinner.succeed(`Pushed image ${nonTeeImage} on dockerhub`);
       spinner.start(
         'Transforming your image into a TEE image, this may take a few minutes...'
       );
@@ -116,7 +146,7 @@ export async function deploy({ chain }: { chain?: string }) {
         fingerprint,
         entrypoint,
       } = await sconify({
-        iAppNameToSconify: imageTag,
+        iAppNameToSconify: nonTeeImage,
         template,
         walletAddress: userAddress,
         dockerhubAccessToken,
@@ -124,9 +154,8 @@ export async function deploy({ chain }: { chain?: string }) {
       });
       appDockerImage = dockerImage;
       spinner.succeed(`Pushed TEE image ${appDockerImage} on dockerhub`);
-
       spinner.start('Deploying your TEE app on iExec...');
-      ({ address: appContractAddress } = await iexec.app.deployApp({
+      const { address } = await iexec.app.deployApp({
         owner: userAddress,
         name: `${projectNameToImageName(projectName)}-${iAppVersion}`,
         type: 'DOCKER',
@@ -140,9 +169,9 @@ export async function deploy({ chain }: { chain?: string }) {
           heapSize: 1073741824,
           fingerprint,
         },
-      }));
+      });
+      appContractAddress = address;
     }
-
     // Add deployment data to deployments.json
     await addDeploymentData({
       image: appDockerImage,
@@ -150,6 +179,9 @@ export async function deploy({ chain }: { chain?: string }) {
       owner: userAddress,
       chainName,
     });
+    spinner.succeed(
+      `TEE app deployed with image ${appDockerImage} on iExec with address ${appContractAddress}`
+    );
 
     spinner.succeed('TEE app deployed');
     if (appSecret !== null && iexec) {
