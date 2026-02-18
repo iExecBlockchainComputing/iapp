@@ -182,8 +182,6 @@ export async function deploy({ chain }: { chain?: string }) {
     spinner.succeed(
       `TEE app deployed with image ${appDockerImage} on iExec with address ${appContractAddress}`
     );
-
-    spinner.succeed('TEE app deployed');
     if (appSecret !== null && iexec) {
       spinner.start('Attaching app secret to the deployed app');
       await iexec.app.pushAppSecret(appContractAddress, appSecret);
