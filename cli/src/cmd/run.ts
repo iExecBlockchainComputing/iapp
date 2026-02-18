@@ -14,10 +14,11 @@ import { askShowResult } from '../cli-helpers/askShowResult.js';
 import { goToProjectRoot } from '../cli-helpers/goToProjectRoot.js';
 import * as color from '../cli-helpers/color.js';
 import { IExec } from 'iexec';
-import { getChainConfig, readIAppConfig } from '../utils/iAppConfigFile.js';
+import { readIAppConfig } from '../utils/iAppConfigFile.js';
 import { ensureBalances } from '../cli-helpers/ensureBalances.js';
 import { askForAcknowledgment } from '../cli-helpers/askForAcknowledgment.js';
 import { warnBeforeTxFees } from '../cli-helpers/warnBeforeTxFees.js';
+import { resolveChainConfig } from '../cli-helpers/resolveChainConfig.js';
 
 export async function run({
   iAppAddress,
@@ -40,9 +41,11 @@ export async function run({
     await cleanRunOutput({ spinner, outputFolder: RUN_OUTPUT_DIR });
 
     const { defaultChain } = await readIAppConfig();
-    const chainName = chain || defaultChain;
-    const chainConfig = getChainConfig(chainName);
-    spinner.info(`Using chain ${chainName}`);
+    const chainConfig = resolveChainConfig({
+      chain,
+      defaultChain,
+      spinner,
+    });
     await warnBeforeTxFees({ spinner, chain: chainConfig.name });
 
     spinner.start('checking inputs...');
@@ -245,7 +248,7 @@ export async function run({
       dealid,
       taskids: [taskid],
       txHash,
-      chainName,
+      chainName: chainConfig.name,
     });
     spinner.succeed(
       `Deal created successfully

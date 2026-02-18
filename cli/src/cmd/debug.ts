@@ -4,8 +4,9 @@ import { getIExec } from '../utils/iexec.js';
 import { getSpinner } from '../cli-helpers/spinner.js';
 import * as color from '../cli-helpers/color.js';
 import { handleCliError } from '../cli-helpers/handleCliError.js';
-import { getChainConfig, readIAppConfig } from '../utils/iAppConfigFile.js';
+import { readIAppConfig } from '../utils/iAppConfigFile.js';
 import { goToProjectRoot } from '../cli-helpers/goToProjectRoot.js';
+import { resolveChainConfig } from '../cli-helpers/resolveChainConfig.js';
 
 export async function debug({
   taskId,
@@ -22,9 +23,11 @@ export async function debug({
     }
     await goToProjectRoot({ spinner });
     const { defaultChain } = await readIAppConfig();
-    const chainName = chain || defaultChain;
-    const chainConfig = getChainConfig(chainName);
-    spinner.info(`Using chain ${chainName}`);
+    const chainConfig = resolveChainConfig({
+      chain,
+      defaultChain,
+      spinner,
+    });
     const signer = await askForWallet({ spinner });
     const iexec = getIExec({
       ...chainConfig,

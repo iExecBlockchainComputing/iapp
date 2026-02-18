@@ -9,7 +9,6 @@ import {
 import { sconify } from '../utils/sconify.js';
 import { askForDockerhubUsername } from '../cli-helpers/askForDockerhubUsername.js';
 import {
-  getChainConfig,
   projectNameToImageName,
   readIAppConfig,
 } from '../utils/iAppConfigFile.js';
@@ -26,15 +25,18 @@ import { addDeploymentData } from '../utils/cacheExecutions.js';
 import { useTdx } from '../utils/featureFlags.js';
 import { ensureBalances } from '../cli-helpers/ensureBalances.js';
 import { warnBeforeTxFees } from '../cli-helpers/warnBeforeTxFees.js';
+import { resolveChainConfig } from '../cli-helpers/resolveChainConfig.js';
 
 export async function deploy({ chain }: { chain?: string }) {
   const spinner = getSpinner();
   try {
     await goToProjectRoot({ spinner });
     const { projectName, template, defaultChain } = await readIAppConfig();
-    const chainName = chain || defaultChain;
-    const chainConfig = getChainConfig(chainName);
-    spinner.info(`Using chain ${chainName}`);
+    const chainConfig = resolveChainConfig({
+      chain,
+      defaultChain,
+      spinner,
+    });
     await warnBeforeTxFees({ spinner, chain: chainConfig.name });
 
     const signer = await askForWallet({ spinner });
@@ -178,7 +180,7 @@ export async function deploy({ chain }: { chain?: string }) {
       image: appDockerImage,
       app: appContractAddress,
       owner: userAddress,
-      chainName,
+      chainName: chainConfig.name,
     });
     spinner.succeed(
       `TEE app deployed with image ${appDockerImage} on iExec with address ${appContractAddress}`
