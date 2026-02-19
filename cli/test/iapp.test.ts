@@ -129,7 +129,7 @@ describe('iapp chain select', () => {
     assert.strictEqual(config.defaultChain, 'bellecour');
   });
 
-  test('select bellecour arbitrum-sepolia-testnet', async () => {
+  test('select arbitrum-sepolia-testnet works', async () => {
     const { debug } = await render(
       IAPP_COMMAND,
       ['chain select arbitrum-sepolia-testnet'],
@@ -142,7 +142,7 @@ describe('iapp chain select', () => {
     assert.strictEqual(config.defaultChain, 'arbitrum-sepolia-testnet');
   });
 
-  test('select bellecour arbitrum-mainnet', async () => {
+  test('select arbitrum-mainnet works', async () => {
     const { debug } = await render(
       IAPP_COMMAND,
       ['chain select arbitrum-mainnet'],
