@@ -83,6 +83,30 @@ test('iapp init command works', async () => {
   await findByText('Steps to Get Started:');
   // debug();
   clear();
+
+  const config = await readIAppConfig(join(testDir, 'hello-world'));
+  // default chain is bellecour
+  assert.strictEqual(
+    config.defaultChain,
+    'bellecour',
+    'defaultChain should be bellecour'
+  );
+  // default project name is hello-world
+  assert.strictEqual(
+    config.projectName,
+    'hello-world',
+    'projectName should be hello-world'
+  );
+  // default template is JavaScript
+  assert.strictEqual(
+    config.template,
+    'JavaScript',
+    'template should be JavaScript'
+  );
+  // default app secret is disabled
+  assert.strictEqual(config.appSecret, null, 'appSecret should be null');
+  // default wallet private key is set
+  assert(config.walletPrivateKey, 'walletPrivateKey should be set');
 });
 
 describe('iapp chain select', () => {
