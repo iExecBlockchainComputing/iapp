@@ -71,7 +71,7 @@ You can either:
  - Fund your wallet ${emphasis(address)}
  - Import another wallet (run ${command('iapp wallet import')})
  - Select an imported wallet (run ${command('iapp wallet select')})
- - Use another chain (use option ${command('--chain <name>')})`)
+ - Use another chain (change default chain ${command('iapp chain select <name>')} or use option ${command('--chain <name>')})`)
     );
   }
 

@@ -81,8 +81,8 @@ test('iapp init command works', async () => {
   // default chain is bellecour
   assert.strictEqual(
     config.defaultChain,
-    'bellecour',
-    'defaultChain should be bellecour'
+    'arbitrum-sepolia-testnet',
+    'defaultChain should be arbitrum-sepolia-testnet'
   );
   // default project name is hello-world
   assert.strictEqual(

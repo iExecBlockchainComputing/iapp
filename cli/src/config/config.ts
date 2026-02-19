@@ -74,7 +74,9 @@ type ChainConfig = {
   tdxWorkerpool?: string;
 };
 
-export const DEFAULT_CHAIN = 'bellecour';
+export const DEFAULT_CHAIN = 'arbitrum-sepolia-testnet';
+
+export const DEPRECATED_CHAINS = ['bellecour'];
 
 export const CHAINS_CONFIGURATIONS: Record<string, ChainConfig> = {
   bellecour: {
