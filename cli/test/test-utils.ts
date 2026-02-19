@@ -1,6 +1,6 @@
 import { render } from 'cli-testing-library';
 import assert from 'node:assert';
-import { mkdir, rm } from 'node:fs/promises';
+import { mkdir, readFile, rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import type { SuiteContext, TestContext } from 'node:test';
 
@@ -85,6 +85,12 @@ export const initIappProject = async ({
     userEvent.keyboard('y');
   }
   await findByText('Steps to Get Started:');
+};
+
+export const readIAppConfig = async (projectDir: string) => {
+  const configPath = join(projectDir, 'iapp.config.json');
+  const configContent = await readFile(configPath, 'utf-8');
+  return JSON.parse(configContent);
 };
 
 export const checkDockerImageContent = async ({

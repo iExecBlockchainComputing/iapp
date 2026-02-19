@@ -9,6 +9,8 @@ import {
   createTestDir,
   removeTestDir,
   retry,
+  readIAppConfig,
+  sleep,
 } from './test-utils.ts';
 import { fileURLToPath } from 'node:url';
 import { readFile, rm, writeFile } from 'node:fs/promises';
@@ -81,6 +83,53 @@ test('iapp init command works', async () => {
   await findByText('Steps to Get Started:');
   // debug();
   clear();
+});
+
+describe('iapp chain select', () => {
+  const projectName = 'test-iapp';
+  beforeEach(async () => {
+    await initIappProject({
+      testDir,
+      projectName,
+      template: 'JavaScript',
+      projectType: 'Hello World',
+    });
+  });
+
+  test('select bellecour works', async () => {
+    const { debug } = await render(IAPP_COMMAND, ['chain select bellecour'], {
+      cwd: join(testDir, projectName),
+    });
+    await sleep(1000);
+    const config = await readIAppConfig(join(testDir, projectName));
+    assert.strictEqual(config.defaultChain, 'bellecour');
+  });
+
+  test('select bellecour arbitrum-sepolia-testnet', async () => {
+    const { debug } = await render(
+      IAPP_COMMAND,
+      ['chain select arbitrum-sepolia-testnet'],
+      {
+        cwd: join(testDir, projectName),
+      }
+    );
+    await sleep(1000);
+    const config = await readIAppConfig(join(testDir, projectName));
+    assert.strictEqual(config.defaultChain, 'arbitrum-sepolia-testnet');
+  });
+
+  test('select bellecour arbitrum-mainnet', async () => {
+    const { debug } = await render(
+      IAPP_COMMAND,
+      ['chain select arbitrum-mainnet'],
+      {
+        cwd: join(testDir, projectName),
+      }
+    );
+    await sleep(1000);
+    const config = await readIAppConfig(join(testDir, projectName));
+    assert.strictEqual(config.defaultChain, 'arbitrum-mainnet');
+  });
 });
 
 describe('JavaScript iApp', () => {
