@@ -10,7 +10,6 @@ import {
   removeTestDir,
   retry,
   readIAppConfig,
-  sleep,
 } from './test-utils.ts';
 import { fileURLToPath } from 'node:url';
 import { readFile, rm, writeFile } from 'node:fs/promises';
@@ -124,9 +123,16 @@ describe('iapp chain select', () => {
     const { debug } = await render(IAPP_COMMAND, ['chain select bellecour'], {
       cwd: join(testDir, projectName),
     });
-    await sleep(1000);
-    const config = await readIAppConfig(join(testDir, projectName));
-    assert.strictEqual(config.defaultChain, 'bellecour');
+    await retry(
+      async () => {
+        const config = await readIAppConfig(join(testDir, projectName));
+        assert.strictEqual(config.defaultChain, 'bellecour');
+      },
+      {
+        retries: 10,
+        delay: 100,
+      }
+    );
   });
 
   test('select arbitrum-sepolia-testnet works', async () => {
@@ -137,9 +143,16 @@ describe('iapp chain select', () => {
         cwd: join(testDir, projectName),
       }
     );
-    await sleep(1000);
-    const config = await readIAppConfig(join(testDir, projectName));
-    assert.strictEqual(config.defaultChain, 'arbitrum-sepolia-testnet');
+    await retry(
+      async () => {
+        const config = await readIAppConfig(join(testDir, projectName));
+        assert.strictEqual(config.defaultChain, 'arbitrum-sepolia-testnet');
+      },
+      {
+        retries: 10,
+        delay: 100,
+      }
+    );
   });
 
   test('select arbitrum-mainnet works', async () => {
@@ -150,9 +163,16 @@ describe('iapp chain select', () => {
         cwd: join(testDir, projectName),
       }
     );
-    await sleep(1000);
-    const config = await readIAppConfig(join(testDir, projectName));
-    assert.strictEqual(config.defaultChain, 'arbitrum-mainnet');
+    await retry(
+      async () => {
+        const config = await readIAppConfig(join(testDir, projectName));
+        assert.strictEqual(config.defaultChain, 'arbitrum-mainnet');
+      },
+      {
+        retries: 10,
+        delay: 100,
+      }
+    );
   });
 });
 
