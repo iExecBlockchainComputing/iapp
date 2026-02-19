@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.4.0](https://github.com/iExecBlockchainComputing/iapp/compare/iapp-v1.3.4...iapp-v1.4.0) (2026-02-19)
+
+
+### Added
+
+* add "iapp chain select" command ([#268](https://github.com/iExecBlockchainComputing/iapp/issues/268)) ([87b1796](https://github.com/iExecBlockchainComputing/iapp/commit/87b17966e275c0cadd840810b90a2d483e629758))
+* enable TDX on arbitrum-sepolia-testnet ([#265](https://github.com/iExecBlockchainComputing/iapp/issues/265)) ([e0b904b](https://github.com/iExecBlockchainComputing/iapp/commit/e0b904b18a1baddfdd01bfbe51601b1908cabe40))
+
+
+### Changed
+
+* set arbitrum-sepolia-testnet as default chain and deprecate bellecour ([#266](https://github.com/iExecBlockchainComputing/iapp/issues/266)) ([ee0f3e7](https://github.com/iExecBlockchainComputing/iapp/commit/ee0f3e778b8c981aa876a7aa782f0e1162938cc9))
+
 ## [1.3.4](https://github.com/iExecBlockchainComputing/iapp/compare/iapp-v1.3.3...iapp-v1.3.4) (2025-12-18)
 
 
