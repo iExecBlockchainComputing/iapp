@@ -31,16 +31,15 @@ beforeEach(async (t) => {
 
 afterEach(async () => {
   // remove test directory after each test
-  // comment the line below to keep the test directories for debugging
+  // comment the line below to keep the test directories for ging
   await removeTestDir(testDir);
 });
 
 test('iapp help command works', async () => {
-  const { findByText, debug, clear } = await render(IAPP_COMMAND, ['help'], {
+  const { findByText, clear } = await render(IAPP_COMMAND, ['help'], {
     cwd: testDir,
   });
   await findByText('iapp <cmd> [args]');
-  // debug();
   clear();
 });
 
@@ -51,16 +50,15 @@ test('iapp -v command works', async () => {
   );
   const { version } = packageJson;
 
-  const { findByText, debug, clear } = await render(IAPP_COMMAND, ['-v'], {
+  const { findByText, clear } = await render(IAPP_COMMAND, ['-v'], {
     cwd: testDir,
   });
   await findByText(version);
-  // debug();
   clear();
 });
 
 test('iapp init command works', async () => {
-  const { findByText, clear, debug, userEvent } = await render(
+  const { findByText, clear, userEvent } = await render(
     IAPP_COMMAND,
     ['init'],
     {
@@ -68,19 +66,15 @@ test('iapp init command works', async () => {
     }
   );
   await findByText("What's your project name?");
-  // debug();
   clear();
   userEvent.keyboard('[Enter]');
   await findByText('Which language do you want to use?');
-  // debug();
   clear();
   userEvent.keyboard('[Enter]');
   await findByText('What kind of project do you want to init?');
-  // debug();
   clear();
   userEvent.keyboard('[Enter]');
   await findByText('Steps to Get Started:');
-  // debug();
   clear();
 
   const config = await readIAppConfig(join(testDir, 'hello-world'));
@@ -120,7 +114,7 @@ describe('iapp chain select', () => {
   });
 
   test('select bellecour works', async () => {
-    const { debug } = await render(IAPP_COMMAND, ['chain select bellecour'], {
+    await render(IAPP_COMMAND, ['chain select bellecour'], {
       cwd: join(testDir, projectName),
     });
     await retry(
@@ -136,13 +130,9 @@ describe('iapp chain select', () => {
   });
 
   test('select arbitrum-sepolia-testnet works', async () => {
-    const { debug } = await render(
-      IAPP_COMMAND,
-      ['chain select arbitrum-sepolia-testnet'],
-      {
-        cwd: join(testDir, projectName),
-      }
-    );
+    await render(IAPP_COMMAND, ['chain select arbitrum-sepolia-testnet'], {
+      cwd: join(testDir, projectName),
+    });
     await retry(
       async () => {
         const config = await readIAppConfig(join(testDir, projectName));
@@ -156,13 +146,9 @@ describe('iapp chain select', () => {
   });
 
   test('select arbitrum-mainnet works', async () => {
-    const { debug } = await render(
-      IAPP_COMMAND,
-      ['chain select arbitrum-mainnet'],
-      {
-        cwd: join(testDir, projectName),
-      }
-    );
+    await render(IAPP_COMMAND, ['chain select arbitrum-mainnet'], {
+      cwd: join(testDir, projectName),
+    });
     await retry(
       async () => {
         const config = await readIAppConfig(join(testDir, projectName));
@@ -192,10 +178,13 @@ describe('JavaScript iApp', () => {
       });
 
       test('iapp test command works', async () => {
-        const { findByText, debug, clear, userEvent, getStdallStr } =
-          await render(IAPP_COMMAND, ['test'], {
+        const { findByText, clear, userEvent, getStdallStr } = await render(
+          IAPP_COMMAND,
+          ['test'],
+          {
             cwd: join(testDir, projectName),
-          });
+          }
+        );
         // wait for docker build and test run
         await retry(() => findByText('Would you like to see the app logs?'), {
           retries: 8,
@@ -208,16 +197,12 @@ describe('JavaScript iApp', () => {
         );
         assert.ok(dockerImageIdMatch, 'Docker image ID not found in output');
         const dockerImageId = dockerImageIdMatch![0].split('(')[1].slice(0, -1);
-
-        // debug();
         clear();
         userEvent.keyboard('n');
         await findByText('Would you like to see the result?');
-        // debug();
         clear();
         userEvent.keyboard('n');
         await findByText('When ready run iapp deploy');
-        // debug();
         clear();
 
         // check built docker image content
@@ -249,21 +234,24 @@ describe('JavaScript iApp', () => {
       });
 
       test('iapp test command works', async () => {
-        const { findByText, debug, clear, userEvent, getStdallStr } =
-          await render(IAPP_COMMAND, ['test'], {
+        const { findByText, clear, userEvent, getStdallStr } = await render(
+          IAPP_COMMAND,
+          ['test'],
+          {
             cwd: join(testDir, projectName),
-          });
+          }
+        );
         await findByText('Do you want to attach an app secret to your iApp?');
         userEvent.keyboard('y');
-        // debug()
+        // )
         clear();
         await findByText('What is the app secret?');
         userEvent.keyboard('mySuperSecretAppSecret[Enter]');
-        // debug()
+        // )
         clear();
         await findByText('Do you want to save this app secret to your config?');
         userEvent.keyboard('y');
-        // debug()
+        // )
         clear();
         // wait for docker build and test run
         await retry(() => findByText('Would you like to see the app logs?'), {
@@ -277,16 +265,12 @@ describe('JavaScript iApp', () => {
         );
         assert.ok(dockerImageIdMatch, 'Docker image ID not found in output');
         const dockerImageId = dockerImageIdMatch![0].split('(')[1].slice(0, -1);
-
-        // debug();
         clear();
         userEvent.keyboard('n');
         await findByText('Would you like to see the result?');
-        // debug();
         clear();
         userEvent.keyboard('n');
         await findByText('When ready run iapp deploy');
-        // debug();
         clear();
 
         // check built docker image content
@@ -320,10 +304,13 @@ describe('Python iApp', () => {
       });
 
       test('iapp test command works', async () => {
-        const { findByText, debug, clear, userEvent, getStdallStr } =
-          await render(IAPP_COMMAND, ['test'], {
+        const { findByText, clear, userEvent, getStdallStr } = await render(
+          IAPP_COMMAND,
+          ['test'],
+          {
             cwd: join(testDir, projectName),
-          });
+          }
+        );
         // wait for docker build and test run
         await retry(() => findByText('Would you like to see the app logs?'), {
           retries: 8,
@@ -336,16 +323,12 @@ describe('Python iApp', () => {
         );
         assert.ok(dockerImageIdMatch, 'Docker image ID not found in output');
         const dockerImageId = dockerImageIdMatch![0].split('(')[1].slice(0, -1);
-
-        // debug();
         clear();
         userEvent.keyboard('n');
         await findByText('Would you like to see the result?');
-        // debug();
         clear();
         userEvent.keyboard('n');
         await findByText('When ready run iapp deploy');
-        // debug();
         clear();
 
         // check built docker image content
@@ -372,21 +355,24 @@ describe('Python iApp', () => {
       });
 
       test('iapp test command works', async () => {
-        const { findByText, debug, clear, userEvent, getStdallStr } =
-          await render(IAPP_COMMAND, ['test'], {
+        const { findByText, clear, userEvent, getStdallStr } = await render(
+          IAPP_COMMAND,
+          ['test'],
+          {
             cwd: join(testDir, projectName),
-          });
+          }
+        );
         await findByText('Do you want to attach an app secret to your iApp?');
         userEvent.keyboard('y');
-        // debug()
+        // )
         clear();
         await findByText('What is the app secret?');
         userEvent.keyboard('mySuperSecretAppSecret[Enter]');
-        // debug()
+        // )
         clear();
         await findByText('Do you want to save this app secret to your config?');
         userEvent.keyboard('y');
-        // debug()
+        // )
         clear();
         // wait for docker build and test run
         await retry(() => findByText('Would you like to see the app logs?'), {
@@ -400,16 +386,12 @@ describe('Python iApp', () => {
         );
         assert.ok(dockerImageIdMatch, 'Docker image ID not found in output');
         const dockerImageId = dockerImageIdMatch![0].split('(')[1].slice(0, -1);
-
-        // debug();
         clear();
         userEvent.keyboard('n');
         await findByText('Would you like to see the result?');
-        // debug();
         clear();
         userEvent.keyboard('n');
         await findByText('When ready run iapp deploy');
-        // debug();
         clear();
 
         // check built docker image content
@@ -454,10 +436,13 @@ describe('Custom app', () => {
         'utf-8'
       );
 
-      const { findByText, debug, clear, userEvent, getStdallStr } =
-        await render(IAPP_COMMAND, ['test'], {
+      const { findByText, clear, userEvent, getStdallStr } = await render(
+        IAPP_COMMAND,
+        ['test'],
+        {
           cwd: join(testDir, projectName),
-        });
+        }
+      );
       // wait for docker build and test run
       await retry(() => findByText('Would you like to see the app logs?'), {
         retries: 8,
@@ -470,16 +455,12 @@ describe('Custom app', () => {
       );
       assert.ok(dockerImageIdMatch, 'Docker image ID not found in output');
       const dockerImageId = dockerImageIdMatch![0].split('(')[1].slice(0, -1);
-
-      // debug();
       clear();
       userEvent.keyboard('n');
       await findByText('Would you like to see the result?');
-      // debug();
       clear();
       userEvent.keyboard('n');
       await findByText('When ready run iapp deploy');
-      // debug();
       clear();
 
       // check built docker image content
