@@ -19,6 +19,7 @@ import { ensureBalances } from '../cli-helpers/ensureBalances.js';
 import { askForAcknowledgment } from '../cli-helpers/askForAcknowledgment.js';
 import { warnBeforeTxFees } from '../cli-helpers/warnBeforeTxFees.js';
 import { resolveChainConfig } from '../cli-helpers/resolveChainConfig.js';
+import { warnBox } from '../cli-helpers/box.js';
 
 export async function run({
   iAppAddress,
@@ -68,6 +69,24 @@ export async function run({
       throw new Error(
         `TEE framework ${teeFramework.toUpperCase()} is not supported on the selected chain`
       );
+    }
+
+    if (teeFramework === 'scone') {
+      try {
+        await readOnlyIexec.config.resolveSmsURL({ teeFramework: 'tdx' });
+        spinner.log(
+          warnBox(
+            `SGX SCONE TEE framework is deprecated in favor of TDX and will be removed in future versions.
+Please consider redeploying your app with TDX instead.
+            
+run ${color.command('EXPERIMENTAL_TDX_APP=1 iapp deploy')} to redeploy your app with TDX`
+          )
+        );
+      } catch {
+        spinner.warn(
+          'SGX SCONE TEE framework is deprecated and will be removed in a future version, please contact iExec support to know more about TDX and how to migrate your app'
+        );
+      }
     }
 
     if (protectedData.length > 0) {
