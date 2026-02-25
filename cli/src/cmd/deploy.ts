@@ -59,12 +59,12 @@ export async function deploy({ chain }: { chain?: string }) {
             `SGX SCONE TEE framework is deprecated in favor of TDX and will be removed in future versions.
 Please consider redeploying your app with TDX instead.
         
-run ${color.command('EXPERIMENTAL_TDX_APP=1 iapp deploy')} to deploy your app with TDX now`
+run ${color.command('EXPERIMENTAL_TDX_APP=1 iapp deploy')} to deploy your app with TDX now.`
           )
         );
       } catch {
         spinner.warn(
-          'SGX SCONE TEE framework is deprecated and will be removed in a future version, please contact iExec support to know more about TDX and how to migrate your app'
+          'SGX SCONE TEE framework is deprecated and will be removed in a future version, please contact iExec support to know more about TDX and how to migrate your app.'
         );
       }
     }
