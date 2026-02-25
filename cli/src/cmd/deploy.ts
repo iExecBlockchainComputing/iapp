@@ -37,18 +37,14 @@ export async function deploy({ chain }: { chain?: string }) {
       defaultChain,
       spinner,
     });
-    await warnBeforeTxFees({ spinner, chain: chainConfig.name });
-
-    const signer = await askForWallet({ spinner });
-    const userAddress = await signer.getAddress();
 
     // initialize iExec
-    const iexec = getIExec({ ...chainConfig, signer });
+    const iexecReadonly = getIExec({ ...chainConfig });
     // determine TEE framework based on feature flag
     const teeFramework = useTdx ? 'tdx' : 'scone';
     // check TEE framework compatibility with selected chain
     try {
-      await iexec.config.resolveSmsURL({ teeFramework });
+      await iexecReadonly.config.resolveSmsURL({ teeFramework });
     } catch {
       throw new Error(
         `TEE framework ${teeFramework.toUpperCase()} is not supported on the selected chain`
@@ -57,7 +53,7 @@ export async function deploy({ chain }: { chain?: string }) {
 
     if (teeFramework === 'scone') {
       try {
-        await iexec.config.resolveSmsURL({ teeFramework: 'tdx' });
+        await iexecReadonly.config.resolveSmsURL({ teeFramework: 'tdx' });
         spinner.log(
           warnBox(
             `SGX SCONE TEE framework is deprecated in favor of TDX and will be removed in future versions.
@@ -72,6 +68,15 @@ run ${color.command('EXPERIMENTAL_TDX_APP=1 iapp deploy')} to deploy your app wi
         );
       }
     }
+
+    await warnBeforeTxFees({ spinner, chain: chainConfig.name });
+
+    const signer = await askForWallet({ spinner });
+    const userAddress = await signer.getAddress();
+
+    // initialize iExec
+    const iexec = getIExec({ ...chainConfig, signer });
+    // determine TEE framework based on feature flag
 
     await ensureBalances({ spinner, iexec, warnOnlyRlc: true });
 

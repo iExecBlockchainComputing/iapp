@@ -47,7 +47,6 @@ export async function run({
       defaultChain,
       spinner,
     });
-    await warnBeforeTxFees({ spinner, chain: chainConfig.name });
 
     spinner.start('checking inputs...');
     // initialize iExec
@@ -110,6 +109,8 @@ run ${color.command('EXPERIMENTAL_TDX_APP=1 iapp deploy')} to redeploy your app 
         })
       );
     }
+
+    await warnBeforeTxFees({ spinner, chain: chainConfig.name });
 
     // Get wallet from privateKey
     const signer = await askForWallet({ spinner });
