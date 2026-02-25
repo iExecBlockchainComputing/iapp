@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.1](https://github.com/iExecBlockchainComputing/iapp/compare/iapp-v1.4.0...iapp-v1.4.1) (2026-02-25)
+
+
+### Changed
+
+* deprecate SGX SCONE and propose migration to TDX when possible ([#269](https://github.com/iExecBlockchainComputing/iapp/issues/269)) ([75d2282](https://github.com/iExecBlockchainComputing/iapp/commit/75d22829606ee39f2e0b7f6ee34b843b1342fd25))
+
 ## [1.4.0](https://github.com/iExecBlockchainComputing/iapp/compare/iapp-v1.3.4...iapp-v1.4.0) (2026-02-19)
 
 
