@@ -20,7 +20,7 @@ import { askForWallet } from '../cli-helpers/askForWallet.js';
 import { getIExec } from '../utils/iexec.js';
 import { goToProjectRoot } from '../cli-helpers/goToProjectRoot.js';
 import * as color from '../cli-helpers/color.js';
-import { hintBox } from '../cli-helpers/box.js';
+import { hintBox, warnBox } from '../cli-helpers/box.js';
 import { addDeploymentData } from '../utils/cacheExecutions.js';
 import { useTdx } from '../utils/featureFlags.js';
 import { ensureBalances } from '../cli-helpers/ensureBalances.js';
@@ -37,6 +37,38 @@ export async function deploy({ chain }: { chain?: string }) {
       defaultChain,
       spinner,
     });
+
+    // initialize iExec
+    const iexecReadonly = getIExec({ ...chainConfig });
+    // determine TEE framework based on feature flag
+    const teeFramework = useTdx ? 'tdx' : 'scone';
+    // check TEE framework compatibility with selected chain
+    try {
+      await iexecReadonly.config.resolveSmsURL({ teeFramework });
+    } catch {
+      throw new Error(
+        `TEE framework ${teeFramework.toUpperCase()} is not supported on the selected chain`
+      );
+    }
+
+    if (teeFramework === 'scone') {
+      try {
+        await iexecReadonly.config.resolveSmsURL({ teeFramework: 'tdx' });
+        spinner.log(
+          warnBox(
+            `SGX SCONE TEE framework is deprecated in favor of TDX and will be removed in future versions.
+Please consider redeploying your app with TDX instead.
+        
+run ${color.command('EXPERIMENTAL_TDX_APP=1 iapp deploy')} to deploy your app with TDX now.`
+          )
+        );
+      } catch {
+        spinner.warn(
+          'SGX SCONE TEE framework is deprecated and will be removed in a future version, please contact iExec support to know more about TDX and how to migrate your app.'
+        );
+      }
+    }
+
     await warnBeforeTxFees({ spinner, chain: chainConfig.name });
 
     const signer = await askForWallet({ spinner });
@@ -45,15 +77,6 @@ export async function deploy({ chain }: { chain?: string }) {
     // initialize iExec
     const iexec = getIExec({ ...chainConfig, signer });
     // determine TEE framework based on feature flag
-    const teeFramework = useTdx ? 'tdx' : 'scone';
-    // check TEE framework compatibility with selected chain
-    try {
-      await iexec.config.resolveSmsURL({ teeFramework });
-    } catch {
-      throw new Error(
-        `TEE framework ${teeFramework.toUpperCase()} is not supported on the selected chain`
-      );
-    }
 
     await ensureBalances({ spinner, iexec, warnOnlyRlc: true });
 
