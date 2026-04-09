@@ -90,6 +90,7 @@ export const CHAINS_CONFIGURATIONS: Record<string, ChainConfig> = {
     ipfsGatewayUrl: 'https://ipfs-gateway.arbitrum-mainnet.iex.ec',
     iexecExplorerUrl: 'https://explorer.iex.ec/arbitrum-mainnet',
     sconeWorkerpool: '0x2c06263943180cc024daffeee15612db6e5fd248',
+    tdxWorkerpool: '0x8ef2ec3ef9535d4b4349bfec7d8b31a580e60244',
   },
   'arbitrum-sepolia-testnet': {
     rpcHostUrl: 'https://sepolia-rollup.arbitrum.io/rpc',
