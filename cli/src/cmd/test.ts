@@ -9,7 +9,6 @@ import {
 } from '../execDocker/docker.js';
 import { checkDeterministicOutputExists } from '../utils/deterministicOutput.js';
 import {
-  IEXEC_SCONE_WORKER_HEAP_SIZE,
   IEXEC_RESULT_UPLOAD_MAX_SIZE,
   PROTECTED_DATA_MOCK_DIR,
   TASK_OBSERVATION_TIMEOUT,
@@ -26,7 +25,6 @@ import { copy, fileExists } from '../utils/fs.utils.js';
 import { goToProjectRoot } from '../cli-helpers/goToProjectRoot.js';
 import * as color from '../cli-helpers/color.js';
 import { hintBox } from '../cli-helpers/box.js';
-import { useTdx } from '../utils/featureFlags.js';
 
 export async function test({
   args,
@@ -180,9 +178,7 @@ export async function testApp({
     spinner.warn('Task is taking longer than expected...');
     spinner.start(spinnerText); // restart spinning
   }, TASK_OBSERVATION_TIMEOUT);
-  const memoryLimit = useTdx
-    ? IEXEC_TDX_WORKER_HEAP_SIZE
-    : IEXEC_SCONE_WORKER_HEAP_SIZE;
+  const memoryLimit = IEXEC_TDX_WORKER_HEAP_SIZE;
   const appLogs: string[] = [];
   const { exitCode, outOfMemory } = await runDockerContainer({
     image: imageId,

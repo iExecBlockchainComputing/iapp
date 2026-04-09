@@ -78,7 +78,7 @@ test('iapp init command works', async () => {
   clear();
 
   const config = await readIAppConfig(join(testDir, 'hello-world'));
-  // default chain is bellecour
+  // default chain is arbitrum-sepolia-testnet
   assert.strictEqual(
     config.defaultChain,
     'arbitrum-sepolia-testnet',
@@ -111,22 +111,6 @@ describe('iapp chain select', () => {
       template: 'JavaScript',
       projectType: 'Hello World',
     });
-  });
-
-  test('select bellecour works', async () => {
-    await render(IAPP_COMMAND, ['chain select bellecour'], {
-      cwd: join(testDir, projectName),
-    });
-    await retry(
-      async () => {
-        const config = await readIAppConfig(join(testDir, projectName));
-        assert.strictEqual(config.defaultChain, 'bellecour');
-      },
-      {
-        retries: 10,
-        delay: 100,
-      }
-    );
   });
 
   test('select arbitrum-sepolia-testnet works', async () => {

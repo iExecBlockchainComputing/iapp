@@ -6,7 +6,6 @@ import {
   inspectImage,
   tagDockerImage,
 } from '../execDocker/docker.js';
-import { sconify } from '../utils/sconify.js';
 import { askForDockerhubUsername } from '../cli-helpers/askForDockerhubUsername.js';
 import {
   projectNameToImageName,
@@ -20,9 +19,8 @@ import { askForWallet } from '../cli-helpers/askForWallet.js';
 import { getIExec } from '../utils/iexec.js';
 import { goToProjectRoot } from '../cli-helpers/goToProjectRoot.js';
 import * as color from '../cli-helpers/color.js';
-import { hintBox, warnBox } from '../cli-helpers/box.js';
+import { hintBox } from '../cli-helpers/box.js';
 import { addDeploymentData } from '../utils/cacheExecutions.js';
-import { useTdx } from '../utils/featureFlags.js';
 import { ensureBalances } from '../cli-helpers/ensureBalances.js';
 import { warnBeforeTxFees } from '../cli-helpers/warnBeforeTxFees.js';
 import { resolveChainConfig } from '../cli-helpers/resolveChainConfig.js';
@@ -31,45 +29,14 @@ export async function deploy({ chain }: { chain?: string }) {
   const spinner = getSpinner();
   try {
     await goToProjectRoot({ spinner });
-    const { projectName, template, defaultChain } = await readIAppConfig();
+    const { projectName, defaultChain } = await readIAppConfig();
     const chainConfig = resolveChainConfig({
       chain,
       defaultChain,
       spinner,
     });
 
-    // initialize iExec
-    const iexecReadonly = getIExec({ ...chainConfig });
-    // determine TEE framework based on feature flag
-    const teeFramework = useTdx ? 'tdx' : 'scone';
-    // check TEE framework compatibility with selected chain
-    try {
-      await iexecReadonly.config.resolveSmsURL({ teeFramework });
-    } catch {
-      throw new Error(
-        `TEE framework ${teeFramework.toUpperCase()} is not supported on the selected chain`
-      );
-    }
-
-    if (teeFramework === 'scone') {
-      try {
-        await iexecReadonly.config.resolveSmsURL({ teeFramework: 'tdx' });
-        spinner.log(
-          warnBox(
-            `SGX SCONE TEE framework is deprecated in favor of TDX and will be removed in future versions.
-Please consider redeploying your app with TDX instead.
-        
-run ${color.command('EXPERIMENTAL_TDX_APP=1 iapp deploy')} to deploy your app with TDX now.`
-          )
-        );
-      } catch {
-        spinner.warn(
-          'SGX SCONE TEE framework is deprecated and will be removed in a future version, please contact iExec support to know more about TDX and how to migrate your app.'
-        );
-      }
-    }
-
-    await warnBeforeTxFees({ spinner, chain: chainConfig.name });
+    await warnBeforeTxFees({ spinner });
 
     const signer = await askForWallet({ spinner });
     const userAddress = await signer.getAddress();
@@ -115,89 +82,39 @@ run ${color.command('EXPERIMENTAL_TDX_APP=1 iapp deploy')} to deploy your app wi
     });
     spinner.succeed(`Docker image built (${imageId})`);
 
-    let appDockerImage: string;
-    let appContractAddress: string;
+    spinner.start('Pushing docker image...\n');
+    const {
+      dockerUserName,
+      imageName,
+      imageTag: originalImageTag,
+    } = parseImagePath(nonTeeImage);
+    const repo = `${dockerUserName}/${imageName}`;
+    const { Id } = await inspectImage(nonTeeImage);
+    const tdxImageShortId = Id.split('sha256:')[1].substring(0, 12); // extract 12 first chars after the leading "sha256:"
+    const tdxImageTag = `${originalImageTag}-tdx-${tdxImageShortId}`; // add short ID in tag to avoid replacing previous build
+    const tdxImage = await tagDockerImage({
+      image: nonTeeImage,
+      repo,
+      tag: tdxImageTag,
+    });
+    await pushDockerImage({
+      tag: tdxImage,
+      dockerhubUsername,
+      dockerhubAccessToken,
+    });
+    const appDockerImage = tdxImage;
+    spinner.succeed(`Pushed image ${tdxImage} on dockerhub`);
+    spinner.start('Deploying your TDX TEE app on iExec...');
+    const { RepoDigests } = await inspectImage(tdxImage);
+    const { address } = await iexec.app.deployApp({
+      owner: await iexec.wallet.getAddress(),
+      name: `${imageName}-${originalImageTag}`,
+      type: 'DOCKER',
+      multiaddr: tdxImage,
+      checksum: `0x${RepoDigests[0].split('@sha256:')[1]}`,
+    });
+    const appContractAddress = address;
 
-    if (useTdx) {
-      spinner.start('Pushing docker image...\n');
-      const {
-        dockerUserName,
-        imageName,
-        imageTag: originalImageTag,
-      } = parseImagePath(nonTeeImage);
-      const repo = `${dockerUserName}/${imageName}`;
-      const { Id } = await inspectImage(nonTeeImage);
-      const tdxImageShortId = Id.split('sha256:')[1].substring(0, 12); // extract 12 first chars after the leading "sha256:"
-      const tdxImageTag = `${originalImageTag}-tdx-${tdxImageShortId}`; // add short ID in tag to avoid replacing previous build
-      const tdxImage = await tagDockerImage({
-        image: nonTeeImage,
-        repo,
-        tag: tdxImageTag,
-      });
-      await pushDockerImage({
-        tag: tdxImage,
-        dockerhubUsername,
-        dockerhubAccessToken,
-      });
-      appDockerImage = tdxImage;
-      spinner.succeed(`Pushed image ${tdxImage} on dockerhub`);
-      spinner.start('Deploying your TDX TEE app on iExec...');
-      const { RepoDigests } = await inspectImage(tdxImage);
-      const { address } = await iexec.app.deployApp({
-        owner: await iexec.wallet.getAddress(),
-        name: `${imageName}-${originalImageTag}`,
-        type: 'DOCKER',
-        multiaddr: tdxImage,
-        checksum: `0x${RepoDigests[0].split('@sha256:')[1]}`,
-      });
-      appContractAddress = address;
-    } else {
-      spinner.start('Pushing docker image...\n');
-      await pushDockerImage({
-        tag: nonTeeImage,
-        dockerhubAccessToken,
-        dockerhubUsername,
-        progressCallback: (msg) => {
-          spinner.text = spinner.text + color.comment(msg);
-        },
-      });
-      spinner.succeed(`Pushed image ${nonTeeImage} on dockerhub`);
-      spinner.start(
-        'Transforming your image into a TEE image, this may take a few minutes...'
-      );
-      const {
-        dockerImage,
-        dockerImageDigest,
-        sconeVersion,
-        fingerprint,
-        entrypoint,
-      } = await sconify({
-        iAppNameToSconify: nonTeeImage,
-        template,
-        walletAddress: userAddress,
-        dockerhubAccessToken,
-        dockerhubUsername,
-      });
-      appDockerImage = dockerImage;
-      spinner.succeed(`Pushed TEE image ${appDockerImage} on dockerhub`);
-      spinner.start('Deploying your TEE app on iExec...');
-      const { address } = await iexec.app.deployApp({
-        owner: userAddress,
-        name: `${projectNameToImageName(projectName)}-${iAppVersion}`,
-        type: 'DOCKER',
-        multiaddr: dockerImage,
-        checksum: `0x${dockerImageDigest}`,
-        // Some code sample here: https://github.com/iExecBlockchainComputing/dataprotector-sdk/blob/v2/packages/protected-data-delivery-dapp/deployment/src/singleFunction/deployApp.ts
-        mrenclave: {
-          framework: 'SCONE',
-          version: sconeVersion,
-          entrypoint: entrypoint,
-          heapSize: 1073741824,
-          fingerprint,
-        },
-      });
-      appContractAddress = address;
-    }
     // Add deployment data to deployments.json
     await addDeploymentData({
       image: appDockerImage,
