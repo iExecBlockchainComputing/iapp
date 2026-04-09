@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.0](https://github.com/iExecBlockchainComputing/iapp/compare/iapp-v1.4.1...iapp-v1.5.0) (2026-04-09)
+
+
+### Added
+
+* enable TDX on arbitrum-mainnet ([#271](https://github.com/iExecBlockchainComputing/iapp/issues/271)) ([63614e6](https://github.com/iExecBlockchainComputing/iapp/commit/63614e64c6d073cecbb5865d21eda7e0e9cb7448))
+
 ## [1.4.1](https://github.com/iExecBlockchainComputing/iapp/compare/iapp-v1.4.0...iapp-v1.4.1) (2026-02-25)
 
 
