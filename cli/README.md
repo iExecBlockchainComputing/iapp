@@ -211,6 +211,16 @@ Options for `<chain>` :
 
 ### `bellecour` chain removed
 
-The `bellecour` chain is no longer supported. If you were using `bellecour` as
-the default chain, you will need to update your `iapp.config.json` file to set
-`defaultChain` to a supported chain (e.g. `arbitrum-sepolia-testnet`).
+The `bellecour` chain is no longer supported.
+
+If you were using `bellecour` as the default chain, you will need to update your
+`iapp.config.json` file to set `defaultChain` to a supported chain (e.g.
+`arbitrum-sepolia-testnet`).
+
+### SCONE TEE framework removed
+
+The SCONE TEE framework has been removed in favor of TDX. iApps deployed with
+SCONE will no longer be executable and must be redeployed with TDX.
+
+If your iApp was deployed using SCONE, redeploy it with TDX by running
+`iapp deploy` with the latest version of the `iapp` CLI.
