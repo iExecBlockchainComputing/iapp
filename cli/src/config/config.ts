@@ -76,15 +76,9 @@ type ChainConfig = {
 
 export const DEFAULT_CHAIN = 'arbitrum-sepolia-testnet';
 
-export const DEPRECATED_CHAINS = ['bellecour'];
+export const DEPRECATED_CHAINS: string[] = [];
 
 export const CHAINS_CONFIGURATIONS: Record<string, ChainConfig> = {
-  bellecour: {
-    rpcHostUrl: 'https://bellecour.iex.ec',
-    ipfsGatewayUrl: 'https://ipfs-gateway.v8-bellecour.iex.ec',
-    iexecExplorerUrl: 'https://explorer.iex.ec/bellecour',
-    sconeWorkerpool: 'prod-v8-learn.main.pools.iexec.eth',
-  },
   'arbitrum-mainnet': {
     rpcHostUrl: 'https://arb1.arbitrum.io/rpc',
     ipfsGatewayUrl: 'https://ipfs-gateway.arbitrum-mainnet.iex.ec',

@@ -110,7 +110,7 @@ run ${color.command('EXPERIMENTAL_TDX_APP=1 iapp deploy')} to redeploy your app 
       );
     }
 
-    await warnBeforeTxFees({ spinner, chain: chainConfig.name });
+    await warnBeforeTxFees({ spinner });
 
     // Get wallet from privateKey
     const signer = await askForWallet({ spinner });

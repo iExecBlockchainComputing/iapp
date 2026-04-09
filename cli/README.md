@@ -110,8 +110,9 @@ Description: Deploy your iApp on the iExec protocol in debug mode.
 Options:
 
 - use `--chain` Specify the blockchain on which the iApp will be deployed
-  (overrides defaultChain configuration which is `bellecour`). Possible values
-  are `bellecour|arbitrum-sepolia-testnet|arbitrum-mainnet`
+  (overrides `defaultChain` configuration which is declared in your
+  `iapp.config.json`). Possible values are
+  `arbitrum-sepolia-testnet|arbitrum-mainnet`
 
 ---
 
@@ -142,8 +143,9 @@ Options:
   include the `--protectedData` option followed by the address of the protected
   data.
 - use `--chain` Specify the blockchain on which the iApp will be deployed
-  (overrides defaultChain configuration which is `bellecour`). Possible values
-  are `bellecour|arbitrum-sepolia-testnet|arbitrum-mainnet`
+  (overrides `defaultChain` configuration which is declared in your
+  `iapp.config.json`). Possible values are
+  `arbitrum-sepolia-testnet|arbitrum-mainnet`
 
 ---
 
@@ -185,4 +187,30 @@ Description: Manage wallet.
 Options for `<action>` :
 
 - `import` import a new wallet by providing a private key.
-- `select` select a wallet from your personnal keystore.
+- `select` select a wallet from your personal keystore.
+
+---
+
+### `chain select`
+
+Command:
+
+```sh
+iapp chain select <chain>
+```
+
+Description: set the default chain to use for your iApp. This will update the
+`defaultChain` field in your `iapp.config.json` file.
+
+Options for `<chain>` :
+
+- `arbitrum-sepolia-testnet`
+- `arbitrum-mainnet`
+
+## Migrate from v1
+
+### `bellecour` chain removed
+
+The `bellecour` chain is no longer supported. If you were using `bellecour` as
+the default chain, you will need to update your `iapp.config.json` file to set
+`defaultChain` to a supported chain (e.g. `arbitrum-sepolia-testnet`).

@@ -69,7 +69,7 @@ run ${color.command('EXPERIMENTAL_TDX_APP=1 iapp deploy')} to deploy your app wi
       }
     }
 
-    await warnBeforeTxFees({ spinner, chain: chainConfig.name });
+    await warnBeforeTxFees({ spinner });
 
     const signer = await askForWallet({ spinner });
     const userAddress = await signer.getAddress();
