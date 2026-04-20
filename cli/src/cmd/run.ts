@@ -19,7 +19,6 @@ import { ensureBalances } from '../cli-helpers/ensureBalances.js';
 import { askForAcknowledgment } from '../cli-helpers/askForAcknowledgment.js';
 import { warnBeforeTxFees } from '../cli-helpers/warnBeforeTxFees.js';
 import { resolveChainConfig } from '../cli-helpers/resolveChainConfig.js';
-import { warnBox } from '../cli-helpers/box.js';
 
 export async function run({
   iAppAddress,
@@ -61,31 +60,11 @@ export async function run({
     // determine TEE framework based on app properties (SCONE apps define `appMREnclave`, TDX apps do NOT define `appMREnclave`)
     const isTdxApp = !app.appMREnclave;
     const teeFramework = isTdxApp ? 'tdx' : 'scone';
-    // check TEE framework compatibility with selected chain
-    try {
-      await readOnlyIexec.config.resolveSmsURL({ teeFramework });
-    } catch {
-      throw new Error(
-        `TEE framework ${teeFramework.toUpperCase()} is not supported on the selected chain`
-      );
-    }
 
     if (teeFramework === 'scone') {
-      try {
-        await readOnlyIexec.config.resolveSmsURL({ teeFramework: 'tdx' });
-        spinner.log(
-          warnBox(
-            `SGX SCONE TEE framework is deprecated in favor of TDX and will be removed in future versions.
-Please consider redeploying your app with TDX instead.
-            
-run ${color.command('EXPERIMENTAL_TDX_APP=1 iapp deploy')} to redeploy your app with TDX.`
-          )
-        );
-      } catch {
-        spinner.warn(
-          'SGX SCONE TEE framework is deprecated and will be removed in a future version, please contact iExec support to know more about TDX and how to migrate your app.'
-        );
-      }
+      throw new Error(
+        'The selected iApp is using the SGX SCONE TEE framework which is no longer supported. The iApp must be redeployed with TDX.'
+      );
     }
 
     if (protectedData.length > 0) {
@@ -110,7 +89,7 @@ run ${color.command('EXPERIMENTAL_TDX_APP=1 iapp deploy')} to redeploy your app 
       );
     }
 
-    await warnBeforeTxFees({ spinner, chain: chainConfig.name });
+    await warnBeforeTxFees({ spinner });
 
     // Get wallet from privateKey
     const signer = await askForWallet({ spinner });
@@ -186,9 +165,7 @@ run ${color.command('EXPERIMENTAL_TDX_APP=1 iapp deploy')} to redeploy your app 
     // Workerpool Order
     spinner.start('Fetching workerpool order...');
     const workerpoolOrderbook = await iexec.orderbook.fetchWorkerpoolOrderbook({
-      workerpool: isTdxApp
-        ? chainConfig.tdxWorkerpool
-        : chainConfig.sconeWorkerpool,
+      workerpool: chainConfig.tdxWorkerpool,
       app: iAppAddress,
       minTag: apporder.tag,
       minVolume: volume, // TODO handle multiple matches if not enough volume

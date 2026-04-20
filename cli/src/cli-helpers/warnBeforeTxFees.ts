@@ -3,16 +3,12 @@ import { askForAcknowledgment } from './askForAcknowledgment.js';
 
 export async function warnBeforeTxFees({
   spinner,
-  chain,
 }: {
   spinner: Spinner;
-  chain: string;
 }): Promise<void> {
-  if (chain !== 'bellecour') {
-    await askForAcknowledgment({
-      spinner,
-      message:
-        'This method requires sending blockchain transactions, transaction fees will be applied. Would you like to continue?',
-    });
-  }
+  await askForAcknowledgment({
+    spinner,
+    message:
+      'This method requires sending blockchain transactions, transaction fees will be applied. Would you like to continue?',
+  });
 }

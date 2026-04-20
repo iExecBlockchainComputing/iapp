@@ -1,7 +1,3 @@
-export const DEFAULT_SCONE_VERSION = 'v5.9';
-
-export const SCONIFY_API_WS_URL = 'wss://iapp-api.iex.ec';
-
 export const CONFIG_FILE = 'iapp.config.json';
 export const TEST_INPUT_DIR = 'input';
 export const TEST_OUTPUT_DIR = 'output';
@@ -12,7 +8,6 @@ export const PROTECTED_DATA_MOCK_DIR = 'mock/protectedData';
 export const IEXEC_OUT = '/iexec_out';
 export const IEXEC_COMPUTED_JSON = 'computed.json';
 export const IEXEC_DETERMINISTIC_OUTPUT_PATH_KEY = 'deterministic-output-path';
-export const IEXEC_SCONE_WORKER_HEAP_SIZE = 1024 * 1024 * 1024; // iExec SCONE worker memory limit (1 GiB)
 export const IEXEC_TDX_WORKER_HEAP_SIZE = 6 * 1024 * 1024 * 1024; // iExec TDX worker memory limit (6 GiB)
 export const IEXEC_RESULT_UPLOAD_MAX_SIZE = 50 * 1024 * 1024; // Maximum allowed size for the result output (50 MiB)
 
@@ -59,44 +54,28 @@ export const TEMPLATES: Record<
   },
 };
 
-const WS_SERVER_SESSION_TIMEOUT = 60_000; // session retention after websocket close proposed by the API
-export const WS_SERVER_HEARTBEAT_INTERVAL = 15_000; // heartbeat proposed by the API
-export const WS_RECONNECTION_DELAY = 6_000;
-export const WS_RECONNECTION_MAX_ATTEMPTS = Math.floor(
-  WS_SERVER_SESSION_TIMEOUT / WS_RECONNECTION_DELAY
-);
-
 type ChainConfig = {
   rpcHostUrl: string;
   ipfsGatewayUrl: string;
   iexecExplorerUrl: string;
-  sconeWorkerpool?: string;
-  tdxWorkerpool?: string;
+  tdxWorkerpool: string;
 };
 
 export const DEFAULT_CHAIN = 'arbitrum-sepolia-testnet';
 
-export const DEPRECATED_CHAINS = ['bellecour'];
+export const DEPRECATED_CHAINS: string[] = [];
 
 export const CHAINS_CONFIGURATIONS: Record<string, ChainConfig> = {
-  bellecour: {
-    rpcHostUrl: 'https://bellecour.iex.ec',
-    ipfsGatewayUrl: 'https://ipfs-gateway.v8-bellecour.iex.ec',
-    iexecExplorerUrl: 'https://explorer.iex.ec/bellecour',
-    sconeWorkerpool: 'prod-v8-learn.main.pools.iexec.eth',
-  },
   'arbitrum-mainnet': {
     rpcHostUrl: 'https://arb1.arbitrum.io/rpc',
     ipfsGatewayUrl: 'https://ipfs-gateway.arbitrum-mainnet.iex.ec',
     iexecExplorerUrl: 'https://explorer.iex.ec/arbitrum-mainnet',
-    sconeWorkerpool: '0x2c06263943180cc024daffeee15612db6e5fd248',
     tdxWorkerpool: '0x8ef2ec3ef9535d4b4349bfec7d8b31a580e60244',
   },
   'arbitrum-sepolia-testnet': {
     rpcHostUrl: 'https://sepolia-rollup.arbitrum.io/rpc',
     ipfsGatewayUrl: 'https://ipfs-gateway.arbitrum-sepolia-testnet.iex.ec',
     iexecExplorerUrl: 'https://explorer.iex.ec/arbitrum-sepolia-testnet',
-    sconeWorkerpool: '0xB967057a21dc6A66A29721d96b8Aa7454B7c383F',
     tdxWorkerpool: '0x2956f0cb779904795a5f30d3b3ea88b714c3123f',
   },
 };
