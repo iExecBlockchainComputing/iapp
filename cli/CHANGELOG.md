@@ -1,5 +1,18 @@
 # Changelog
 
+## [2.0.0](https://github.com/iExecBlockchainComputing/iapp/compare/iapp-v1.5.0...iapp-v2.0.0) (2026-04-20)
+
+
+### ⚠ BREAKING CHANGES
+
+* remove SCONE TEE framework ([#273](https://github.com/iExecBlockchainComputing/iapp/issues/273))
+* iApps deployed with SCONE will no longer be executable and must be redeployed with TDX by running `iapp deploy`
+
+### Changed
+
+* remove bellecour chain ([#273](https://github.com/iExecBlockchainComputing/iapp/issues/273)) ([e852724](https://github.com/iExecBlockchainComputing/iapp/commit/e85272437a47213312869d2c548121609a9c785e))
+* remove SCONE TEE framework ([#273](https://github.com/iExecBlockchainComputing/iapp/issues/273)) ([e852724](https://github.com/iExecBlockchainComputing/iapp/commit/e85272437a47213312869d2c548121609a9c785e))
+
 ## [1.5.0](https://github.com/iExecBlockchainComputing/iapp/compare/iapp-v1.4.1...iapp-v1.5.0) (2026-04-09)
 
 
