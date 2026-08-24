@@ -3,9 +3,7 @@ import express from 'express';
 import { pino } from 'pino';
 import { loggerMiddleware } from './utils/logger.js';
 import { requestIdMiddleware } from './utils/requestId.js';
-import { errorHandlerMiddleware, OutdatedClientError } from './utils/errors.js';
-import { attachWebSocketServer } from './utils/websocket.js';
-import { sconifyBuildWsHandler } from './sconify/sconifyBuild.handler.js';
+import { errorHandlerMiddleware } from './utils/errors.js';
 
 const app = express();
 const hostname = '0.0.0.0';
@@ -24,16 +22,6 @@ app.use(express.json());
 app.use(requestIdMiddleware);
 app.use(loggerMiddleware);
 
-app.post('/sconify', () => {
-  throw new OutdatedClientError('/sconify endpoint is no longer supported.');
-});
-
-app.post('/sconify/build', () => {
-  throw new OutdatedClientError(
-    '/sconify/build endpoint is no longer supported.'
-  );
-});
-
 // Health endpoint
 app.get('/health', (req, res) => {
   res.json({
@@ -48,23 +36,8 @@ app.get('/', (req, res) => {
 
 app.use(errorHandlerMiddleware);
 
-const server = app.listen(port, hostname, () => {
+app.listen(port, hostname, () => {
   rootLogger.info(`Server running at http://${hostname}:${port}/`);
-});
-
-// websocket
-attachWebSocketServer({
-  server,
-  requestRouter: (requestTarget) => {
-    if (requestTarget === 'SCONIFY') {
-      throw new OutdatedClientError(
-        'SCONIFY request target is no longer supported.'
-      );
-    }
-    if (requestTarget === 'SCONIFY_BUILD') {
-      return sconifyBuildWsHandler;
-    }
-  },
 });
 
 process.on('uncaughtException', (err) => {

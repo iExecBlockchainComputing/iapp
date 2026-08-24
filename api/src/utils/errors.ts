@@ -1,4 +1,3 @@
-import { ValidationError } from 'zod-validation-error';
 import { logger } from './logger.js';
 import type { ErrorRequestHandler } from 'express';
 
@@ -44,20 +43,8 @@ export const errorHandler = (
   err: any,
   callback: (errorDigest: { code: number; error: string }) => void
 ) => {
-  if (
-    // handle Zod validation errors
-    err instanceof ValidationError ||
-    // handle body-parser errors
-    (err.status && err.status === 400)
-  ) {
-    logger.info({ err }, err.name);
-    callback({
-      code: 400,
-      error: err.toString(),
-    });
-  }
   // handle outdated client errors
-  else if (err instanceof OutdatedClientError) {
+  if (err instanceof OutdatedClientError) {
     logger.info({ err }, err.name);
     callback({
       code: 410,
