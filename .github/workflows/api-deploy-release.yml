@@ -35,12 +35,3 @@ jobs:
     secrets:
       docker-username: ${{ secrets.DOCKERHUB_USERNAME }}
       docker-password: ${{ secrets.DOCKERHUB_PAT }}
-
-  deploy:
-    if: startsWith(github.ref_name,'iapp-api-v')
-    needs: [get-version, docker-publish]
-    uses: ./.github/workflows/reusable-api-deploy.yml
-    with:
-      tag: ${{ needs.get-version.outputs.version }}
-    secrets:
-      host: ${{ secrets.API_HOST }}
