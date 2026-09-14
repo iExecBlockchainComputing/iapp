@@ -5,7 +5,6 @@ import {
   CHAINS_CONFIGURATIONS,
   CONFIG_FILE,
   DEFAULT_CHAIN,
-  LEGACY_TEMPLATE_NAMES,
   SUPPORTED_CHAINS,
   TEMPLATES,
 } from '../config/config.js';
@@ -46,12 +45,7 @@ const jsonConfigFileSchema = z.object({
   defaultChain: chainNameSchema.default(DEFAULT_CHAIN),
   projectName: projectNameSchema,
   template: z
-    .enum(
-      Object.keys(TEMPLATES).concat(LEGACY_TEMPLATE_NAMES) as [
-        string,
-        ...[string],
-      ]
-    )
+    .enum(Object.keys(TEMPLATES) as [string, ...[string]])
     .default('JavaScript'),
   dockerhubUsername: z.string().optional(),
   dockerhubAccessToken: z.string().optional(),

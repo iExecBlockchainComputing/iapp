@@ -15,11 +15,6 @@ export const TASK_OBSERVATION_TIMEOUT = 180000; // 3 minutes
 
 export type TemplateName = 'JavaScript' | 'Python3.13';
 
-/**
- * legacy templates name still supported by the API but dropped in the CLI
- */
-export const LEGACY_TEMPLATE_NAMES = ['Python'];
-
 export const TEMPLATES: Record<
   TemplateName,
   {
