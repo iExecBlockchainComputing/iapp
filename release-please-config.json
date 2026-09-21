@@ -28,11 +28,6 @@
       "release-type": "node",
       "changelog-path": "CHANGELOG.md",
       "include-v-in-tag": true
-    },
-    "api": {
-      "release-type": "node",
-      "changelog-path": "CHANGELOG.md",
-      "include-v-in-tag": true
     }
   }
 }
