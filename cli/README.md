@@ -9,7 +9,7 @@ This CLI provides an interface to guide you through different steps:
 
 ## Prerequisites
 
-- Node.js v20 or higher
+- Node.js v22 or higher
 - A directory where you want to init your iApp. If not, create a new folder.
   (`iapp init` will also propose you to do so)
 - Docker
