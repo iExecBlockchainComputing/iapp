@@ -209,24 +209,22 @@ export async function run({
     };
 
     spinner.start('Checking balances...');
-    const { total, sponsored } =
-      await iexec.order.estimateMatchOrders(matchOrderParams);
-    const priceToPay = total.sub(sponsored);
+    const { total } = await iexec.order.estimateMatchOrders(matchOrderParams);
     const balances = await ensureBalances({
       spinner,
       iexec,
-      nRlcMin: priceToPay,
+      nRlcMin: total,
     });
 
-    if (!priceToPay.isZero()) {
+    if (!total.isZero()) {
       await askForAcknowledgment({
         spinner,
-        message: `You will spend ${utils.formatRLC(priceToPay)} RLC to run your iApp. Would you like to continue?`,
+        message: `You will spend ${utils.formatRLC(total)} RLC to run your iApp. Would you like to continue?`,
       });
     }
 
-    if (balances.stake.lt(priceToPay)) {
-      const toDeposit = priceToPay.sub(balances.stake);
+    if (balances.stake.lt(total)) {
+      const toDeposit = total.sub(balances.stake);
       await askForAcknowledgment({
         spinner,
         message: `Current account stake is ${utils.formatRLC(balances.stake)} RLC, you need to deposit an additional ${utils.formatRLC(toDeposit)} RLC from your wallet. Would you like to continue?`,
