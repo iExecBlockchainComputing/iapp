@@ -1,0 +1,92 @@
+version: 2
+
+# Low-maintenance setup
+#
+# Rationale:
+# - Dependabot *security* updates are NOT configured here: they are a repository
+#   setting (Settings > Code security) and run off the dependency graph. They stay
+#   active for every ecosystem below, including dependencies filtered out by `allow`,
+#   and they ignore `open-pull-requests-limit`.
+# - Everything below is about *version* updates, whose only job is to limit drift so
+#   that security updates remain applicable when they are needed.
+# - Dev dependencies are excluded from proactive updates.
+# - Updates are grouped and monthly to keep the PR volume low.
+# - The project templates (cli/templates/*) are shipped with the CLI: their updates
+#   are made as `fix` so that a release is made.
+
+updates:
+  - package-ecosystem: 'npm'
+    directory: '/cli'
+    schedule:
+      interval: 'monthly'
+    versioning-strategy: 'increase'
+    allow:
+      - dependency-type: 'production'
+    groups:
+      production-dependencies:
+        patterns:
+          - '*'
+    open-pull-requests-limit: 3
+    cooldown:
+      default-days: 7
+    commit-message:
+      prefix: 'fix'
+      include: 'scope'
+
+  - package-ecosystem: 'npm'
+    directory: '/cli/templates/JavaScript'
+    schedule:
+      interval: 'monthly'
+    versioning-strategy: 'increase'
+    groups:
+      template-javascript-dependencies:
+        patterns:
+          - '*'
+    open-pull-requests-limit: 1
+    cooldown:
+      default-days: 7
+    commit-message:
+      prefix: 'fix'
+      include: 'scope'
+
+  - package-ecosystem: 'pip'
+    directory: '/cli/templates/Python3.13'
+    schedule:
+      interval: 'monthly'
+    groups:
+      template-python-dependencies:
+        patterns:
+          - '*'
+    open-pull-requests-limit: 1
+    cooldown:
+      default-days: 7
+    commit-message:
+      prefix: 'fix'
+      include: 'scope'
+
+  - package-ecosystem: 'github-actions'
+    directory: '/'
+    schedule:
+      interval: 'monthly'
+    groups:
+      github-actions:
+        patterns:
+          - '*'
+    open-pull-requests-limit: 2
+    commit-message:
+      prefix: 'ci'
+
+  - package-ecosystem: 'docker'
+    directories:
+      - '/cli/templates/JavaScript'
+      - '/cli/templates/Python3.13'
+    schedule:
+      interval: 'monthly'
+    groups:
+      docker-base-images:
+        patterns:
+          - '*'
+    open-pull-requests-limit: 2
+    commit-message:
+      prefix: 'fix'
+      include: 'scope'
