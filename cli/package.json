@@ -19,6 +19,9 @@
   },
   "author": "iExec",
   "license": "Apache-2.0",
+  "engines": {
+    "node": ">=22"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/iExecBlockchainComputing/iapp.git"
