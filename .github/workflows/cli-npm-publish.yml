@@ -8,11 +8,15 @@ on:
   release:
     types: [published]
 
+permissions: {}
+
 jobs:
   compute-staging-version:
     # Only run for manual dispatch (staging)
     if: github.event_name == 'workflow_dispatch'
     uses: ./.github/workflows/reusable-compute-staging-version.yml
+    permissions:
+      contents: read
     with:
       working-directory: cli
 
@@ -20,6 +24,10 @@ jobs:
     # Only run for manual dispatch (staging)
     if: github.event_name == 'workflow_dispatch'
     uses: ./.github/workflows/reusable-cli-npm.yml
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
     needs: compute-staging-version
     with:
       version: ${{ needs.compute-staging-version.outputs.version }}
@@ -30,5 +38,9 @@ jobs:
     if:
       ${{ github.event_name == 'release' && startsWith(github.ref_name,'iapp-v') }}
     uses: ./.github/workflows/reusable-cli-npm.yml
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
     with:
       tag: 'latest'
