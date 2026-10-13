@@ -1,5 +1,5 @@
+# triggers release-please to open the next release PR
 name: release-please
-description: triggers release-please to open the next release PR
 
 on:
   push:

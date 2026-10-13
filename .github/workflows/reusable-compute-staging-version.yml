@@ -1,6 +1,5 @@
+# compute a staging version from the current version, branch name and commit
 name: Compute staging version
-description:
-  compute a staging version from the current version, branch name and commit
 
 on:
   workflow_call:
@@ -32,8 +31,8 @@ jobs:
           COMMIT_SHA="${{ github.sha }}"
           CURRENT_VERSION=$(npm pkg get version | tr -d '"')
           STAGING_VERSION="${CURRENT_VERSION}-${BRANCH}-${COMMIT_SHA::7}"
-          echo "VERSION=${STAGING_VERSION}" | tee -a $GITHUB_OUTPUT
-          echo "DIST_TAG=${BRANCH}" | tee -a $GITHUB_OUTPUT
+          echo "VERSION=${STAGING_VERSION}" | tee -a "$GITHUB_OUTPUT"
+          echo "DIST_TAG=${BRANCH}" | tee -a "$GITHUB_OUTPUT"
     outputs:
       version: ${{ steps.set-publish-version.outputs.VERSION }}
       dist-tag: ${{ steps.set-publish-version.outputs.DIST_TAG }}
