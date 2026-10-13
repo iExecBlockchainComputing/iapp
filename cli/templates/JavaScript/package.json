@@ -8,6 +8,6 @@
     // <<protectedData|bulkProcessing>>
     "@iexec/dataprotector-deserializer": "^0.1.1",
     // <</protectedData|bulkProcessing>>
-    "figlet": "^1.8.1"
+    "figlet": "^1.11.3"
   }
 }
