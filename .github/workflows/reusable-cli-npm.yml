@@ -20,7 +20,7 @@ on:
 
 jobs:
   npm-publish:
-    uses: iExecBlockchainComputing/github-actions-workflows/.github/workflows/publish-npm.yml@1f9f07ab7380426fd6b59c32baa352a89e8a479b # publish-npm-v1.7.1
+    uses: iExecBlockchainComputing/github-actions-workflows/.github/workflows/publish-npm.yml@c180a865f53d525d94e5ea7662892e60d66369f3 # publish-npm-v2.0.0
     with:
       working-directory: cli
       install-command: npm ci
