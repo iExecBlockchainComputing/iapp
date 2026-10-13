@@ -77,9 +77,7 @@ export async function run({
             throw Error(`No protectedData found at ${dataset}.`);
           }
           const isSecretSet =
-            await readOnlyIexec.dataset.checkDatasetSecretExists(dataset, {
-              teeFramework,
-            });
+            await readOnlyIexec.dataset.checkDatasetSecretExists(dataset);
           if (!isSecretSet) {
             throw Error(
               `The protectedData secret key for ${dataset} is not registered in the Secret Management Service (SMS) of iExec protocol.`
@@ -153,7 +151,6 @@ export async function run({
             const name = await pushRequesterSecret({
               iexec,
               value,
-              teeFramework,
             });
             return [key, name];
           })
@@ -310,14 +307,12 @@ ${color.link(`${chainConfig.ipfsGatewayUrl}${location}`)}`);
 async function pushRequesterSecret({
   iexec,
   value,
-  teeFramework,
 }: {
   iexec: IExec;
   value: string;
-  teeFramework: 'scone' | 'tdx';
 }) {
   const secretName = uuidV4();
-  await iexec.secrets.pushRequesterSecret(secretName, value, { teeFramework });
+  await iexec.secrets.pushRequesterSecret(secretName, value);
   return secretName;
 }
 
