@@ -6,12 +6,11 @@ on:
     branches:
       - main
 
-permissions:
-  contents: write
-  issues: write
-  pull-requests: write
+permissions: {}
 
 jobs:
   release-please:
     uses: iExecBlockchainComputing/github-actions-workflows/.github/workflows/release-please.yml@31ad5d9e686d47c7ebdd3c7df3f8c50f58415428 # release-please-v2.2.3
-    secrets: inherit
+    secrets:
+      RELEASE_PLEASE_APPLICATION_ID: ${{ secrets.RELEASE_PLEASE_APPLICATION_ID }}
+      RELEASE_PLEASE_PRIVATE_KEY: ${{ secrets.RELEASE_PLEASE_PRIVATE_KEY }}
