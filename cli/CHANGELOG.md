@@ -1,5 +1,16 @@
 # Changelog
 
+## [2.0.1](https://github.com/iExecBlockchainComputing/iapp/compare/iapp-v2.0.0...iapp-v2.0.1) (2026-10-15)
+
+
+### Changed
+
+* **deps:** bump figlet ([a57fefc](https://github.com/iExecBlockchainComputing/iapp/commit/a57fefc7f018c8ba09c9636907130ccf18d3572d))
+* **deps:** bump figlet from 1.8.1 to 1.12.0 in /cli/templates/JavaScript in the template-javascript-dependencies group ([#281](https://github.com/iExecBlockchainComputing/iapp/issues/281)) ([a57fefc](https://github.com/iExecBlockchainComputing/iapp/commit/a57fefc7f018c8ba09c9636907130ccf18d3572d))
+* **deps:** bump pyfiglet ([f119124](https://github.com/iExecBlockchainComputing/iapp/commit/f119124504189d99f01609b6528120439b159243))
+* **deps:** bump pyfiglet from 1.0.2 to 1.0.4 in /cli/templates/Python3.13 in the template-python-dependencies group across 1 directory ([#282](https://github.com/iExecBlockchainComputing/iapp/issues/282)) ([f119124](https://github.com/iExecBlockchainComputing/iapp/commit/f119124504189d99f01609b6528120439b159243))
+* **deps:** bump the production-dependencies group across 1 directory with 14 updates ([#284](https://github.com/iExecBlockchainComputing/iapp/issues/284)) ([ea74858](https://github.com/iExecBlockchainComputing/iapp/commit/ea748588e3150f5f3042a38db8af60142a12ead8))
+
 ## [2.0.0](https://github.com/iExecBlockchainComputing/iapp/compare/iapp-v1.5.0...iapp-v2.0.0) (2026-04-20)
 
 
